@@ -1,0 +1,21 @@
+# Python 虚拟环境
+venv/
+
+# Python 缓存文件
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 日志文件
+logs/
+
+# 配置文件 (建议不提交, 除非确定没有敏感信息)
+# config.ini
+
+# IDE/编辑器特定文件
+.vscode/
+.idea/
+
+# 备份文件
+*.bak
