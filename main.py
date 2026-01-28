@@ -15,6 +15,11 @@ from api_client import Get_LLM_Client_by_Config
 from chat_module import Send_Message_to_LLM
 
 def main():
+    # @Antigravity, 20260128, [ADD]: Create logs directory if it does not exist
+    log_dir = os.path.join(os.path.dirname(__file__), 'logs')
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+
     # @Antigravity, 20260128, [ADD]: Configure logging from config.ini
     config_path = os.path.join(os.path.dirname(__file__), 'config.ini')
     logging.config.fileConfig(config_path, disable_existing_loggers=False)
