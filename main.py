@@ -10,10 +10,59 @@ import configparser
 import logging.config
 import logging
 import os
+import csv # @Antigravity, 20260129, [ADD]: Import for CSV logging
+import time # @Antigravity, 20260129, [ADD]: Import for spinner
+import threading # @Antigravity, 20260129, [ADD]: Import for non-blocking UI
+import sys # @Antigravity, 20260129, [ADD]: Import for stdout flushing
+from datetime import datetime # @Antigravity, 20260129, [ADD]: Import for timestamp
 from logging_setup import get_logging_config
 
 from api_client import Get_LLM_Client_by_Config
 from chat_module import ChatSession # @Antigravity, 20260129, [MOD]: Import ChatSession
+
+# @Antigravity, 20260129, [ADD]: Helper function to save stats to CSV
+def save_usage_stats(log_dir, model_name, stats):
+    """Appends usage statistics to a CSV file."""
+    if not stats:
+        return
+
+    csv_file = os.path.join(log_dir, 'usage_stats.csv')
+    file_exists = os.path.isfile(csv_file)
+    
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    usage = stats.get('usage', {})
+    
+    row = {
+        'timestamp': timestamp,
+        'model': model_name,
+        'latency_sec': f"{stats.get('latency', 0):.4f}",
+        'total_tokens': usage.get('total_tokens', 0),
+        'prompt_tokens': usage.get('prompt_tokens', 0),
+        'completion_tokens': usage.get('completion_tokens', 0)
+    }
+
+    try:
+        with open(csv_file, 'a', newline='', encoding='utf-8') as f:
+            writer = csv.DictWriter(f, fieldnames=row.keys())
+            if not file_exists:
+                writer.writeheader()
+            writer.writerow(row)
+    except Exception as e:
+        logging.getLogger(__name__).error(f"Failed to save usage stats to CSV: {e}")
+
+# @Antigravity, 20260129, [ADD]: Spinner task for threading
+def spinner_task(stop_event):
+    """Displays a rotating spinner while waiting."""
+    spinner_chars = ['|', '/', '-', '\\']
+    idx = 0
+    while not stop_event.is_set():
+        sys.stdout.write(f"\rThinking... {spinner_chars[idx]}")
+        sys.stdout.flush()
+        idx = (idx + 1) % len(spinner_chars)
+        time.sleep(0.1)
+    # Clear line on stop
+    sys.stdout.write("\r" + " " * 20 + "\r")
+    sys.stdout.flush()
 
 def main():
     # --- Configuration and Logging Setup ---
@@ -65,10 +114,43 @@ def main():
             if not user_input.strip():
                 continue
 
-            response = chat_session.send_message(user_input)
+            # # response, stats = chat_session.send_message(user_input)
+            
+            # @Antigravity, 20260129, [MOD]: Threaded execution with spinner
+            result_container = {}
+            def api_call_wrapper():
+                result_container['response'], result_container['stats'] = chat_session.send_message(user_input)
+
+            # Start API thread
+            api_thread = threading.Thread(target=api_call_wrapper)
+            api_thread.start()
+
+            # Start spinner logic
+            stop_spinner = threading.Event()
+            spinner_thread = threading.Thread(target=spinner_task, args=(stop_spinner,))
+            spinner_thread.start()
+
+            # Wait for API call to finish
+            api_thread.join()
+            
+            # Stop spinner
+            stop_spinner.set()
+            spinner_thread.join()
+
+            response = result_container.get('response')
+            stats = result_container.get('stats')
 
             if response:
                 print(f"\nLLM > {response}")
+                # @Antigravity, 20260129, [ADD]: Display statistics and save to CSV
+                if stats:
+                    # Save to CSV
+                    save_usage_stats(log_dir, chat_session.model, stats)
+                    
+                    # Print simplified summary
+                    usage = stats['usage']
+                    print(f"\n[Stats] Latency: {stats['latency']:.2f}s | Tokens: {usage['total_tokens']} "
+                          f"(In: {usage['prompt_tokens']}, Out: {usage['completion_tokens']})")
             else:
                 print("\nLLM > Sorry, I encountered an error.")
 
