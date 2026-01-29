@@ -11,7 +11,7 @@ __pycache__/
 logs/
 
 # 配置文件 (建议不提交, 除非确定没有敏感信息)
-# config.ini
+config.ini
 
 # IDE/编辑器特定文件
 .vscode/
