@@ -10,43 +10,55 @@ import argparse
 import configparser
 import logging.config
 import logging
-import os # @Antigravity, 20260129, [FIX]: Move os import to top
+import os
+from logging_setup import get_logging_config # @Antigravity, 20260129, [ADD]: Import new logging setup
 
 from api_client import Get_LLM_Client_by_Config
 from chat_module import Send_Message_to_LLM
 
 def main():
-    # @Antigravity, 20260128, [ADD]: Create logs directory if it does not exist
+    # --- Configuration Setup ---
+    # Create logs directory
     log_dir = os.path.join(os.path.dirname(__file__), 'logs')
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
 
-    # @Antigravity, 20260128, [ADD]: Configure logging from config.ini
+    # Load external config file if it exists
+    config = configparser.ConfigParser()
     config_path = os.path.join(os.path.dirname(__file__), 'config.ini')
-    logging.config.fileConfig(config_path, disable_existing_loggers=False)
+    config.read(config_path)
+
+    # --- Logging Setup ---
+    # Get default logging config
+    log_level_override = config.get('logging', 'level', fallback='INFO')
+    logging_config = get_logging_config(log_level=log_level_override)
+    
+    # Apply logging configuration
+    logging.config.dictConfig(logging_config)
     logger = logging.getLogger(__name__)
 
+    logger.info("Logging configured successfully.")
+
+    # --- Argument Parsing ---
     parser = argparse.ArgumentParser(description="Interact with a local LLM.")
     parser.add_argument("prompt", type=str, help="The prompt to send to the LLM.")
     
     args = parser.parse_args()
 
-    # Load configuration
-    config = configparser.ConfigParser()
-    # @Antigravity, 20260128, [DEL]: Removed redundant config_path definition
-    config.read(config_path)
-
-    model_name = config['LLM'].get('model', 'local-model')
+    # --- Main Logic ---
+    if not config.has_section('LLM'):
+        logger.error("Configuration file 'config.ini' is missing or does not have an [LLM] section.")
+        logger.error("Please copy 'config.example.ini' to 'config.ini' and fill in your details.")
+        return
 
     # Initialize LLM client
-    llm_client = Get_LLM_Client_by_Config(config) # @Antigravity, 20260128, [FIX]: Pass config object instead of config_path
+    llm_client = Get_LLM_Client_by_Config(config)
 
     if llm_client:
-        logger.info("LLM client initialized successfully.") # @Antigravity, 20260128, [ADD]: Log success
-        Send_Message_to_LLM(llm_client, args.prompt, config) # @Antigravity, 20260128, [FIX]: Pass config object instead of model_name
+        logger.info("LLM client initialized successfully.")
+        Send_Message_to_LLM(llm_client, args.prompt, config)
     else:
-        logger.error("Failed to get LLM client, cannot send message.") # @Antigravity, 20260128, [FIX]: Use logger.error instead of print
+        logger.error("Failed to get LLM client, cannot send message.")
 
 if __name__ == '__main__':
-    import os
     main()
