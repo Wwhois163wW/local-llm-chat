@@ -125,6 +125,11 @@ def main():
                         continue
                     
                     file_path = parts[1].strip()
+                    # @Antigravity, 20260129, [ADD]: Strip surrounding quotes from path (Windows convenience)
+                    if (file_path.startswith('"') and file_path.endswith('"')) or \
+                       (file_path.startswith("'") and file_path.endswith("'")):
+                        file_path = file_path[1:-1]
+                    
                     if not os.path.exists(file_path):
                         print(f"Error: File not found: {file_path}")
                         continue
