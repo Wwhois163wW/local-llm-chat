@@ -114,6 +114,41 @@ def main():
             if not user_input.strip():
                 continue
 
+            # @Antigravity, 20260129, [ADD]: Handle commands like /add
+            if user_input.startswith('/'):
+                parts = user_input.split(maxsplit=1)
+                command = parts[0].lower()
+                
+                if command == '/add':
+                    if len(parts) < 2:
+                        print("Error: Please provide a file path. Usage: /add <path>")
+                        continue
+                    
+                    file_path = parts[1].strip()
+                    if not os.path.exists(file_path):
+                        print(f"Error: File not found: {file_path}")
+                        continue
+                    
+                    try:
+                        with open(file_path, 'r', encoding='utf-8') as f:
+                            file_content = f.read()
+                        
+                        file_name = os.path.basename(file_path)
+                        # Wrap content for LLM
+                        user_input = (
+                            f"The following is the content of the file '{file_name}':\n\n"
+                            f"{file_content}\n\n"
+                            f"Please acknowledge that you have read and understood this file."
+                        )
+                        print(f"Adding file '{file_name}' to context...")
+                    except Exception as e:
+                        logger.error(f"Failed to read file {file_path}: {e}")
+                        print(f"Error: Could not read file: {e}")
+                        continue
+                else:
+                    print(f"Unknown command: {command}")
+                    continue
+
             # # response, stats = chat_session.send_message(user_input)
             
             # @Antigravity, 20260129, [MOD]: Threaded execution with spinner
