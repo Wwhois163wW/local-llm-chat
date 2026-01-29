@@ -4,15 +4,22 @@
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
 # Date: 20260129
-# Version: 1.2.0
+# Version: 1.2.1
 
 import sys
+import os
 
-def get_logging_config(log_level='INFO'):
+def get_logging_config(log_dir: str, log_level='INFO'):
     """
     Returns a dictionary with the default logging configuration.
-    The log level can be overridden.
+    The log file path is constructed dynamically based on the provided directory.
+    
+    Args:
+        log_dir (str): The absolute path to the directory where logs should be stored.
+        log_level (str): The desired log level for the console handler.
     """
+    log_file_path = os.path.join(log_dir, 'app.log')
+    
     return {
         'version': 1,
         'disable_existing_loggers': False,
@@ -33,7 +40,7 @@ def get_logging_config(log_level='INFO'):
                 'class': 'logging.handlers.RotatingFileHandler',
                 'level': 'DEBUG',
                 'formatter': 'simpleFormatter',
-                'filename': 'logs/app.log',
+                'filename': log_file_path, # Use the absolute path
                 'maxBytes': 10485760, # 10MB
                 'backupCount': 5,
                 'encoding': 'utf8',

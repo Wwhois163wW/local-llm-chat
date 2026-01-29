@@ -3,60 +3,113 @@
 # chat_module.py
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
-# Date: 20260127
-# Version: 1.2.0
+# Date: 20260129
+# Version: 1.3.0
 
 from openai import OpenAI
 import configparser
-import logging # @Antigravity, 20260128, [ADD]: Add logging import
-import os # @Antigravity, 20260128, [ADD]: Add os import for example usage
+import logging
+import os
 
-logger = logging.getLogger(__name__) # @Antigravity, 20260128, [ADD]: Get logger instance
+logger = logging.getLogger(__name__)
 
-def Send_Message_to_LLM(client: OpenAI, user_content: str, config: configparser.ConfigParser): # @Antigravity, 20260128, [FIX]: Accept config object directly
+class ChatSession:
     """
-    向LLM发送消息并获取回复。
-
-    Args:
-        client (OpenAI): OpenAI客户端实例。
-        user_content (str): 用户输入的内容。
-        config (configparser.ConfigParser): 已经加载的配置对象。
-
-    Returns:
-        str: 模型的回复内容，或在出错时返回None。
+    Manages a single, stateful conversation with the LLM, including history.
     """
-    model = config['LLM'].get('model', 'local-model') # @Antigravity, 20260128, [ADD]: Get model from config
+    def __init__(self, client: OpenAI, config: configparser.ConfigParser):
+        """
+        Initializes the chat session.
 
-    if not client:
-        logger.error("Error: OpenAI client is not initialized.") # @Antigravity, 20260128, [FIX]: Use logger.error instead of print
-        return None
-
-    try:
-        completion = client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "user", "content": user_content}
-            ],
+        Args:
+            client (OpenAI): The OpenAI client instance.
+            config (configparser.ConfigParser): The loaded configuration object.
+        """
+        if not client:
+            raise ValueError("OpenAI client must be initialized.")
+        self.client = client
+        self.model = config['LLM'].get('model', 'local-model')
+        # Use getint for integer conversion, with a fallback default of 10
+        self.max_history_length = config['LLM'].getint('max_history_length', 10)
+        self.history = []
+        logger.info(
+            f"ChatSession initialized. Max history length: {self.max_history_length}"
         )
-        logger.info("\n--- Response ---") # @Antigravity, 20260128, [FIX]: Use logger.info instead of print
-        response = completion.choices[0].message.content
-        logger.info(response) # @Antigravity, 20260128, [FIX]: Use logger.info instead of print
-        return response
-    except Exception as e:
-        logger.error(f"Error during API call: {e}") # @Antigravity, 20260128, [FIX]: Use logger.error instead of print
-        return None
+
+    def send_message(self, user_content: str):
+        """
+        Sends a user message to the LLM, manages history, and returns the response.
+
+        Args:
+            user_content (str): The user's input message.
+
+        Returns:
+            str: The model's response content, or None on error.
+        """
+        try:
+            # 1. Add user message to history
+            self.history.append({"role": "user", "content": user_content})
+
+            # 2. Trim history if it exceeds the max length (sliding window)
+            if len(self.history) > self.max_history_length:
+                # Keep the last `max_history_length` items
+                self.history = self.history[-self.max_history_length:]
+                logger.debug(f"History trimmed to the last {self.max_history_length} messages.")
+
+            # 3. Send the full history to the LLM
+            completion = self.client.chat.completions.create(
+                model=self.model,
+                messages=self.history,
+            )
+            response_content = completion.choices[0].message.content
+
+            # 4. Add assistant's response to history
+            self.history.append({"role": "assistant", "content": response_content})
+            
+            return response_content
+
+        except Exception as e:
+            logger.error(f"Error during API call: {e}")
+            # Optionally remove the user's message if the call failed
+            if self.history and self.history[-1]["role"] == "user":
+                self.history.pop()
+            return None
 
 if __name__ == '__main__':
-    # 示例用法
+    # Example Usage
     from api_client import Get_LLM_Client_by_Config
+    from logging_setup import get_logging_config
+
+    # --- Setup Logging and Config for test ---
+    logging.config.dictConfig(get_logging_config(log_level='INFO'))
     
-    # @Antigravity, 20260128, [ADD]: Load config for example usage
     config = configparser.ConfigParser()
     script_dir = os.path.dirname(__file__)
     config_path = os.path.join(script_dir, 'config.ini')
     config.read(config_path)
 
-    llm_client = Get_LLM_Client_by_Config(config) # @Antigravity, 20260128, [FIX]: Pass config object
-    if llm_client:
-        test_question = "Are you gpt-oss-120B? Please indicate how much context you can handle."
-        Send_Message_to_LLM(llm_client, test_question, config) # @Antigravity, 20260128, [FIX]: Pass config object
+    if not config.has_section('LLM'):
+        logger.error("Config file is missing [LLM] section.")
+    else:
+        llm_client = Get_LLM_Client_by_Config(config)
+        if llm_client:
+            # 1. Create a session
+            chat_session = ChatSession(llm_client, config)
+
+            # 2. Send a first message
+            logger.info("--- Message 1 ---")
+            question1 = "My name is aigniter. What is your name?"
+            logger.info(f"> {question1}")
+            response1 = chat_session.send_message(question1)
+            logger.info(f"< {response1}\n")
+
+            # 3. Send a second message to test history
+            logger.info("--- Message 2 ---")
+            question2 = "Do you remember my name?"
+            logger.info(f"> {question2}")
+            response2 = chat_session.send_message(question2)
+            logger.info(f"< {response2}\n")
+
+            # 4. Check history
+            logger.info(f"Current history length: {len(chat_session.history)}")
+            logger.debug(f"Full history: {chat_session.history}")
