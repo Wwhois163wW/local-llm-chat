@@ -100,13 +100,13 @@ def main():
     
     # --- Interactive Loop ---
     print("\n--- Local LLM Chat ---")
-    print("Enter 'quit', 'exit', or '再见' to end the session.")
+    print("Enter 'quit', 'exit', or 'goodbye' to end the session.")
 
     while True:
         try:
             user_input = input("\nYou > ")
 
-            if user_input.lower() in ["quit", "exit", "再见"]:
+            if user_input.lower() in ["quit", "exit", "goodbye"]:
                 logger.info("Exit command received. Shutting down.")
                 print("Goodbye!")
                 break
