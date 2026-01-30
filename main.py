@@ -204,10 +204,14 @@ def main():
                 print("\nLLM > Sorry, I encountered an error.")
 
         except KeyboardInterrupt:
-            # @Antigravity, 20260130, [FIX]: Ensure spinner line is cleared on interrupt
-            sys.stdout.write("\r" + " " * 20 + "\r")
-            sys.stdout.flush()
             logger.info("Keyboard interrupt received. Shutting down.")
+            # @Antigravity, 20260130, [FIX]: Ensure spinner is stopped and cleared properly on interrupt
+            if spinner_thread.is_alive(): # Check if spinner was actually started and is alive
+                stop_spinner.set() # Signal spinner to stop
+                spinner_thread.join(timeout=1) # Give it a moment to clean up (non-blocking)
+            
+            sys.stdout.write("\r" + " " * 20 + "\r") # Clear the line
+            sys.stdout.flush()
             print("\nGoodbye!")
             break
         except Exception as e:
