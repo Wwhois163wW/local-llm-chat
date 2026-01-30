@@ -115,7 +115,21 @@ class ChatSession:
                             buffer = buffer[start_tag_match.end():]
                             in_file_write_block = True
                         else:
-                            break
+                            # In normal text mode, yield content line by line or if buffer gets large
+                            # to ensure responsiveness, but keep a small tail to avoid splitting a tag.
+                            yield_boundary = buffer.rfind('\n')
+                            if yield_boundary == -1 and len(buffer) > 100: # Force yield if buffer is large
+                                yield_boundary = len(buffer) - 20
+
+                            if yield_boundary != -1:
+                                content_to_yield = buffer[:yield_boundary]
+                                yield TextChunk(content=content_to_yield)
+                                full_response_content += content_to_yield
+                                if self.tokenizer:
+                                    completion_tokens += len(self.tokenizer.encode(content_to_yield))
+                                buffer = buffer[yield_boundary:]
+                            break # Break inner loop to get more chunks
+                    
                     if in_file_write_block:
                         end_tag_match = re.search(r'</write_file>', buffer)
                         if end_tag_match:
@@ -129,10 +143,16 @@ class ChatSession:
                             buffer = buffer[end_tag_match.end():]
                             in_file_write_block = False
                         else:
+                            # Not enough data to find the end tag, wait for more
                             break
             
-            if buffer and not in_file_write_block:
-                yield TextChunk(content=buffer)
+            # After the loop, yield any remaining content
+            if buffer:
+                if in_file_write_block:
+                    logger.warning("Stream ended with an unclosed <write_file> tag.")
+                    yield FileContentChunk(content=buffer)
+                else:
+                    yield TextChunk(content=buffer)
                 full_response_content += buffer
                 if self.tokenizer:
                     completion_tokens += len(self.tokenizer.encode(buffer))
