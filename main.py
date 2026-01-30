@@ -16,7 +16,8 @@ from datetime import datetime
 
 from logging_setup import get_logging_config
 from api_client import Get_LLM_Client_by_Config
-from chat_module import ChatSession, TextChunk, StatsUpdate, FileWriteStart, FileContentChunk, FileWriteEnd
+from chat_module import ChatSession
+from events import TextChunk, StatsUpdate, FileWriteStart, FileContentChunk, FileWriteEnd
 
 def save_usage_stats(log_dir: str, model_name: str, stats: StatsUpdate):
     """Appends usage statistics to a CSV file."""

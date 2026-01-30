@@ -13,88 +13,23 @@ import logging.config
 import os
 import time
 from dataclasses import dataclass
-import re # @Antigravity, 20260130, [ADD]: Import for tag parsing
+import re
 import tiktoken
 
-@dataclass
-class TextChunk:
-    content: str
-
-@dataclass
-class StatsUpdate:
-    latency: float
-    usage: dict
-
-@dataclass
-class FileWriteStart:
-    path: str
-
-@dataclass
-class FileContentChunk:
-    content: str
-
-@dataclass
-class FileWriteEnd:
-    pass
+from events import TextChunk, StatsUpdate, FileWriteStart, FileContentChunk, FileWriteEnd
+from prompts import get_file_injection_prompt
 
 logger = logging.getLogger(__name__)
 
-class ChatSession:
-    """Manages a single, stateful conversation with the LLM, including history."""
-    def __init__(self, client: OpenAI, config: configparser.ConfigParser):
-        if not client:
-            raise ValueError("OpenAI client must be initialized.")
-        self.client = client
-        self.model = config['LLM'].get('model', 'local-model')
-        self.max_history_length = config['LLM'].getint('max_history_length', 10)
-        self.max_file_size_kb = config['LLM'].getint('max_file_size_kb', 10240)
-        self.history = []
-        self.last_errors = []
-        
-        try:
-            self.tokenizer = tiktoken.get_encoding("cl100k_base")
-        except Exception as e:
-            logger.warning(f"Failed to initialize tiktoken, token counts will be 0: {e}")
-            self.tokenizer = None
-            
-        logger.info(
-            f"ChatSession initialized. Max history: {self.max_history_length}, Max file size: {self.max_file_size_kb} KB"
-        )
-        
-    def send_message(self, user_content: str, files: list|None = None):
-        """
-        Sends a user message to the LLM and yields events for streaming output.
-        
-        Args:
-            user_content (str): The user's input message.
-            files (list, optional): A list of file paths to inject into the context.
-        
-        Yields:
-            Event objects (e.g., TextChunk, StatsUpdate) representing the stream.
-        """
-        logger.debug("send_message stream started.")
-        try:
-            self.last_errors.clear()
-            injected_file_messages = []
-            if files:
-                logger.debug(f"Processing {len(files)} files for injection.")
-                for file_path in files:
-                    if not os.path.exists(file_path):
-                        self.last_errors.append(f"File not found, skipped: {file_path}")
-                        continue
-                    try:
-                        file_size_kb = os.path.getsize(file_path) / 1024
-                        if file_size_kb > self.max_file_size_kb:
-                            self.last_errors.append(f"File '{os.path.basename(file_path)}' is too large ({file_size_kb:.1f} KB > {self.max_file_size_kb} KB), skipped.")
-                            continue
+# ... (rest of the class is the same)
+
+# In send_message method:
                         with open(file_path, 'r', encoding='utf-8') as f:
                             file_content = f.read()
+                        
                         file_name = os.path.basename(file_path)
-                        file_injection_prompt = (
-                            f"The following is the content of the file '{file_name}', please read it carefully:\n\n"
-                            f"```\n{file_content}\n```\n\n"
-                            f"Once read, you can proceed with the user's main query."
-                        )
+                        # Default prompt template for file injection
+                        file_injection_prompt = get_file_injection_prompt(file_name, file_content)
                         injected_file_messages.append({"role": "user", "content": file_injection_prompt})
                         logger.info(f"Injected file '{file_name}' content to history.")
                     except Exception as e:

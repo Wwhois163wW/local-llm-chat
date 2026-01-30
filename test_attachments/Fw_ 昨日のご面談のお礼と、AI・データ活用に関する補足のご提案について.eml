@@ -1,0 +1,2418 @@
+Received: from OSZP286MB2412.JPNP286.PROD.OUTLOOK.COM (2603:1096:604:1c4::13)
+ by TYYP286MB4873.JPNP286.PROD.OUTLOOK.COM with HTTPS; Thu, 29 Jan 2026
+ 05:06:10 +0000
+Received: from TYWP286MB2188.JPNP286.PROD.OUTLOOK.COM (2603:1096:400:171::8)
+ by OSZP286MB2412.JPNP286.PROD.OUTLOOK.COM (2603:1096:604:1c4::13) with
+ Microsoft SMTP Server (version=TLS1_2,
+ cipher=TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384) id 15.20.9564.7; Thu, 29 Jan
+ 2026 05:06:04 +0000
+Received: from TYWP286MB2188.JPNP286.PROD.OUTLOOK.COM
+ ([fe80::6272:aa54:7ade:4224]) by TYWP286MB2188.JPNP286.PROD.OUTLOOK.COM
+ ([fe80::6272:aa54:7ade:4224%4]) with mapi id 15.20.9564.006; Thu, 29 Jan 2026
+ 05:06:03 +0000
+From: Jun Kikuchi <jun.kikuchi@riken.jp>
+To: Tama Sanatani <tama.sanatani@riken.jp>, Wenrui Zhu <wenrui.zhu@riken.jp>
+CC: =?iso-2022-jp?B?GyRCPzc1byEhOSc4PBsoQg==?= <s212089d@yokohama-cu.ac.jp>
+Subject:
+	=?iso-2022-jp?B?Rnc6IBskQjpyRnwkTiQ0TExDTCROJCpOaSRIISIbKEJBSRskQiEmGyhC?=
+ =?iso-2022-jp?B?GyRCJUchPCU/M2hNUSRLNFgkOSRrSmRCLSROJDREczBGJEskRCQkGyhC?=
+ =?iso-2022-jp?B?GyRCJEYbKEI=?=
+Thread-Topic:
+	=?iso-2022-jp?B?GyRCOnJGfCROJDRMTENMJE4kKk5pJEghIhsoQkFJGyRCISYlRyE8GyhC?=
+ =?iso-2022-jp?B?GyRCJT8zaE1RJEs0WCQ5JGtKZEItJE4kNERzMEYkSyREJCQkRhsoQg==?=
+Thread-Index: AQHcj3K79tk7q0TapESOAG98kmvE6bVms7qAgAGUA0qAAAd4uoAASvKV
+Date: Thu, 29 Jan 2026 05:06:03 +0000
+Message-ID:
+	<TYWP286MB21882DFE9D513D0F8570CEB8949EA@TYWP286MB2188.JPNP286.PROD.OUTLOOK.COM>
+References:
+	<TY7PR01MB1602461E4D6623378588CFD82D5ABA@TY7PR01MB16024.jpnprd01.prod.outlook.com>
+ <OS3PR01MB93830BBE1AC20FB089344C059CB4A@OS3PR01MB9383.jpnprd01.prod.outlook.com>
+ <TY7PR01MB160243E03ACCA3BDF624C99CDD5B4A@TY7PR01MB16024.jpnprd01.prod.outlook.com>
+ <OS3PR01MB9383346325F5FAA0369094369CB4A@OS3PR01MB9383.jpnprd01.prod.outlook.com>
+ <TY7PR01MB160246B47BFBB76759D822080D5B2A@TY7PR01MB16024.jpnprd01.prod.outlook.com>
+ <OS3PR01MB938358596CF7FDA4F604E8E09CB2A@OS3PR01MB9383.jpnprd01.prod.outlook.com>
+ <TY7PR01MB160247EE30799F9F76FD885F4D590A@TY7PR01MB16024.jpnprd01.prod.outlook.com>
+ <TYYPR01MB13970DE6EDCF776CA52E9353CFB90A@TYYPR01MB13970.jpnprd01.prod.outlook.com>
+ <TY7PR01MB160246705D9973A72CEF2D161D59EA@TY7PR01MB16024.jpnprd01.prod.outlook.com>
+ <TYWP286MB218845B31590636605B3A15E949EA@TYWP286MB2188.JPNP286.PROD.OUTLOOK.COM>
+In-Reply-To:
+	<TYWP286MB218845B31590636605B3A15E949EA@TYWP286MB2188.JPNP286.PROD.OUTLOOK.COM>
+Accept-Language: ja-JP, en-US
+Content-Language: ja-JP
+X-MS-Exchange-Organization-AuthAs: Internal
+X-MS-Exchange-Organization-AuthMechanism: 04
+X-MS-Exchange-Organization-AuthSource: TYWP286MB2188.JPNP286.PROD.OUTLOOK.COM
+X-MS-Has-Attach: yes
+X-MS-Exchange-Organization-Network-Message-Id:
+	643d6404-5a8e-4372-6fb9-08de5ef41a04
+X-MS-Exchange-Organization-SCL: 1
+X-MS-TNEF-Correlator:
+X-MS-Exchange-Organization-RecordReviewCfmType: 0
+msip_labels:
+x-ms-publictraffictype: Email
+X-Microsoft-Antispam-Mailbox-Delivery:
+	ucf:0;jmr:0;auth:0;dest:I;ENG:(910005)(944506478)(944626604)(920097)(425001)(930201)(20251009114)(140003);
+X-Microsoft-Antispam-Message-Info:
+	4pAwwJ40H5CXcpGsX+ZKnJBd1ST7NSWs1csYhf8XLxQsYKS9pGcO6tpInbhjhJ601EwpdccYmIA5ebqFOQUbOP+lG2SPuIk3FhVCz++r2Tl+BfSAvG0PvGx8p2rghOeTg+Ncf6wuua9oOjpw/W1RbB1zt/1Ajq9y6WTigr/MGjifAnK/tBfO2JrX/QXwYdgazHFYcP/TV8bAHaG/pOhed2Dv3WxKAPkaLg81PoglszxeSMznskKmriq+pd00K9LaIrJvN5aL1N8tEFXIQA264s+KAW7pg6G0EvETer9ezrdZiP5xG16hUv+cOXxI88TnvjQvxrCKVAxuf5HIFQYjjOaL/pmovnnrZ9L2IN6ef/CKkBdqEH5DrmW7A2Jd89infBNcLRrIDEHyyw9JZJk0GHeyBjJf9NCGft10fzpJmYUqez/4BwCCX2sIcNun9Mqr8HrXkDSBZ3sUnEKr2XYi69NvAlsamP5asjcy3EGXMvGBdQZGy3Fg63G3mjuBuEcQy9ER8CcZZHke5NuYz44y8uyXLFzqzHQ6eIE44UctB0wz4KBkIC/eHFLSyo93GNIh5aoXaKTbZIlsoCOiGP/V08U6ojQDGAlKGw3XSzc52l2Y3Yue0npP4ZUwO4zqXXQiqZDCacpMX00UArzYv78gBRoYBG5+722jKJZ9HzfWKGCnx86aEpuurnlbFI807qlB8/gbGN7LGFf8om4sfuRd71Uy149Hb6oBl9tbEoRaMyAx5g6eKBECNTtkfZubjIOhYyRQ8Vwfatp6mGhSKnlZFX/3kKErR5bWvs99i4n5gBM=
+Content-Type: multipart/related;
+	boundary="_004_TYWP286MB21882DFE9D513D0F8570CEB8949EATYWP286MB2188JPNP_";
+	type="multipart/alternative"
+MIME-Version: 1.0
+
+--_004_TYWP286MB21882DFE9D513D0F8570CEB8949EATYWP286MB2188JPNP_
+Content-Type: multipart/alternative;
+	boundary="_000_TYWP286MB21882DFE9D513D0F8570CEB8949EATYWP286MB2188JPNP_"
+
+--_000_TYWP286MB21882DFE9D513D0F8570CEB8949EATYWP286MB2188JPNP_
+Content-Type: text/plain; charset="iso-2022-jp"
+
+左南谷様、
+
+トヨタ連携で御世話になっている抜井CDから、理研未来革新アライアンスの役員企業（リケンテクノスやJEOLと同格）である、理研ビタミン社との意見交換についてメールしてもらいました。
+
+ブルーカーボンとしての環境、および食材評価の2課題をAI・DX基盤通して提案（このあたりは、日清食品殿との（当方側からの）アプローチに似ています）されているようです。
+
+御参考方。
+菊地＠名大農
+
+
+________________________________
+差出人: Jun Kikuchi <jun.kikuchi@riken.jp>
+送信: 2026 年 1 月 29 日 (木曜日) 10:00
+宛先: 抜井 正博 <nukui.masahiro@innovation-riken.jp>
+Cc: 米野 クニエ <yoneno.kunie@innovation-riken.jp>; 奥野 正樹 <okuno.masaki@innovation-riken.jp>
+件名: Re: 昨日のご面談のお礼と、AI・データ活用に関する補足のご提案について
+
+抜井様、cc:米野様、奥野様、
+
+おはようございます。本日は間もなく、テルモ社からの社会人D生の審査会で名大へと発ち、そのまま宿泊してから環境省ERCA会合（大阪）へと移動します。。
+
+さて理研ビタミン社への個別訪問の状況について、情報提供下さり有り難うございました。
+確かに、AI・DXという基盤的なキーワードを使い、JEOL/HORIBAその他の基盤企業様と、ダイキンその他のエンドユーザー企業様とを「マトリックス運営」していく構図は悪くなさそうです。
+
+食材および海洋環境の2課題について、AI・DX基盤から理研ビタミン社と意見交換していく構想は同意です。他方で理研未来革新Aの会員企業様ではありませんが、トヨタ社が「酸化還元」の新テーマ（海洋分解電池の件）を提案されてきたので、さらに拡張して"Redox homeostasis"で括れば、藻場や養殖場その他の底泥環境改善や、環境調和性材料開発としてのリケンテクノス/サーマス社協創あたりが視野に入るかとも思います。
+https://www.riken.jp/press/2022/20220810_1/index.html
+https://www.riken.jp/press/2023/20230112_3/index.html
+https://www.riken.jp/press/2024/20240513_1/index.html
+
+もう1点、海藻（多糖類）は金属吸着能があるので、吸着ミネラルの呈味効果（単に苦みだけでなく、多糖類架橋で食感にも影響するはずです）や、理研食品社のように大量収穫する場合は、海水からのレアメタル利用等も面白いかもしれません。
+https://www.riken.jp/press/2014/20140114_2/index.html
+
+ところで、食品企業様という観点では、抜井さんに一瞬だけ御話しましたが、日清食品殿と来年度契約に向けて準備しています。ただ同社は、工場生産される食材の品質管理（CE社会でのPP材の品質管理と同様に考えていますが、使うNMR機器はTD-NMRでなく、仲村さんらが開発されたJEOL/アイシン社のHTS小型NMRに、将来的にロボティクスを付帯させることを想定しています）を目指しています。
+https://www.aisin.com/jp/group/imra-japan/assets/pdf/post2.pdf
+
+後半は「余計な御世話」ではあるものの、ダイキンおよびJEOL連携Cの組み替えで上手く廻ると良いのですが。。
+取り急ぎ
+菊地
+
+________________________________
+差出人: 抜井 正博 <nukui.masahiro@innovation-riken.jp>
+送信: 2026 年 1 月 29 日 (木曜日) 9:30
+宛先: Jun Kikuchi <jun.kikuchi@riken.jp>
+Cc: 米野 クニエ <yoneno.kunie@innovation-riken.jp>; 奥野 正樹 <okuno.masaki@innovation-riken.jp>
+件名: Fw: 昨日のご面談のお礼と、AI・データ活用に関する補足のご提案について
+
+菊地先生
+ｃｃ：米野さん、奥野さん
+
+お世話になっております。
+
+先日、理研ビタミン社に山本社長と共に訪問してきました。
+
+先方への投げかけとしては、AIやDXの活用を直接的な物質開発だけでなく、
+もっと広い視点でとらえては、ということになります。
+
+例示として、
+・食品開発への応用
+　既に東北大・NanoTerasuで高次構造に着目した検討はされているようでしたので、
+　もっと簡便にＴＤ−ＮＭＲを用いたデータサイエンス的な取り組みで食品組成の
+　設計効率化や触感の解析／設計などができるのでは。
+・ブルーカーボンへの展開
+　（重イオンビームで開発したコンブ、ワカメの改良品種の）
+　陸上養殖や海洋での大量培養において、データを活用して予測や管理を効率化
+　できるのではないか。
+
+をあげさせてもらいました。
+
+先方の事業戦略推進部・麻生部長からは社内の潜在的な課題やニーズを整理したい、
+との返信を頂いています。この動きをみながら、理研食品の佐藤さんとのコンタクト
+をどうするかを検討したいと思います。
+
+折をみてご相談することになるかと思いますが、よろしくお願いいたします。
+
+抜井
+
+________________________________
+差出人: shi_asou(麻生 茂樹) <shi_asou@rike-vita.co.jp>
+送信: 2026 年 1 月 28 日 (水曜日) 9:01
+宛先: 抜井 正博 <nukui.masahiro@innovation-riken.jp>; yos_inoue(井上 与志也) <yos_inoue@rike-vita.co.jp>
+Cc: 山本 貴史 <yamamoto.takafumi@innovation-riken.jp>; 渡辺 英二郎 <watanabe.eijiro@innovation-riken.jp>
+件名: Re: 昨日のご面談のお礼と、AI・データ活用に関する補足のご提案について
+
+株式会社理研イノベーション
+エグゼクティブアソシエイト
+抜井　様
+
+　先日はご多忙のところ、ご来訪いただき、ありがとう
+ございました。
+　
+　ご提案いただきました低磁場NMRのデータを活用した
+解析での食品開発への応用、ブルーカーボン関連の
+生産効率の向上や管理手法へのアプローチについて、
+大変興味深いお話を伺うことが出来ました。改めて
+御礼申し上げます。
+
+　私自身としては、新たな物質や製法の開発に思考が
+凝り固まり過ぎていたと痛感しております。AIや
+データ解析分野での連携の可能性について、調査、検討を
+進めていきたいと考えております。まずは、社内での
+潜在的な課題やニーズを整理したいと思います。
+
+　引き続き、よろしくお願い申し上げます。
+※※※※※※※※※※※※※※※※※※※※※※※※※※※
+[cid:42370d80-9a9f-4abb-88d8-dd03229df693]
+
+理研ビタミン株式会社　
+　事業戦略推進部
+　　麻　生　　茂　樹　　mailto:shi_asou@rike-vita.co.jp
+　　　　　
+　　　　　　〒１６０−０００４
+　　　　　　東京都新宿区四谷一丁目６番１号
+　　　　　　０８０−７２０８−９１８７
+※※※※※※※※※※※※※※※※※※※※※※※※※※※
+________________________________
+差出人: 抜井 正博 <nukui.masahiro@innovation-riken.jp>
+送信日時: 2026年1月27日 18:53
+宛先: yos_inoue(井上 与志也) <yos_inoue@rike-vita.co.jp>; shi_asou(麻生 茂樹) <shi_asou@rike-vita.co.jp>
+CC: 山本 貴史 <yamamoto.takafumi@innovation-riken.jp>; 渡辺 英二郎 <watanabe.eijiro@innovation-riken.jp>
+件名: 昨日のご面談のお礼と、AI・データ活用に関する補足のご提案について
+
+理研ビタミン株式会社　井上様、麻生様
+
+平素は大変お世話になっております。理研イノベーションの抜井です。
+昨日はご多忙の折、貴重なお時間をいただき誠にありがとうございました。
+
+意見交換では、マーケティング領域をはじめとして幅広い分野でAIを活用
+できる可能性があることをご紹介させていただきました。
+その際にも少し触れさせていただきましたが、AIやデータを用いた効率化
+のアプローチとして、他にも以下のような可能性がございます。
+
+例えば、食品開発の分野においては、低磁場NMR（TD-NMR）データを
+用いたデータサイエンス的な解析を行うことで、製品の安定化や食感の
+評価・改良に貢献できるものと存じます。
+
+また、貴社が注力されているブルーカーボン領域におきましても、陸上
+養殖や大量培養のプロセスにおいて、データを活用した生産効率の向上や
+管理の最適化について、理研よりお役に立てるご提案が可能かと存じます。
+
+お打合せの際にも申し上げましたが、まずは貴社の社内にどのような
+潜在的な課題がおありか、ヒアリングなどを通じて詳しくお伺いする
+ところから始めさせていただければ幸いです。
+
+ご検討のほど、何卒よろしくお願い申し上げます。
+
+-----------------------------------------------
+抜井 正博
+株式会社理研イノベーション
+事業開発部
+エグゼクティブアソシエイト
+〒351-0198 埼玉県和光市広沢2-1
+　　　　　  理化学研究所内
+E-mail：nukui.masahiro@innovation-riken.jp
+携帯：070-2494-0853
+-----------------------------------------------
+
+
+
+
+
+
+
+
+________________________________
+差出人: yos_inoue(井上 与志也) <yos_inoue@rike-vita.co.jp>
+送信: 2025 年 12 月 24 日 (水曜日) 15:53
+宛先: 抜井 正博 <nukui.masahiro@innovation-riken.jp>
+Cc: jur_ootsuka(大塚 樹里) <jur_ootsuka@rike-vita.co.jp>; shi_asou(麻生 茂樹) <shi_asou@rike-vita.co.jp>; 山本 貴史 <yamamoto.takafumi@innovation-riken.jp>; 渡辺 英二郎 <watanabe.eijiro@innovation-riken.jp>
+件名: Re: 面談日程のご確認：　理化学研究所との連携可能性に関する協議
+
+抜井様
+
+毎度お世話になります。
+アジェンダをありがとうございます。特に気になる点はございません。
+よろしくお願いいたします。
+
+------------------------------
+理研ビタミン株式会社
+広報IR部　部長
+井上　与志也
+080-7211-9033
+
+
+________________________________
+差出人: 抜井 正博 <nukui.masahiro@innovation-riken.jp>
+送信: 2025 年 12 月 24 日 (水曜日) 15:18
+宛先: yos_inoue(井上 与志也) <yos_inoue@rike-vita.co.jp>
+Cc: jur_ootsuka(大塚 樹里) <jur_ootsuka@rike-vita.co.jp>; shi_asou(麻生 茂樹) <shi_asou@rike-vita.co.jp>; 山本 貴史 <yamamoto.takafumi@innovation-riken.jp>; 渡辺 英二郎 <watanabe.eijiro@innovation-riken.jp>
+件名: Re: 面談日程のご確認：　理化学研究所との連携可能性に関する協議
+
+井上様
+
+お世話になっております。
+
+御社へのアクセス案内、ありがとうございました。
+
+アジェンダ（案）につきまして、下記のように考えております。
+
+　1. ご挨拶　　             　（理研イノベーション　山本）
+　2. 理研イノベーション概要およびこれまでの理研との連携の振り返り
+　3. 貴社における注力領域ならびに技術開発の方向性について　　　　　　
+　4. 今後の連携可能性に関する意見交換
+　5. 今後の進め方について協議
+
+以上、お気づきの点ありましたら、ご連絡いただけますか？
+
+引き続き、よろしくお願いいたします。
+
+
+理研イノベーション　抜井
+
+________________________________
+差出人: yos_inoue(井上 与志也) <yos_inoue@rike-vita.co.jp>
+送信: 2025 年 12 月 22 日 (月曜日) 13:49
+宛先: 抜井 正博 <nukui.masahiro@innovation-riken.jp>
+Cc: jur_ootsuka(大塚 樹里) <jur_ootsuka@rike-vita.co.jp>; shi_asou(麻生 茂樹) <shi_asou@rike-vita.co.jp>; 山本 貴史 <yamamoto.takafumi@innovation-riken.jp>; 渡辺 英二郎 <watanabe.eijiro@innovation-riken.jp>
+件名: Re: 面談日程のご確認：　理化学研究所との連携可能性に関する協議
+
+抜井様
+
+毎度お世話になります。
+1/26（月）1330-1430確定、3名様ご来訪にて承知いたしました。
+
+添付のご案内をご参照の上、当社にお越しいただけますでしょうか。
+受付では経営企画部／広報IR部の番号でお呼び出し下さい。
+
+アジェンダについてもお待ちしています。よろしくお願いいたします。
+
+
+
+
+------------------------------
+理研ビタミン株式会社
+広報IR部　部長
+井上　与志也
+080-7211-9033
+________________________________
+差出人: 抜井 正博 <nukui.masahiro@innovation-riken.jp>
+送信日時: 2025年12月22日 13:44
+宛先: yos_inoue(井上 与志也) <yos_inoue@rike-vita.co.jp>
+CC: jur_ootsuka(大塚 樹里) <jur_ootsuka@rike-vita.co.jp>; shi_asou(麻生 茂樹) <shi_asou@rike-vita.co.jp>; 山本 貴史 <yamamoto.takafumi@innovation-riken.jp>; 渡辺 英二郎 <watanabe.eijiro@innovation-riken.jp>
+件名: 面談日程のご確認：　理化学研究所との連携可能性に関する協議
+
+nukui.masahiro@innovation-riken.jp からメールを受け取る頻度は高くありません。これが重要である理由<https://aka.ms/LearnAboutSenderIdentification>
+理研ビタミン　井上様
+
+お世話になっております。理研イノベーションの抜井でございます。
+
+このたびは面談候補日をご提示いただき、誠にありがとうございます。
+
+それでは、1月26日（月）13:30〜14:30にて確定させていただければと存じます。
+
+場所は御社本社（四谷）を予定しておりますが、ご確認いただけますでしょうか？
+当日は、下記のメンバー３名でお伺いする予定です。
+・代表取締役社長　　　　山本 貴史
+・ライセンス部　副部長　渡辺 英二郎
+・事業開発部　エグゼクティブアソシエイト　抜井 正博　
+
+アジェンダ等の詳細につきましては、追ってご連絡申し上げます。
+
+まずは日程、場所のご確認をお願い申し上げます。
+引き続きよろしくお願いいたします。
+
+理研イノベーション　抜井
+
+________________________________
+差出人: yos_inoue(井上 与志也) <yos_inoue@rike-vita.co.jp>
+送信: 2025 年 12 月 22 日 (月曜日) 11:41
+宛先: 抜井 正博 <nukui.masahiro@innovation-riken.jp>
+Cc: jur_ootsuka(大塚 樹里) <jur_ootsuka@rike-vita.co.jp>; 山本 貴史 <yamamoto.takafumi@innovation-riken.jp>; 渡辺 英二郎 <watanabe.eijiro@innovation-riken.jp>; shi_asou(麻生 茂樹) <shi_asou@rike-vita.co.jp>
+件名: Re: ご面談のお願い：　理化学研究所との連携可能性に関する協議
+
+理研イノベーション　抜井様
+
+毎度お世話になります。
+ご依頼の件、承知しました。
+
+1/26（月）1330-1430ではいかがでしょうか。
+
+当社は井上と、事業戦略推進部長の麻生にてお受けいたします。
+ご検討のほど、よろしくお願いいたします。
+
+------------------------------
+理研ビタミン株式会社
+広報IR部　部長
+井上　与志也
+080-7211-9033
+________________________________
+差出人: 抜井 正博 <nukui.masahiro@innovation-riken.jp>
+送信日時: 2025年12月22日 11:15
+宛先: yos_inoue(井上 与志也) <yos_inoue@rike-vita.co.jp>
+CC: jur_ootsuka(大塚 樹里) <jur_ootsuka@rike-vita.co.jp>; 山本 貴史 <yamamoto.takafumi@innovation-riken.jp>; 渡辺 英二郎 <watanabe.eijiro@innovation-riken.jp>
+件名: ご面談のお願い：　理化学研究所との連携可能性に関する協議
+
+このメッセージを受信した人は、nukui.masahiro@innovation-riken.jp からのメールを受け取る頻度が高くありません。これが重要である理由<https://aka.ms/LearnAboutSenderIdentification>
+理研ビタミン株式会社
+広報IR部長　井上 与志也様
+ｃｃ：総務部　秘書室　大塚 樹里様
+
+突然のご連絡失礼いたします。理研イノベーションの抜井と申します。
+弊社社長 山本貴史の代理として、ご連絡差し上げました。
+
+弊社は、理化学研究所が100％出資する子会社で、理研の研究成果を企業の皆様に
+ご紹介し、事業にお役立ていただくための提案や共同研究などの連携を支援しております。
+
+現在、弊社代表とともに「理研未来革新アライアンス」会員企業の皆様を個別に訪問し、
+技術開発におけるニーズや課題を伺いながら、理研の研究成果活用の可能性について
+ご提案する活動を進めております。
+
+つきましては、理化学研究所および弊社事業概要のご紹介させていただき、
+貴社の技術開発方針や課題等についてお話をお伺いさせていただけますと幸いです。
+可能であれば、技術開発ご担当役員または責任者の方にもご同席いただけますと、
+次回以降、より具体的なご提案が可能です。
+
+ご多忙のところ恐れ入りますが、以下候補日をご確認の上、ご都合の良い日時を
+ご教示いただけますと幸いです。（打合せ時間は1時間程度を予定しております。）
+
+【訪問候補日】
+1/26（月）13:30 - 16:30
+2/12（木）14:00-17:00
+3/16（月）13:00 - 17:00
+
+お手数おかけいたしますが、何卒よろしくお願い申し上げます。
+
+-----------------------------------------------
+抜井 正博
+株式会社理研イノベーション
+事業開発部
+エグゼクティブアソシエイト
+〒351-0198 埼玉県和光市広沢2-1
+　　　　　  理化学研究所内
+E-mail：nukui.masahiro@innovation-riken.jp
+携帯：070-2494-0853
+-----------------------------------------------
+
+
+
+
+--_000_TYWP286MB21882DFE9D513D0F8570CEB8949EATYWP286MB2188JPNP_
+Content-Type: text/html; charset="iso-2022-jp"
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-2022-jp">
+<style type="text/css" style="display:none;"> P {margin-top:0;margin-bottom:0;} </style>
+</head>
+<body dir="ltr">
+<div style="font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);" class="elementToProof">
+左南谷様、</div>
+<div style="font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);" class="elementToProof">
+<br>
+</div>
+<div style="font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);" class="elementToProof">
+トヨタ連携で御世話になっている抜井CDから、理研未来革新アライアンスの役員企業（リケンテクノスやJEOLと同格）である、理研ビタミン社との意見交換についてメールしてもらいました。</div>
+<div style="font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);" class="elementToProof">
+<br>
+</div>
+<div style="font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);" class="elementToProof">
+ブルーカーボンとしての環境、および食材評価の2課題をAI・DX基盤通して提案（このあたりは、日清食品殿との（当方側からの）アプローチに似ています）されているようです。</div>
+<div style="font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);" class="elementToProof">
+<br>
+</div>
+<div style="font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);" class="elementToProof">
+御参考方。</div>
+<div style="font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);" class="elementToProof">
+菊地＠名大農</div>
+<div><br>
+</div>
+<div style="font-family: Calibri, Arial, Helvetica, sans-serif; font-size: 12pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<hr style="display: inline-block; width: 98%;">
+<div style="font-family: Calibri, Arial, Helvetica, sans-serif; font-size: 12pt; color: rgb(0, 0, 0);">
+<b>差出人:</b>&nbsp;Jun Kikuchi &lt;jun.kikuchi@riken.jp&gt;<br>
+<b>送信:</b>&nbsp;2026 年 1 月 29 日 (木曜日) 10:00<br>
+<b>宛先:</b>&nbsp;抜井 正博 &lt;nukui.masahiro@innovation-riken.jp&gt;<br>
+<b>Cc:</b>&nbsp;米野 クニエ &lt;yoneno.kunie@innovation-riken.jp&gt;; 奥野 正樹 &lt;okuno.masaki@innovation-riken.jp&gt;<br>
+<b>件名:</b>&nbsp;Re: 昨日のご面談のお礼と、AI・データ活用に関する補足のご提案について </div>
+<div style="font-family: Calibri, Arial, Helvetica, sans-serif; font-size: 12pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+抜井様、cc:米野様、奥野様、</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+おはようございます。本日は間もなく、テルモ社からの社会人D生の審査会で名大へと発ち、そのまま宿泊してから環境省ERCA会合（大阪）へと移動します。。</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+さて理研ビタミン社への個別訪問の状況について、情報提供下さり有り難うございました。</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+確かに、AI・DXという基盤的なキーワードを使い、JEOL/HORIBAその他の基盤企業様と、ダイキンその他のエンドユーザー企業様とを「マトリックス運営」していく構図は悪くなさそうです。</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+食材および海洋環境の2課題について、AI・DX基盤から理研ビタミン社と意見交換していく構想は同意です。他方で理研未来革新Aの会員企業様ではありませんが、トヨタ社が「酸化還元」の新テーマ（海洋分解電池の件）を提案されてきたので、さらに拡張して&quot;Redox homeostasis&quot;で括れば、藻場や養殖場その他の底泥環境改善や、環境調和性材料開発としてのリケンテクノス/サーマス社協創あたりが視野に入るかとも思います。</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+<a data-auth="NotApplicable" class="OWAAutoLink" id="OWA82bb679c-7f6e-6f64-9dd4-694b7e67e93f" href="https://www.riken.jp/press/2022/20220810_1/index.html">https://www.riken.jp/press/2022/20220810_1/index.html</a></div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+<a data-auth="NotApplicable" class="OWAAutoLink" id="OWAf9f3ef39-a273-3ddb-4230-0864f622a103" href="https://www.riken.jp/press/2023/20230112_3/index.html">https://www.riken.jp/press/2023/20230112_3/index.html</a></div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+<a data-auth="NotApplicable" class="OWAAutoLink" id="OWAdce09b2e-94c3-2f0d-6d3c-7c3453477bbf" href="https://www.riken.jp/press/2024/20240513_1/index.html">https://www.riken.jp/press/2024/20240513_1/index.html</a></div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+もう1点、海藻（多糖類）は金属吸着能があるので、吸着ミネラルの呈味効果（単に苦みだけでなく、多糖類架橋で食感にも影響するはずです）や、理研食品社のように大量収穫する場合は、海水からのレアメタル利用等も面白いかもしれません。</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+<a data-auth="NotApplicable" class="OWAAutoLink" id="OWA5fa5cc83-87ea-4a75-9b06-28b8e036982c" href="https://www.riken.jp/press/2014/20140114_2/index.html">https://www.riken.jp/press/2014/20140114_2/index.html</a></div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+ところで、食品企業様という観点では、抜井さんに一瞬だけ御話しましたが、日清食品殿と来年度契約に向けて準備しています。ただ同社は、工場生産される食材の品質管理（CE社会でのPP材の品質管理と同様に考えていますが、使うNMR機器はTD-NMRでなく、仲村さんらが開発されたJEOL/アイシン社のHTS小型NMRに、将来的にロボティクスを付帯させることを想定しています）を目指しています。</div>
+<div style="direction: ltr; font-family: Calibri, Arial, Helvetica, sans-serif; font-size: 12pt; color: rgb(0, 0, 0);">
+<a data-auth="NotApplicable" class="OWAAutoLink" id="OWAf8f29ae5-7319-cd68-c275-40b10066acc2" href="https://www.aisin.com/jp/group/imra-japan/assets/pdf/post2.pdf">https://www.aisin.com/jp/group/imra-japan/assets/pdf/post2.pdf</a></div>
+<div style="direction: ltr; font-family: Calibri, Arial, Helvetica, sans-serif; font-size: 12pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<div style="direction: ltr; font-family: Calibri, Arial, Helvetica, sans-serif; font-size: 12pt; color: rgb(0, 0, 0);">
+後半は「余計な御世話」ではあるものの、ダイキンおよびJEOL連携Cの組み替えで上手く廻ると良いのですが。。</div>
+<div style="direction: ltr; font-family: Calibri, Arial, Helvetica, sans-serif; font-size: 12pt; color: rgb(0, 0, 0);">
+取り急ぎ</div>
+<div style="direction: ltr; font-family: Calibri, Arial, Helvetica, sans-serif; font-size: 12pt; color: rgb(0, 0, 0);">
+菊地</div>
+<div style="direction: ltr; font-family: Calibri, Arial, Helvetica, sans-serif; font-size: 12pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<hr style="direction: ltr; display: inline-block; width: 98%;">
+<div style="direction: ltr; font-family: Calibri, Arial, Helvetica, sans-serif; font-size: 12pt; color: rgb(0, 0, 0);">
+<b>差出人:</b>&nbsp;抜井 正博 &lt;nukui.masahiro@innovation-riken.jp&gt;<br>
+<b>送信:</b>&nbsp;2026 年 1 月 29 日 (木曜日) 9:30<br>
+<b>宛先:</b>&nbsp;Jun Kikuchi &lt;jun.kikuchi@riken.jp&gt;<br>
+<b>Cc:</b>&nbsp;米野 クニエ &lt;yoneno.kunie@innovation-riken.jp&gt;; 奥野 正樹 &lt;okuno.masaki@innovation-riken.jp&gt;<br>
+<b>件名:</b>&nbsp;Fw: 昨日のご面談のお礼と、AI・データ活用に関する補足のご提案について</div>
+<div style="direction: ltr; font-family: Calibri, Arial, Helvetica, sans-serif; font-size: 12pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+菊地先生</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+ｃｃ：米野さん、奥野さん</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+お世話になっております。</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+先日、理研ビタミン社に山本社長と共に訪問してきました。</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+先方への投げかけとしては、AIやDXの活用を直接的な物質開発だけでなく、</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+もっと広い視点でとらえては、ということになります。</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+例示として、</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+・食品開発への応用</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+　既に東北大・NanoTerasuで高次構造に着目した検討はされているようでしたので、</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+　もっと簡便にＴＤ−ＮＭＲを用いたデータサイエンス的な取り組みで食品組成の</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+　設計効率化や触感の解析／設計などができるのでは。</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+・ブルーカーボンへの展開<br>
+　（重イオンビームで開発したコンブ、ワカメの改良品種の）</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+　陸上養殖や海洋での大量培養において、データを活用して予測や管理を効率化</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+　できるのではないか。</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+をあげさせてもらいました。</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+先方の事業戦略推進部・麻生部長からは社内の潜在的な課題やニーズを整理したい、</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+との返信を頂いています。この動きをみながら、理研食品の佐藤さんとのコンタクト</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+をどうするかを検討したいと思います。</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+折をみてご相談することになるかと思いますが、よろしくお願いいたします。</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+抜井</div>
+<div style="direction: ltr; font-family: Calibri, Arial, Helvetica, sans-serif; font-size: 12pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<hr style="direction: ltr; display: inline-block; width: 98%;">
+<div style="direction: ltr; font-family: Calibri, Arial, Helvetica, sans-serif; font-size: 12pt; color: rgb(0, 0, 0);">
+<b>差出人:</b>&nbsp;shi_asou(麻生 茂樹) &lt;shi_asou@rike-vita.co.jp&gt;<br>
+<b>送信:</b>&nbsp;2026 年 1 月 28 日 (水曜日) 9:01<br>
+<b>宛先:</b>&nbsp;抜井 正博 &lt;nukui.masahiro@innovation-riken.jp&gt;; yos_inoue(井上 与志也) &lt;yos_inoue@rike-vita.co.jp&gt;<br>
+<b>Cc:</b>&nbsp;山本 貴史 &lt;yamamoto.takafumi@innovation-riken.jp&gt;; 渡辺 英二郎 &lt;watanabe.eijiro@innovation-riken.jp&gt;<br>
+<b>件名:</b>&nbsp;Re: 昨日のご面談のお礼と、AI・データ活用に関する補足のご提案について</div>
+<div style="direction: ltr; font-family: Calibri, Arial, Helvetica, sans-serif; font-size: 12pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+株式会社理研イノベーション</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+エグゼクティブアソシエイト</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+抜井　様</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+　先日はご多忙のところ、ご来訪いただき、ありがとう</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+ございました。</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+　</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+　ご提案いただきました低磁場NMRのデータを活用した</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+解析での食品開発への応用、ブルーカーボン関連の</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+生産効率の向上や管理手法へのアプローチについて、</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+大変興味深いお話を伺うことが出来ました。改めて</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+御礼申し上げます。</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+　私自身としては、新たな物質や製法の開発に思考が</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+凝り固まり過ぎていたと痛感しております。AIや</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+データ解析分野での連携の可能性について、調査、検討を</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+進めていきたいと考えております。まずは、社内での</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+潜在的な課題やニーズを整理したいと思います。</div>
+<div id="x_x_x_Signature">
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+　引き続き、よろしくお願い申し上げます。</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+※※※※※※※※※※※※※※※※※※※※※※※※※※※</div>
+<div style="direction: ltr; text-align: left; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 14.6667px; color: rgb(0, 0, 0);">
+<img size="70916" style="width: 394px; height: 95px; max-width: 1024px;" height="95" width="394" id="x_x_x_x_image_0" data-outlook-trace="F:4|T:4" src="cid:42370d80-9a9f-4abb-88d8-dd03229df693"></div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+理研ビタミン株式会社　</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+　事業戦略推進部</div>
+<div style="direction: ltr; text-align: left; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+　　麻　生　　茂　樹　　mailto:shi_asou@rike-vita.co.jp</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+　　　　　</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+　　　　　　〒１６０−０００４</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+　　　　　　東京都新宿区四谷一丁目６番１号</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+　　　　　　０８０−７２０８−９１８７</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+※※※※※※※※※※※※※※※※※※※※※※※※※※※</div>
+</div>
+<hr style="direction: ltr; display: inline-block; width: 98%;">
+<div id="x_x_x_divRplyFwdMsg">
+<div style="direction: ltr; font-family: Calibri, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+<b>差出人:</b>&nbsp;抜井 正博 &lt;nukui.masahiro@innovation-riken.jp&gt;<br>
+<b>送信日時:</b>&nbsp;2026年1月27日 18:53<br>
+<b>宛先:</b>&nbsp;yos_inoue(井上 与志也) &lt;yos_inoue@rike-vita.co.jp&gt;; shi_asou(麻生 茂樹) &lt;shi_asou@rike-vita.co.jp&gt;<br>
+<b>CC:</b>&nbsp;山本 貴史 &lt;yamamoto.takafumi@innovation-riken.jp&gt;; 渡辺 英二郎 &lt;watanabe.eijiro@innovation-riken.jp&gt;<br>
+<b>件名:</b>&nbsp;昨日のご面談のお礼と、AI・データ活用に関する補足のご提案について</div>
+<div style="direction: ltr;">&nbsp;</div>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+理研ビタミン株式会社　井上様、麻生様</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+平素は大変お世話になっております。理研イノベーションの抜井です。</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+昨日はご多忙の折、貴重なお時間をいただき誠にありがとうございました。</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+意見交換では、マーケティング領域をはじめとして幅広い分野でAIを活用</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+できる可能性があることをご紹介させていただきました。</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+その際にも少し触れさせていただきましたが、AIやデータを用いた効率化</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+のアプローチとして、他にも以下のような可能性がございます。</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+例えば、食品開発の分野においては、低磁場NMR（TD-NMR）データを</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+用いたデータサイエンス的な解析を行うことで、製品の安定化や食感の</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+評価・改良に貢献できるものと存じます。</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+また、貴社が注力されているブルーカーボン領域におきましても、陸上</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+養殖や大量培養のプロセスにおいて、データを活用した生産効率の向上や</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+管理の最適化について、理研よりお役に立てるご提案が可能かと存じます。</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+お打合せの際にも申し上げましたが、まずは貴社の社内にどのような</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+潜在的な課題がおありか、ヒアリングなどを通じて詳しくお伺いする</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+ところから始めさせていただければ幸いです。</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+ご検討のほど、何卒よろしくお願い申し上げます。</div>
+<div id="x_x_x_x_Signature">
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 14.6667px; color: rgb(0, 0, 0);">
+<span style="background-color: rgb(255, 255, 255);">-----------------------------------------------</span></div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+抜井 正博</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+株式会社理研イノベーション</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+事業開発部</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+エグゼクティブアソシエイト</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+〒351-0198 埼玉県和光市広沢2-1</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+　　　　　&nbsp; 理化学研究所内</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+E-mail：nukui.masahiro@innovation-riken.jp</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+携帯：070-2494-0853</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+-----------------------------------------------</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+&nbsp;</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<div style="direction: ltr;"><a name="x_x_x_x_x__MailOriginal"></a></div>
+<div style="direction: ltr;"><br>
+</div>
+<div style="direction: ltr; font-family: Calibri, Arial, Helvetica, sans-serif; font-size: 12pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<hr style="direction: ltr; display: inline-block; width: 98%;">
+<div style="direction: ltr; font-family: Calibri, Arial, Helvetica, sans-serif; font-size: 12pt; color: rgb(0, 0, 0);">
+<b>差出人:</b>&nbsp;yos_inoue(井上 与志也) &lt;yos_inoue@rike-vita.co.jp&gt;<br>
+<b>送信:</b>&nbsp;2025 年 12 月 24 日 (水曜日) 15:53<br>
+<b>宛先:</b>&nbsp;抜井 正博 &lt;nukui.masahiro@innovation-riken.jp&gt;<br>
+<b>Cc:</b>&nbsp;jur_ootsuka(大塚 樹里) &lt;jur_ootsuka@rike-vita.co.jp&gt;; shi_asou(麻生 茂樹) &lt;shi_asou@rike-vita.co.jp&gt;; 山本 貴史 &lt;yamamoto.takafumi@innovation-riken.jp&gt;; 渡辺 英二郎 &lt;watanabe.eijiro@innovation-riken.jp&gt;<br>
+<b>件名:</b>&nbsp;Re: 面談日程のご確認：　理化学研究所との連携可能性に関する協議</div>
+<div style="direction: ltr; font-family: Calibri, Arial, Helvetica, sans-serif; font-size: 12pt; color: rgb(0, 0, 0);">
+<br>
+</div>
+<div style="direction: ltr; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: black;">
+抜井様</div>
+<div style="direction: ltr; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: black;">
+毎度お世話になります。</div>
+<div style="direction: ltr; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: black;">
+アジェンダをありがとうございます。特に気になる点はございません。</div>
+<div style="direction: ltr; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: black;">
+よろしくお願いいたします。</div>
+<div id="x_x_x_x_x_Signature">
+<div style="direction: ltr; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 10pt; color: black;">
+------------------------------</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 10pt; color: black;">
+理研ビタミン株式会社</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 10pt; color: black;">
+広報IR部　部長</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 10pt; color: black;">
+井上　与志也</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 10pt; color: black;">
+080-7211-9033</div>
+</div>
+<div style="direction: ltr;"><br>
+</div>
+<div style="direction: ltr; font-family: Calibri, Arial, Helvetica, sans-serif; font-size: 12pt; color: black;">
+<br>
+</div>
+<hr style="direction: ltr; display: inline-block; width: 98%;">
+<div style="direction: ltr; font-family: Calibri, Arial, Helvetica, sans-serif; font-size: 12pt; color: black;">
+<b>差出人:</b>&nbsp;抜井 正博 &lt;nukui.masahiro@innovation-riken.jp&gt;<br>
+<b>送信:</b>&nbsp;2025 年 12 月 24 日 (水曜日) 15:18<br>
+<b>宛先:</b>&nbsp;yos_inoue(井上 与志也) &lt;yos_inoue@rike-vita.co.jp&gt;<br>
+<b>Cc:</b>&nbsp;jur_ootsuka(大塚 樹里) &lt;jur_ootsuka@rike-vita.co.jp&gt;; shi_asou(麻生 茂樹) &lt;shi_asou@rike-vita.co.jp&gt;; 山本 貴史 &lt;yamamoto.takafumi@innovation-riken.jp&gt;; 渡辺 英二郎 &lt;watanabe.eijiro@innovation-riken.jp&gt;<br>
+<b>件名:</b>&nbsp;Re: 面談日程のご確認：　理化学研究所との連携可能性に関する協議</div>
+<div style="direction: ltr; font-family: Calibri, Arial, Helvetica, sans-serif; font-size: 12pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+井上様</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+お世話になっております。</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+御社へのアクセス案内、ありがとうございました。</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+アジェンダ（案）につきまして、下記のように考えております。</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+　1. ご挨拶　　 &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 　（理研イノベーション　山本）</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+　2. 理研イノベーション概要およびこれまでの理研との連携の振り返り</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+　3. 貴社における注力領域ならびに技術開発の方向性について　　　　　　</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+　4. 今後の連携可能性に関する意見交換</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+　5. 今後の進め方について協議</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+以上、お気づきの点ありましたら、ご連絡いただけますか？</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+引き続き、よろしくお願いいたします。</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+理研イノベーション　抜井</div>
+<div style="direction: ltr; font-family: Calibri, Arial, Helvetica, sans-serif; font-size: 12pt; color: black;">
+<br>
+</div>
+<hr style="direction: ltr; display: inline-block; width: 98%;">
+<div style="direction: ltr; font-family: Calibri, Arial, Helvetica, sans-serif; font-size: 12pt; color: black;">
+<b>差出人:</b>&nbsp;yos_inoue(井上 与志也) &lt;yos_inoue@rike-vita.co.jp&gt;<br>
+<b>送信:</b>&nbsp;2025 年 12 月 22 日 (月曜日) 13:49<br>
+<b>宛先:</b>&nbsp;抜井 正博 &lt;nukui.masahiro@innovation-riken.jp&gt;<br>
+<b>Cc:</b>&nbsp;jur_ootsuka(大塚 樹里) &lt;jur_ootsuka@rike-vita.co.jp&gt;; shi_asou(麻生 茂樹) &lt;shi_asou@rike-vita.co.jp&gt;; 山本 貴史 &lt;yamamoto.takafumi@innovation-riken.jp&gt;; 渡辺 英二郎 &lt;watanabe.eijiro@innovation-riken.jp&gt;<br>
+<b>件名:</b>&nbsp;Re: 面談日程のご確認：　理化学研究所との連携可能性に関する協議</div>
+<div style="direction: ltr; font-family: Calibri, Arial, Helvetica, sans-serif; font-size: 12pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: black;">
+抜井様</div>
+<div style="direction: ltr; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: black;">
+毎度お世話になります。</div>
+<div style="direction: ltr; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: black;">
+1/26（月）1330-1430確定、3名様ご来訪にて承知いたしました。</div>
+<div style="direction: ltr; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: black;">
+添付のご案内をご参照の上、当社にお越しいただけますでしょうか。</div>
+<div style="direction: ltr; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: black;">
+受付では経営企画部／広報IR部の番号でお呼び出し下さい。</div>
+<div id="x_x_x_x_x_x_x_Signature">
+<div style="direction: ltr; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: black;">
+アジェンダについてもお待ちしています。よろしくお願いいたします。</div>
+<div style="direction: ltr; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 10pt; color: black;">
+------------------------------</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 10pt; color: black;">
+理研ビタミン株式会社</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 10pt; color: black;">
+広報IR部　部長</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 10pt; color: black;">
+井上　与志也</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 10pt; color: black;">
+080-7211-9033</div>
+</div>
+<hr style="direction: ltr; display: inline-block; width: 98%;">
+<div id="x_x_x_x_x_x_x_x_divRplyFwdMsg">
+<div style="direction: ltr; font-family: Calibri, sans-serif; font-size: 11pt; color: black;">
+<b>差出人:</b>&nbsp;抜井 正博 &lt;nukui.masahiro@innovation-riken.jp&gt;<br>
+<b>送信日時:</b>&nbsp;2025年12月22日 13:44<br>
+<b>宛先:</b>&nbsp;yos_inoue(井上 与志也) &lt;yos_inoue@rike-vita.co.jp&gt;<br>
+<b>CC:</b>&nbsp;jur_ootsuka(大塚 樹里) &lt;jur_ootsuka@rike-vita.co.jp&gt;; shi_asou(麻生 茂樹) &lt;shi_asou@rike-vita.co.jp&gt;; 山本 貴史 &lt;yamamoto.takafumi@innovation-riken.jp&gt;; 渡辺 英二郎 &lt;watanabe.eijiro@innovation-riken.jp&gt;<br>
+<b>件名:</b>&nbsp;面談日程のご確認：　理化学研究所との連携可能性に関する協議</div>
+<div style="direction: ltr;">&nbsp;</div>
+</div>
+<table style="direction: ltr; line-height: revert; display: table; width: 100%; table-layout: fixed; box-sizing: border-box; border-collapse: collapse; border-spacing: 0px;" cellpadding="0" cellspacing="0">
+<tbody>
+<tr>
+<td style="direction: ltr; line-height: revert; background-color: rgb(166, 166, 166); padding: 7px 2px; word-break: revert; width: 0px;">
+</td>
+<td style="direction: ltr; text-align: left; line-height: revert; background-color: rgb(234, 234, 234); padding: 7px 5px 7px 15px; word-break: revert; color: rgb(33, 33, 33); width: 100%;">
+<div style="direction: ltr; text-align: left; line-height: revert; font-family: wf_segoe-ui_normal, &quot;Segoe UI&quot;, &quot;Segoe WP&quot;, Tahoma, Arial, sans-serif;">
+<span style="letter-spacing: revert; line-height: revert;">nukui.masahiro@innovation-riken.jp からメールを受け取る頻度は高くありません。<a data-auth="NotApplicable" class="x_x_x_x_x_OWAAutoLink" id="OWA577e83d7-28e4-3812-0aa8-2c1ebeed3b4c" href="https://aka.ms/LearnAboutSenderIdentification">これが重要である理由</a></span></div>
+</td>
+<td style="direction: ltr; text-align: left; line-height: revert; background-color: rgb(234, 234, 234); padding: 7px 5px; word-break: revert; color: rgb(33, 33, 33); width: 75px;">
+</td>
+</tr>
+</tbody>
+</table>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+理研ビタミン　井上様</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+お世話になっております。理研イノベーションの抜井でございます。</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+このたびは面談候補日をご提示いただき、誠にありがとうございます。</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+それでは、1月26日（月）13:30〜14:30にて確定させていただければと存じます。</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+場所は御社本社（四谷）を予定しておりますが、ご確認いただけますでしょうか？</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+当日は、下記のメンバー３名でお伺いする予定です。</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+・代表取締役社長　　　　山本 貴史</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+・ライセンス部　副部長　渡辺 英二郎&nbsp;</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+・事業開発部　エグゼクティブアソシエイト　抜井 正博　</div>
+<div style="direction: ltr;"><a name="x_x_x_x_x_x_x_x_x_x__MailOriginal"></a></div>
+<div style="direction: ltr;"><br>
+</div>
+<div style="direction: ltr; font-family: Calibri, Arial, Helvetica, sans-serif; font-size: 12pt; color: black;">
+アジェンダ等の詳細につきましては、追ってご連絡申し上げます。</div>
+<div style="direction: ltr; font-family: Calibri, Arial, Helvetica, sans-serif; font-size: 12pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Calibri, Arial, Helvetica, sans-serif; font-size: 12pt; color: black;">
+まずは日程、場所のご確認をお願い申し上げます。</div>
+<div style="direction: ltr; font-family: Calibri, Arial, Helvetica, sans-serif; font-size: 12pt; color: black;">
+引き続きよろしくお願いいたします。</div>
+<div style="direction: ltr; font-family: Calibri, Arial, Helvetica, sans-serif; font-size: 12pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Calibri, Arial, Helvetica, sans-serif; font-size: 12pt; color: black;">
+理研イノベーション　抜井</div>
+<div style="direction: ltr; font-family: Calibri, Arial, Helvetica, sans-serif; font-size: 12pt; color: black;">
+<br>
+</div>
+<hr style="direction: ltr; display: inline-block; width: 98%;">
+<div style="direction: ltr; font-family: Calibri, Arial, Helvetica, sans-serif; font-size: 12pt; color: black;">
+<b>差出人:</b>&nbsp;yos_inoue(井上 与志也) &lt;yos_inoue@rike-vita.co.jp&gt;<br>
+<b>送信:</b>&nbsp;2025 年 12 月 22 日 (月曜日) 11:41<br>
+<b>宛先:</b>&nbsp;抜井 正博 &lt;nukui.masahiro@innovation-riken.jp&gt;<br>
+<b>Cc:</b>&nbsp;jur_ootsuka(大塚 樹里) &lt;jur_ootsuka@rike-vita.co.jp&gt;; 山本 貴史 &lt;yamamoto.takafumi@innovation-riken.jp&gt;; 渡辺 英二郎 &lt;watanabe.eijiro@innovation-riken.jp&gt;; shi_asou(麻生 茂樹) &lt;shi_asou@rike-vita.co.jp&gt;<br>
+<b>件名:</b>&nbsp;Re: ご面談のお願い：　理化学研究所との連携可能性に関する協議</div>
+<div style="direction: ltr; font-family: Calibri, Arial, Helvetica, sans-serif; font-size: 12pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: black;">
+理研イノベーション　抜井様</div>
+<div style="direction: ltr; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: black;">
+毎度お世話になります。</div>
+<div style="direction: ltr; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: black;">
+ご依頼の件、承知しました。</div>
+<div style="direction: ltr; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: black;">
+1/26（月）1330-1430ではいかがでしょうか。</div>
+<div style="direction: ltr; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: black;">
+当社は井上と、事業戦略推進部長の麻生にてお受けいたします。</div>
+<div id="x_x_x_x_x_x_x_x_x_x_Signature">
+<div style="direction: ltr; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: black;">
+ご検討のほど、よろしくお願いいたします。</div>
+<div style="direction: ltr; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 10pt; color: black;">
+------------------------------</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 10pt; color: black;">
+理研ビタミン株式会社</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 10pt; color: black;">
+広報IR部　部長</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 10pt; color: black;">
+井上　与志也</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 10pt; color: black;">
+080-7211-9033</div>
+</div>
+<hr style="direction: ltr; display: inline-block; width: 98%;">
+<div id="x_x_x_x_x_x_x_x_x_x_x_divRplyFwdMsg">
+<div style="direction: ltr; font-family: Calibri, sans-serif; font-size: 11pt; color: black;">
+<b>差出人:</b>&nbsp;抜井 正博 &lt;nukui.masahiro@innovation-riken.jp&gt;<br>
+<b>送信日時:</b>&nbsp;2025年12月22日 11:15<br>
+<b>宛先:</b>&nbsp;yos_inoue(井上 与志也) &lt;yos_inoue@rike-vita.co.jp&gt;<br>
+<b>CC:</b>&nbsp;jur_ootsuka(大塚 樹里) &lt;jur_ootsuka@rike-vita.co.jp&gt;; 山本 貴史 &lt;yamamoto.takafumi@innovation-riken.jp&gt;; 渡辺 英二郎 &lt;watanabe.eijiro@innovation-riken.jp&gt;<br>
+<b>件名:</b>&nbsp;ご面談のお願い：　理化学研究所との連携可能性に関する協議</div>
+<div style="direction: ltr;">&nbsp;</div>
+</div>
+<table style="direction: ltr; line-height: revert; display: table; width: 100%; table-layout: fixed; box-sizing: border-box; border-collapse: collapse; border-spacing: 0px;" cellpadding="0" cellspacing="0">
+<tbody>
+<tr>
+<td style="direction: ltr; line-height: revert; background-color: rgb(166, 166, 166); padding: 7px 2px; word-break: revert; width: 0px;">
+</td>
+<td style="direction: ltr; text-align: left; line-height: revert; background-color: rgb(234, 234, 234); padding: 7px 5px 7px 15px; word-break: revert; color: rgb(33, 33, 33); width: 100%;">
+<div style="direction: ltr; text-align: left; line-height: revert; font-family: wf_segoe-ui_normal, &quot;Segoe UI&quot;, &quot;Segoe WP&quot;, Tahoma, Arial, sans-serif;">
+<span style="letter-spacing: revert; line-height: revert;">このメッセージを受信した人は、nukui.masahiro@innovation-riken.jp からのメールを受け取る頻度が高くありません。<a data-auth="NotApplicable" class="x_x_x_x_x_OWAAutoLink" id="OWA6a99141b-6764-bba6-2704-1356bf126ba0" href="https://aka.ms/LearnAboutSenderIdentification">これが重要である理由</a></span></div>
+</td>
+<td style="direction: ltr; text-align: left; line-height: revert; background-color: rgb(234, 234, 234); padding: 7px 5px; word-break: revert; color: rgb(33, 33, 33); width: 75px;">
+</td>
+</tr>
+</tbody>
+</table>
+<div style="direction: ltr; font-family: Meiryo; font-size: 11pt; color: black;">
+理研ビタミン株式会社</div>
+<div style="direction: ltr; font-family: Meiryo; font-size: 11pt; color: black;">
+広報IR部長　井上 与志也様</div>
+<div style="direction: ltr; font-family: Meiryo; font-size: 11pt; color: black;">
+ｃｃ：総務部　秘書室　大塚 樹里様</div>
+<div style="direction: ltr; font-family: Meiryo; font-size: 11pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Meiryo; font-size: 11pt; color: black;">
+突然のご連絡失礼いたします。理研イノベーションの抜井と申します。</div>
+<div style="direction: ltr; font-family: Meiryo; font-size: 11pt; color: black;">
+弊社社長 山本貴史の代理として、ご連絡差し上げました。</div>
+<div style="direction: ltr; font-family: Meiryo; font-size: 11pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Meiryo; font-size: 11pt; color: black;">
+弊社は、理化学研究所が100％出資する子会社で、理研の研究成果を企業の皆様に</div>
+<div style="direction: ltr; font-family: Meiryo; font-size: 11pt; color: black;">
+ご紹介し、事業にお役立ていただくための提案や共同研究などの連携を支援しております。</div>
+<div style="direction: ltr; font-family: Meiryo; font-size: 11pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Meiryo; font-size: 11pt; color: black;">
+現在、弊社代表とともに「理研未来革新アライアンス」会員企業の皆様を個別に訪問し、</div>
+<div style="direction: ltr; font-family: Meiryo; font-size: 11pt; color: black;">
+技術開発におけるニーズや課題を伺いながら、理研の研究成果活用の可能性について</div>
+<div style="direction: ltr; font-family: Meiryo; font-size: 11pt; color: black;">
+ご提案する活動を進めております。</div>
+<div style="direction: ltr; font-family: Meiryo; font-size: 11pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Meiryo; font-size: 11pt; color: black;">
+つきましては、理化学研究所および弊社事業概要のご紹介させていただき、</div>
+<div style="direction: ltr; font-family: Meiryo; font-size: 11pt; color: black;">
+貴社の技術開発方針や課題等についてお話をお伺いさせていただけますと幸いです。</div>
+<div style="direction: ltr; font-family: Meiryo; font-size: 11pt; color: black;">
+可能であれば、技術開発ご担当役員または責任者の方にもご同席いただけますと、</div>
+<div style="direction: ltr; font-family: Meiryo; font-size: 11pt; color: black;">
+次回以降、より具体的なご提案が可能です。</div>
+<div style="direction: ltr; font-family: Meiryo; font-size: 11pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Meiryo; font-size: 11pt; color: black;">
+ご多忙のところ恐れ入りますが、以下候補日をご確認の上、ご都合の良い日時を</div>
+<div style="direction: ltr; font-family: Meiryo; font-size: 11pt; color: black;">
+ご教示いただけますと幸いです。（打合せ時間は1時間程度を予定しております。）</div>
+<div style="direction: ltr; font-family: Meiryo; font-size: 11pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Meiryo; font-size: 11pt; color: black;">
+【訪問候補日】</div>
+<div style="direction: ltr; font-family: Meiryo; font-size: 11pt; color: black;">
+1/26（月）13:30 - 16:30&nbsp;</div>
+<div style="direction: ltr; font-family: Meiryo; font-size: 11pt; color: black;">
+2/12（木）14:00-17:00</div>
+<div style="direction: ltr; font-family: Meiryo; font-size: 11pt; color: black;">
+3/16（月）13:00 - 17:00</div>
+<div id="x_x_x_x_x_x_x_x_x_x_x_x_Signature">
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+お手数おかけいたしますが、何卒よろしくお願い申し上げます。</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 14.67px; color: black;">
+<span style="background-color: white;">-----------------------------------------------</span></div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+抜井 正博</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+株式会社理研イノベーション</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+事業開発部</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+エグゼクティブアソシエイト</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+〒351-0198 埼玉県和光市広沢2-1</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+　　　　　&nbsp; 理化学研究所内</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+E-mail：nukui.masahiro@innovation-riken.jp</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+携帯：070-2494-0853</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+-----------------------------------------------</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+<br>
+</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+&nbsp;</div>
+<div style="direction: ltr; font-family: Aptos, Aptos_EmbeddedFont, Aptos_MSFontService, Calibri, Helvetica, sans-serif; font-size: 11pt; color: black;">
+<br>
+</div>
+</div>
+</body>
+</html>
+
+--_000_TYWP286MB21882DFE9D513D0F8570CEB8949EATYWP286MB2188JPNP_--
+
+--_004_TYWP286MB21882DFE9D513D0F8570CEB8949EATYWP286MB2188JPNP_
+Content-Type: image/jpeg; name="Outlook-r1krdwuz.jpg"
+Content-Description: Outlook-r1krdwuz.jpg
+Content-Disposition: inline; filename="Outlook-r1krdwuz.jpg"; size=70916;
+	creation-date="Wed, 28 Jan 2026 00:01:55 GMT";
+	modification-date="Thu, 29 Jan 2026 05:06:10 GMT"
+Content-ID: <42370d80-9a9f-4abb-88d8-dd03229df693>
+Content-Transfer-Encoding: base64
+
+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
+Xte4s9m79L6v0P5C8JSUQ4ePrfj7n7n+I1xw/ef0uL3D+/v/AOkf+4f/2f/tFs5QaG90b3Nob3Ag
+My4wADhCSU0EBAAAAAAAOBwBWgADGyVHHAIAAAIAABwCBQAk44OP44KZ44OK44O844OG44KZ44K1
+44KZ44Kk44OzRlc1MHRoOEJJTQQlAAAAAAAQQP11npF6mw9eOFfztWKVKThCSU0EOgAAAAAA6QAA
+ABAAAAABAAAAAAALcHJpbnRPdXRwdXQAAAAFAAAAAFBzdFNib29sAQAAAABJbnRlZW51bQAAAABJ
+bnRlAAAAAENscm0AAAAPcHJpbnRTaXh0ZWVuQml0Ym9vbAAAAAALcHJpbnRlck5hbWVURVhUAAAA
+CgAxADQANQAwAGEAZABvAGIAZQAAAAAAD3ByaW50UHJvb2ZTZXR1cE9iamMAAAAFaCFrY4otW5oA
+AAAAAApwcm9vZlNldHVwAAAAAQAAAABCbHRuZW51bQAAAAxidWlsdGluUHJvb2YAAAAJcHJvb2ZD
+TVlLADhCSU0EOwAAAAACLQAAABAAAAABAAAAAAAScHJpbnRPdXRwdXRPcHRpb25zAAAAFwAAAABD
+cHRuYm9vbAAAAAAAQ2xicmJvb2wAAAAAAFJnc01ib29sAAAAAABDcm5DYm9vbAAAAAAAQ250Q2Jv
+b2wAAAAAAExibHNib29sAAAAAABOZ3R2Ym9vbAAAAAAARW1sRGJvb2wAAAAAAEludHJib29sAAAA
+AABCY2tnT2JqYwAAAAEAAAAAAABSR0JDAAAAAwAAAABSZCAgZG91YkBv4AAAAAAAAAAAAEdybiBk
+b3ViQG/gAAAAAAAAAAAAQmwgIGRvdWJAb+AAAAAAAAAAAABCcmRUVW50RiNSbHQAAAAAAAAAAAAA
+AABCbGQgVW50RiNSbHQAAAAAAAAAAAAAAABSc2x0VW50RiNQeGxAdeAAAAAAAAAAAAp2ZWN0b3JE
+YXRhYm9vbAEAAAAAUGdQc2VudW0AAAAAUGdQcwAAAABQZ1BDAAAAAExlZnRVbnRGI1JsdAAAAAAA
+AAAAAAAAAFRvcCBVbnRGI1JsdAAAAAAAAAAAAAAAAFNjbCBVbnRGI1ByY0BZAAAAAAAAAAAAEGNy
+b3BXaGVuUHJpbnRpbmdib29sAAAAAA5jcm9wUmVjdEJvdHRvbWxvbmcAAAAAAAAADGNyb3BSZWN0
+TGVmdGxvbmcAAAAAAAAADWNyb3BSZWN0UmlnaHRsb25nAAAAAAAAAAtjcm9wUmVjdFRvcGxvbmcA
+AAAAADhCSU0D7QAAAAAAEAFeAAAAAQACAV4AAAABAAI4QklNBCYAAAAAAA4AAAAAAAAAAAAAP4AA
+ADhCSU0EDQAAAAAABAAAAFo4QklNBBkAAAAAAAQAAAAeOEJJTQPzAAAAAAAJAAAAAAAAAAABADhC
+SU0nEAAAAAAACgABAAAAAAAAAAI4QklNA/UAAAAAAEgAL2ZmAAEAbGZmAAYAAAAAAAEAL2ZmAAEA
+oZmaAAYAAAAAAAEAMgAAAAEAWgAAAAYAAAAAAAEANQAAAAEALQAAAAYAAAAAAAE4QklNA/gAAAAA
+AHAAAP////////////////////////////8D6AAAAAD/////////////////////////////A+gA
+AAAA/////////////////////////////wPoAAAAAP////////////////////////////8D6AAA
+OEJJTQQAAAAAAAACAAA4QklNBAIAAAAAAAIAADhCSU0EMAAAAAAAAQEAOEJJTQQtAAAAAAAGAAEA
+AAACOEJJTQQIAAAAAAAQAAAAAQAAAkAAAAJAAAAAADhCSU0ERAAAAAAAEAAAAAIAAAJAAAACQAAA
+AAA4QklNBB4AAAAAAAQAAAAAOEJJTQQaAAAAAANVAAAABgAAAAAAAAAAAAAA8QAAA+oAAAAQMM8w
+mTDKMPwwxjCZMLUwmTCkMPMARgBXADUAMAB0AGgAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAA
+AAAAAAAAA+oAAADxAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAEAAAAA
+AABudWxsAAAAAgAAAAZib3VuZHNPYmpjAAAAAQAAAAAAAFJjdDEAAAAEAAAAAFRvcCBsb25nAAAA
+AAAAAABMZWZ0bG9uZwAAAAAAAAAAQnRvbWxvbmcAAADxAAAAAFJnaHRsb25nAAAD6gAAAAZzbGlj
+ZXNWbExzAAAAAU9iamMAAAABAAAAAAAFc2xpY2UAAAASAAAAB3NsaWNlSURsb25nAAAAAAAAAAdn
+cm91cElEbG9uZwAAAAAAAAAGb3JpZ2luZW51bQAAAAxFU2xpY2VPcmlnaW4AAAANYXV0b0dlbmVy
+YXRlZAAAAABUeXBlZW51bQAAAApFU2xpY2VUeXBlAAAAAEltZyAAAAAGYm91bmRzT2JqYwAAAAEA
+AAAAAABSY3QxAAAABAAAAABUb3AgbG9uZwAAAAAAAAAATGVmdGxvbmcAAAAAAAAAAEJ0b21sb25n
+AAAA8QAAAABSZ2h0bG9uZwAAA+oAAAADdXJsVEVYVAAAAAEAAAAAAABudWxsVEVYVAAAAAEAAAAA
+AABNc2dlVEVYVAAAAAEAAAAAAAZhbHRUYWdURVhUAAAAAQAAAAAADmNlbGxUZXh0SXNIVE1MYm9v
+bAEAAAAIY2VsbFRleHRURVhUAAAAAQAAAAAACWhvcnpBbGlnbmVudW0AAAAPRVNsaWNlSG9yekFs
+aWduAAAAB2RlZmF1bHQAAAAJdmVydEFsaWduZW51bQAAAA9FU2xpY2VWZXJ0QWxpZ24AAAAHZGVm
+YXVsdAAAAAtiZ0NvbG9yVHlwZWVudW0AAAARRVNsaWNlQkdDb2xvclR5cGUAAAAATm9uZQAAAAl0
+b3BPdXRzZXRsb25nAAAAAAAAAApsZWZ0T3V0c2V0bG9uZwAAAAAAAAAMYm90dG9tT3V0c2V0bG9u
+ZwAAAAAAAAALcmlnaHRPdXRzZXRsb25nAAAAAAA4QklNBCgAAAAAAAwAAAACP/AAAAAAAAA4QklN
+BBQAAAAAAAQAAAACOEJJTQQMAAAAAA1JAAAAAQAAAJ4AAAAmAAAB3AAARqgAAA0tABgAAf/Y/+0A
+DEFkb2JlX0NNAAH/7gAOQWRvYmUAZIAAAAAB/9sAhAAMCAgICQgMCQkMEQsKCxEVDwwMDxUYExMV
+ExMYEQwMDAwMDBEMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMAQ0LCw0ODRAODhAUDg4OFBQO
+Dg4OFBEMDAwMDBERDAwMDAwMEQwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAz/wAARCAAmAJ4D
+ASIAAhEBAxEB/90ABAAK/8QBPwAAAQUBAQEBAQEAAAAAAAAAAwABAgQFBgcICQoLAQABBQEBAQEB
+AQAAAAAAAAABAAIDBAUGBwgJCgsQAAEEAQMCBAIFBwYIBQMMMwEAAhEDBCESMQVBUWETInGBMgYU
+kaGxQiMkFVLBYjM0coLRQwclklPw4fFjczUWorKDJkSTVGRFwqN0NhfSVeJl8rOEw9N14/NGJ5Sk
+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
+koo8PXh3/wAn7n/P4f8AKsuO6n/O/L04f+d/qn3+qj6pesy2vItFW9oFBFm3d6ntc9z6/X+z/a/3
+7fsn2v8A7sLq18qpKTBVyqto7cV/pfv/AOS/zbDmuo3xbfp1+x+qkl8qpKdhfqpJfKqSSn6qSXyq
+kkp+qkl8qpJKfqpJfKqSSn6qXnP1mwPqpf1fKOR1VuJ1LdN3p49tjYMbW5La3ek+1jPT3PY+n/B+
+qvG0kzJWl/8Adf8AcMuC+MVv/g/+pPS+y0dO6AOl4rf2xW7EZIbZ9lsFb7dzjY+xtljqm5W7/rq0
+cHB6S3pXU2M6m2yiwUerZ9ne0V7XuLPZu/S+r9D+QvCUlEOHj634+5+5/iNccP3n9Li9w/v7/wDp
+H/uH/9kAOEJJTQQhAAAAAABXAAAAAQEAAAAPAEEAZABvAGIAZQAgAFAAaABvAHQAbwBzAGgAbwBw
+AAAAFABBAGQAbwBiAGUAIABQAGgAbwB0AG8AcwBoAG8AcAAgADIAMAAyADUAAAABADhCSU0EBgAA
+AAAABwABAAAAAQEA/+FMhWh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8APD94cGFja2V0IGJl
+Z2luPSLvu78iIGlkPSJXNU0wTXBDZWhpSHpyZVN6TlRjemtjOWQiPz4gPHg6eG1wbWV0YSB4bWxu
+czp4PSJhZG9iZTpuczptZXRhLyIgeDp4bXB0az0iQWRvYmUgWE1QIENvcmUgOS4xLWMwMDMgNzku
+OTY5MGE4N2ZjLCAyMDI1LzAzLzA2LTIwOjUwOjE2ICAgICAgICAiPiA8cmRmOlJERiB4bWxuczpy
+ZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiPiA8cmRmOkRl
+c2NyaXB0aW9uIHJkZjphYm91dD0iIiB4bWxuczpkYz0iaHR0cDovL3B1cmwub3JnL2RjL2VsZW1l
+bnRzLzEuMS8iIHhtbG5zOnhtcD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wLyIgeG1sbnM6
+eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRw
+Oi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczpzdEV2dD0i
+aHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL1Jlc291cmNlRXZlbnQjIiB4bWxuczpz
+dE1mcz0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL01hbmlmZXN0SXRlbSMiIHht
+bG5zOmlsbHVzdHJhdG9yPSJodHRwOi8vbnMuYWRvYmUuY29tL2lsbHVzdHJhdG9yLzEuMC8iIHht
+bG5zOnhtcFRQZz0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3QvcGcvIiB4bWxuczpzdERp
+bT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL0RpbWVuc2lvbnMjIiB4bWxuczpz
+dEZudD0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL3NUeXBlL0ZvbnQjIiB4bWxuczp4bXBH
+PSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvZy8iIHhtbG5zOnBkZj0iaHR0cDovL25zLmFk
+b2JlLmNvbS9wZGYvMS4zLyIgeG1sbnM6cGhvdG9zaG9wPSJodHRwOi8vbnMuYWRvYmUuY29tL3Bo
+b3Rvc2hvcC8xLjAvIiBkYzpmb3JtYXQ9ImltYWdlL2pwZWciIHhtcDpNZXRhZGF0YURhdGU9IjIw
+MjUtMTItMTdUMTc6MDU6MTYrMDk6MDAiIHhtcDpNb2RpZnlEYXRlPSIyMDI1LTEyLTE3VDE3OjA1
+OjE2KzA5OjAwIiB4bXA6Q3JlYXRlRGF0ZT0iMjAyNS0xMi0xN1QxNzowMzo1NiswOTowMCIgeG1w
+OkNyZWF0b3JUb29sPSJBZG9iZSBJbGx1c3RyYXRvciAzMC4wIChNYWNpbnRvc2gpIiB4bXBNTTpJ
+bnN0YW5jZUlEPSJ4bXAuaWlkOjdiMTJlMDgxLWQ1YzItNDM3Yy05NzM1LTFkODBhZTUzMzM0NCIg
+eG1wTU06RG9jdW1lbnRJRD0iYWRvYmU6ZG9jaWQ6cGhvdG9zaG9wOjdmZmJhNDAxLTRjZDItOWY0
+MC1iZmMzLTljNTYwZjQ4YzFjNSIgeG1wTU06T3JpZ2luYWxEb2N1bWVudElEPSJ1dWlkOjVEMjA4
+OTI0OTNCRkRCMTE5MTRBODU5MEQzMTUwOEM4IiB4bXBNTTpSZW5kaXRpb25DbGFzcz0icHJvb2Y6
+cGRmIiBpbGx1c3RyYXRvcjpUeXBlPSJEb2N1bWVudCIgaWxsdXN0cmF0b3I6U3RhcnR1cFByb2Zp
+bGU9IlByaW50IiBpbGx1c3RyYXRvcjpDcmVhdG9yU3ViVG9vbD0iQUlSb2JpbiIgaWxsdXN0cmF0
+b3I6SXNGaWxlU2F2ZWRWaWFJbnN0YW50U2F2ZT0iVHJ1ZSIgeG1wVFBnOkhhc1Zpc2libGVPdmVy
+cHJpbnQ9IkZhbHNlIiB4bXBUUGc6SGFzVmlzaWJsZVRyYW5zcGFyZW5jeT0iVHJ1ZSIgeG1wVFBn
+Ok5QYWdlcz0iMSIgcGRmOlByb2R1Y2VyPSJBZG9iZSBQREYgbGlicmFyeSAxNy4wMCIgcGhvdG9z
+aG9wOkNvbG9yTW9kZT0iMyIgcGhvdG9zaG9wOklDQ1Byb2ZpbGU9InNSR0IgSUVDNjE5NjYtMi4x
+Ij4gPGRjOnRpdGxlPiA8cmRmOkFsdD4gPHJkZjpsaSB4bWw6bGFuZz0ieC1kZWZhdWx0Ij7jg4/j
+gpnjg4rjg7zjg4bjgpnjgrXjgpnjgqTjg7NGVzUwdGg8L3JkZjpsaT4gPC9yZGY6QWx0PiA8L2Rj
+OnRpdGxlPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDo2YTBl
+ZDM1OC0yMDUzLTQ3OWYtYjNkNy00MGQxZWVlZTE0MzQiIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5k
+aWQ6NmEwZWQzNTgtMjA1My00NzlmLWIzZDctNDBkMWVlZWUxNDM0IiBzdFJlZjpvcmlnaW5hbERv
+Y3VtZW50SUQ9InV1aWQ6NUQyMDg5MjQ5M0JGREIxMTkxNEE4NTkwRDMxNTA4QzgiIHN0UmVmOnJl
+bmRpdGlvbkNsYXNzPSJwcm9vZjpwZGYiLz4gPHhtcE1NOkhpc3Rvcnk+IDxyZGY6U2VxPiA8cmRm
+OmxpIHN0RXZ0OmFjdGlvbj0ic2F2ZWQiIHN0RXZ0Omluc3RhbmNlSUQ9InhtcC5paWQ6NzM0NGNl
+ODUtNmQ4Zi00MGQ0LThlNTItN2Y1OTRjNmE5MjM2IiBzdEV2dDp3aGVuPSIyMDI1LTEyLTE2VDE2
+OjE4OjUxKzA5OjAwIiBzdEV2dDpzb2Z0d2FyZUFnZW50PSJBZG9iZSBJbGx1c3RyYXRvciAzMC4w
+IChNYWNpbnRvc2gpIiBzdEV2dDpjaGFuZ2VkPSIvIi8+IDxyZGY6bGkgc3RFdnQ6YWN0aW9uPSJj
+b252ZXJ0ZWQiIHN0RXZ0OnBhcmFtZXRlcnM9ImZyb20gYXBwbGljYXRpb24vcGRmIHRvIGFwcGxp
+Y2F0aW9uL3ZuZC5hZG9iZS5waG90b3Nob3AiLz4gPHJkZjpsaSBzdEV2dDphY3Rpb249InNhdmVk
+IiBzdEV2dDppbnN0YW5jZUlEPSJ4bXAuaWlkOjZhMGVkMzU4LTIwNTMtNDc5Zi1iM2Q3LTQwZDFl
+ZWVlMTQzNCIgc3RFdnQ6d2hlbj0iMjAyNS0xMi0xN1QxNzowNToxNiswOTowMCIgc3RFdnQ6c29m
+dHdhcmVBZ2VudD0iQWRvYmUgUGhvdG9zaG9wIDI2LjcgKE1hY2ludG9zaCkiIHN0RXZ0OmNoYW5n
+ZWQ9Ii8iLz4gPHJkZjpsaSBzdEV2dDphY3Rpb249ImNvbnZlcnRlZCIgc3RFdnQ6cGFyYW1ldGVy
+cz0iZnJvbSBhcHBsaWNhdGlvbi9wZGYgdG8gaW1hZ2UvanBlZyIvPiA8cmRmOmxpIHN0RXZ0OmFj
+dGlvbj0iZGVyaXZlZCIgc3RFdnQ6cGFyYW1ldGVycz0iY29udmVydGVkIGZyb20gYXBwbGljYXRp
+b24vdm5kLmFkb2JlLnBob3Rvc2hvcCB0byBpbWFnZS9qcGVnIi8+IDxyZGY6bGkgc3RFdnQ6YWN0
+aW9uPSJzYXZlZCIgc3RFdnQ6aW5zdGFuY2VJRD0ieG1wLmlpZDo3YjEyZTA4MS1kNWMyLTQzN2Mt
+OTczNS0xZDgwYWU1MzMzNDQiIHN0RXZ0OndoZW49IjIwMjUtMTItMTdUMTc6MDU6MTYrMDk6MDAi
+IHN0RXZ0OnNvZnR3YXJlQWdlbnQ9IkFkb2JlIFBob3Rvc2hvcCAyNi43IChNYWNpbnRvc2gpIiBz
+dEV2dDpjaGFuZ2VkPSIvIi8+IDwvcmRmOlNlcT4gPC94bXBNTTpIaXN0b3J5PiA8eG1wTU06TWFu
+aWZlc3Q+IDxyZGY6U2VxPiA8cmRmOmxpPiA8cmRmOkRlc2NyaXB0aW9uIHN0TWZzOmxpbmtGb3Jt
+PSJFbWJlZEJ5UmVmZXJlbmNlIj4gPHN0TWZzOnJlZmVyZW5jZSBzdFJlZjpmaWxlUGF0aD0iL1Zv
+bHVtZXMvc2hhcmUvMDEg5ZCE56iu44OG44KZ44O844K/L+OAkOacgOe1gueJiOS4i0RC44CRLzAx
+5a625bqt55SoLzAzTkIg44Ki44O844Kr44Kk44OV44KZLzA044Gf44KZ44GX44Gu57Sg6aGeLzAx
+57Sg5p2Q5Yqb44Gf44KZ44GX44K344Oq44O844K544KZLzAxIOacrOOBi+OBpOOBiu+8j+OBhOOC
+iuOBk++8j+OBk+OCk+OBteOCmS8wMiA3MGcv44OG44KZ44K144KZ44Kk44OK44O85pyA57WC54mI
+5LiLLzIwMTcv5aSW6KKLL+e0oOadkOWKm+aooeanmF9kYXRhLnBzZCIgc3RSZWY6ZG9jdW1lbnRJ
+RD0ieG1wLmRpZDowNTgwMTE3NDA3MjA2ODExODIyQUM1QTUwOTE5ODBGQSIgc3RSZWY6aW5zdGFu
+Y2VJRD0ieG1wLmlpZDo3MzVDODQ2RTREMjA2ODExODIyQUE3NjE0ODc3MTYxOSIvPiA8L3JkZjpE
+ZXNjcmlwdGlvbj4gPC9yZGY6bGk+IDxyZGY6bGk+IDxyZGY6RGVzY3JpcHRpb24gc3RNZnM6bGlu
+a0Zvcm09IkVtYmVkQnlSZWZlcmVuY2UiPiA8c3RNZnM6cmVmZXJlbmNlIHN0UmVmOmZpbGVQYXRo
+PSIvVXNlcnMvbWFjbWluaV8wMS9EZXNrdG9wL+OBteOBiOOCi+OCj+OBi+OCgeOBoeOCg+OCk+mf
+k+WbvV8yN2cucG5nIi8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpsaT4gPHJkZjpsaT4gPHJk
+ZjpEZXNjcmlwdGlvbiBzdE1mczpsaW5rRm9ybT0iRW1iZWRCeVJlZmVyZW5jZSI+IDxzdE1mczpy
+ZWZlcmVuY2Ugc3RSZWY6ZmlsZVBhdGg9Ii9Vc2Vycy9tYWNtaW5pXzAxL0Rlc2t0b3Av44G144GI
+44KL44KP44GL44KB44Gh44KD44KT5Zu95YaFXzE2Zy5wbmciLz4gPC9yZGY6RGVzY3JpcHRpb24+
+IDwvcmRmOmxpPiA8cmRmOmxpPiA8cmRmOkRlc2NyaXB0aW9uIHN0TWZzOmxpbmtGb3JtPSJFbWJl
+ZEJ5UmVmZXJlbmNlIj4gPHN0TWZzOnJlZmVyZW5jZSBzdFJlZjpmaWxlUGF0aD0iL1VzZXJzL21h
+Y21pbmlfMDEvRGVza3RvcC/jgbXjgYjjgovjgo/jgYvjgoHjgaHjgoPjgpPkuInpmbhfMTZnLnBu
+ZyIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6bGk+IDxyZGY6bGk+IDxyZGY6RGVzY3JpcHRp
+b24gc3RNZnM6bGlua0Zvcm09IkVtYmVkQnlSZWZlcmVuY2UiPiA8c3RNZnM6cmVmZXJlbmNlIHN0
+UmVmOmZpbGVQYXRoPSIvVXNlcnMvbWFjbWluaV8wMS9EZXNrdG9wL+OBteOBiOOCi+OCj+OBi+OC
+geOBoeOCg+OCk+S4iemZuF8xNmcucG5nIi8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpsaT4g
+PHJkZjpsaT4gPHJkZjpEZXNjcmlwdGlvbiBzdE1mczpsaW5rRm9ybT0iRW1iZWRCeVJlZmVyZW5j
+ZSI+IDxzdE1mczpyZWZlcmVuY2Ugc3RSZWY6ZmlsZVBhdGg9Ii9Vc2Vycy9tYWNtaW5pXzAxL0Rl
+c2t0b3Av44G144GI44KL44KP44GL44KB44Gh44KD44KT6Z+T5Zu9XzI3Zy5wbmciLz4gPC9yZGY6
+RGVzY3JpcHRpb24+IDwvcmRmOmxpPiA8cmRmOmxpPiA8cmRmOkRlc2NyaXB0aW9uIHN0TWZzOmxp
+bmtGb3JtPSJFbWJlZEJ5UmVmZXJlbmNlIj4gPHN0TWZzOnJlZmVyZW5jZSBzdFJlZjpmaWxlUGF0
+aD0iL1VzZXJzL21hY21pbmlfMDEvRGVza3RvcC/jgbXjgYjjgovjgo/jgYvjgoHjgaHjgoPjgpPl
+m73lhoVfMTZnLnBuZyIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6bGk+IDxyZGY6bGk+IDxy
+ZGY6RGVzY3JpcHRpb24gc3RNZnM6bGlua0Zvcm09IkVtYmVkQnlSZWZlcmVuY2UiPiA8c3RNZnM6
+cmVmZXJlbmNlIHN0UmVmOmZpbGVQYXRoPSIvVXNlcnMvbWFjbWluaV8wMS9EZXNrdG9wL+OBteOB
+iOOCi+OCj+OBi+OCgeOBoeOCg+OCk+S4iemZuF8xNmcucG5nIi8+IDwvcmRmOkRlc2NyaXB0aW9u
+PiA8L3JkZjpsaT4gPHJkZjpsaT4gPHJkZjpEZXNjcmlwdGlvbiBzdE1mczpsaW5rRm9ybT0iRW1i
+ZWRCeVJlZmVyZW5jZSI+IDxzdE1mczpyZWZlcmVuY2Ugc3RSZWY6ZmlsZVBhdGg9Ii9Vc2Vycy9t
+YWNtaW5pXzAxL0Rlc2t0b3Av44G144GI44KL44KP44GL44KB44Gh44KD44KT5LiJ6Zm4XzE2Zy5w
+bmciLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOmxpPiA8L3JkZjpTZXE+IDwveG1wTU06TWFu
+aWZlc3Q+IDx4bXBUUGc6TWF4UGFnZVNpemUgc3REaW06dz0iMjEwLjAwMDAwMCIgc3REaW06aD0i
+Mjk3LjAwMDAwMCIgc3REaW06dW5pdD0iTWlsbGltZXRlcnMiLz4gPHhtcFRQZzpGb250cz4gPHJk
+ZjpCYWc+IDxyZGY6bGkgc3RGbnQ6Zm9udE5hbWU9IktvekdvUHI2Ti1SZWd1bGFyIiBzdEZudDpm
+b250RmFtaWx5PSLlsI/loZrjgrTjgrfjg4Pjgq8gUHI2TiIgc3RGbnQ6Zm9udEZhY2U9IlIiIHN0
+Rm50OmZvbnRUeXBlPSJPcGVuIFR5cGUiIHN0Rm50OnZlcnNpb25TdHJpbmc9IlZlcnNpb24gNi4w
+MjA7UFMgNi4wMDg7aG90Y29udiAxLjAuNzA7bWFrZW90Zi5saWIyLjUuNTkwMCIgc3RGbnQ6Y29t
+cG9zaXRlPSJGYWxzZSIgc3RGbnQ6Zm9udEZpbGVOYW1lPSJLb3pHb1ByNk4tUmVndWxhci5vdGYi
+Lz4gPHJkZjpsaSBzdEZudDpmb250TmFtZT0iUEt1cm9tYW1lU3RkTi1SIiBzdEZudDpmb250RmFt
+aWx5PSJBIFAtT1RGIOOBj+OCjeOBvuOCgSBTdGROIiBzdEZudDpmb250RmFjZT0iUiIgc3RGbnQ6
+Zm9udFR5cGU9Ik9wZW4gVHlwZSIgc3RGbnQ6dmVyc2lvblN0cmluZz0iVmVyc2lvbiAxLjAwMDtQ
+UyAxO2hvdGNvbnYgMTYuNi41NDttYWtlb3RmLmxpYjIuNS42NTU5MCIgc3RGbnQ6Y29tcG9zaXRl
+PSJGYWxzZSIgc3RGbnQ6Zm9udEZpbGVOYW1lPSJBUC1PVEYtS3Vyb21hbWVTdGROLVIub3RmIi8+
+IDxyZGY6bGkgc3RGbnQ6Zm9udE5hbWU9IlBDaGlzYWtpTWluMi1CIiBzdEZudDpmb250RmFtaWx5
+PSJBIFAtT1RGIOOBoeOBleOBjSBNaW4yIiBzdEZudDpmb250RmFjZT0iQiIgc3RGbnQ6Zm9udFR5
+cGU9Ik9wZW4gVHlwZSIgc3RGbnQ6dmVyc2lvblN0cmluZz0iVmVyc2lvbiAxLjAwMTtQUyAxO2hv
+dGNvbnYgMTYuNi41NDttYWtlb3RmLmxpYjIuNS42NTU5MCIgc3RGbnQ6Y29tcG9zaXRlPSJGYWxz
+ZSIgc3RGbnQ6Zm9udEZpbGVOYW1lPSJBUC1PVEYtQ2hpc2FraU1pbjItQi5vdGYiLz4gPHJkZjps
+aSBzdEZudDpmb250TmFtZT0iUEthbW9MZW1vcFByb04tQm9sZCIgc3RGbnQ6Zm9udEZhbWlseT0i
+QSBQLU9URiDjgqvjg6Ljg6zjg6Ljg7MrIFByb04iIHN0Rm50OmZvbnRGYWNlPSJCIiBzdEZudDpm
+b250VHlwZT0iT3BlbiBUeXBlIiBzdEZudDp2ZXJzaW9uU3RyaW5nPSJWZXJzaW9uIDEuMDAwO1BT
+IDE7aG90Y29udiAxNi42LjU0O21ha2VvdGYubGliMi41LjY1NTkwIiBzdEZudDpjb21wb3NpdGU9
+IkZhbHNlIiBzdEZudDpmb250RmlsZU5hbWU9IkFQLU9URi1LYW1vTGVtbytQcm9OLUJvbGQub3Rm
+Ii8+IDwvcmRmOkJhZz4gPC94bXBUUGc6Rm9udHM+IDx4bXBUUGc6UGxhdGVOYW1lcz4gPHJkZjpT
+ZXE+IDxyZGY6bGk+Q3lhbjwvcmRmOmxpPiA8cmRmOmxpPk1hZ2VudGE8L3JkZjpsaT4gPHJkZjps
+aT5ZZWxsb3c8L3JkZjpsaT4gPHJkZjpsaT5CbGFjazwvcmRmOmxpPiA8cmRmOmxpPuODreOCtO+8
+j+eJuemdkjwvcmRmOmxpPiA8L3JkZjpTZXE+IDwveG1wVFBnOlBsYXRlTmFtZXM+IDx4bXBUUGc6
+U3dhdGNoR3JvdXBzPiA8cmRmOlNlcT4gPHJkZjpsaT4gPHJkZjpEZXNjcmlwdGlvbiB4bXBHOmdy
+b3VwTmFtZT0iRGVmYXVsdCBTd2F0Y2ggR3JvdXAiIHhtcEc6Z3JvdXBUeXBlPSIwIj4gPHhtcEc6
+Q29sb3JhbnRzPiA8cmRmOlNlcT4gPHJkZjpsaSB4bXBHOnN3YXRjaE5hbWU9IuODm+ODr+OCpOOD
+iCIgeG1wRzptb2RlPSJDTVlLIiB4bXBHOnR5cGU9IlBST0NFU1MiIHhtcEc6Y3lhbj0iMC4wMDAw
+MDAiIHhtcEc6bWFnZW50YT0iMC4wMDAwMDAiIHhtcEc6eWVsbG93PSIwLjAwMDAwMCIgeG1wRzpi
+bGFjaz0iMC4wMDAwMDAiLz4gPHJkZjpsaSB4bXBHOnN3YXRjaE5hbWU9IuODluODqeODg+OCryIg
+eG1wRzptb2RlPSJDTVlLIiB4bXBHOnR5cGU9IlBST0NFU1MiIHhtcEc6Y3lhbj0iMC4wMDAwMDAi
+IHhtcEc6bWFnZW50YT0iMC4wMDAwMDAiIHhtcEc6eWVsbG93PSIwLjAwMDAwMCIgeG1wRzpibGFj
+az0iMTAwLjAwMDAwMCIvPiA8cmRmOmxpIHhtcEc6c3dhdGNoTmFtZT0iQ01ZSyDjg6zjg4Pjg4ki
+IHhtcEc6bW9kZT0iQ01ZSyIgeG1wRzp0eXBlPSJQUk9DRVNTIiB4bXBHOmN5YW49IjAuMDAwMDAw
+IiB4bXBHOm1hZ2VudGE9IjEwMC4wMDAwMDAiIHhtcEc6eWVsbG93PSIxMDAuMDAwMDAwIiB4bXBH
+OmJsYWNrPSIwLjAwMDAwMCIvPiA8cmRmOmxpIHhtcEc6c3dhdGNoTmFtZT0iQ01ZSyDjgqTjgqjj
+g63jg7wiIHhtcEc6bW9kZT0iQ01ZSyIgeG1wRzp0eXBlPSJQUk9DRVNTIiB4bXBHOmN5YW49IjAu
+MDAwMDAwIiB4bXBHOm1hZ2VudGE9IjAuMDAwMDAwIiB4bXBHOnllbGxvdz0iMTAwLjAwMDAwMCIg
+eG1wRzpibGFjaz0iMC4wMDAwMDAiLz4gPHJkZjpsaSB4bXBHOnN3YXRjaE5hbWU9IkNNWUsg44Kw
+44Oq44O844OzIiB4bXBHOm1vZGU9IkNNWUsiIHhtcEc6dHlwZT0iUFJPQ0VTUyIgeG1wRzpjeWFu
+PSIxMDAuMDAwMDAwIiB4bXBHOm1hZ2VudGE9IjAuMDAwMDAwIiB4bXBHOnllbGxvdz0iMTAwLjAw
+MDAwMCIgeG1wRzpibGFjaz0iMC4wMDAwMDAiLz4gPHJkZjpsaSB4bXBHOnN3YXRjaE5hbWU9IkNN
+WUsg44K344Ki44OzIiB4bXBHOm1vZGU9IkNNWUsiIHhtcEc6dHlwZT0iUFJPQ0VTUyIgeG1wRzpj
+eWFuPSIxMDAuMDAwMDAwIiB4bXBHOm1hZ2VudGE9IjAuMDAwMDAwIiB4bXBHOnllbGxvdz0iMC4w
+MDAwMDAiIHhtcEc6YmxhY2s9IjAuMDAwMDAwIi8+IDxyZGY6bGkgeG1wRzpzd2F0Y2hOYW1lPSJD
+TVlLIOODluODq+ODvCIgeG1wRzptb2RlPSJDTVlLIiB4bXBHOnR5cGU9IlBST0NFU1MiIHhtcEc6
+Y3lhbj0iMTAwLjAwMDAwMCIgeG1wRzptYWdlbnRhPSIxMDAuMDAwMDAwIiB4bXBHOnllbGxvdz0i
+MC4wMDAwMDAiIHhtcEc6YmxhY2s9IjAuMDAwMDAwIi8+IDxyZGY6bGkgeG1wRzpzd2F0Y2hOYW1l
+PSJDTVlLIOODnuOCvOODs+OCvyIgeG1wRzptb2RlPSJDTVlLIiB4bXBHOnR5cGU9IlBST0NFU1Mi
+IHhtcEc6Y3lhbj0iMC4wMDAwMDAiIHhtcEc6bWFnZW50YT0iMTAwLjAwMDAwMCIgeG1wRzp5ZWxs
+b3c9IjAuMDAwMDAwIiB4bXBHOmJsYWNrPSIwLjAwMDAwMCIvPiA8cmRmOmxpIHhtcEc6c3dhdGNo
+TmFtZT0iQz0xNSBNPTEwMCBZPTkwIEs9MTAiIHhtcEc6bW9kZT0iQ01ZSyIgeG1wRzp0eXBlPSJQ
+Uk9DRVNTIiB4bXBHOmN5YW49IjE1LjAwMDAwMCIgeG1wRzptYWdlbnRhPSIxMDAuMDAwMDAwIiB4
+bXBHOnllbGxvdz0iOTAuMDAwMDAwIiB4bXBHOmJsYWNrPSIxMC4wMDAwMDAiLz4gPHJkZjpsaSB4
+bXBHOnN3YXRjaE5hbWU9IkM9MCBNPTkwIFk9ODUgSz0wIiB4bXBHOm1vZGU9IkNNWUsiIHhtcEc6
+dHlwZT0iUFJPQ0VTUyIgeG1wRzpjeWFuPSIwLjAwMDAwMCIgeG1wRzptYWdlbnRhPSI5MC4wMDAw
+MDAiIHhtcEc6eWVsbG93PSI4NS4wMDAwMDAiIHhtcEc6YmxhY2s9IjAuMDAwMDAwIi8+IDxyZGY6
+bGkgeG1wRzpzd2F0Y2hOYW1lPSJDPTAgTT04MCBZPTk1IEs9MCIgeG1wRzptb2RlPSJDTVlLIiB4
+bXBHOnR5cGU9IlBST0NFU1MiIHhtcEc6Y3lhbj0iMC4wMDAwMDAiIHhtcEc6bWFnZW50YT0iODAu
+MDAwMDAwIiB4bXBHOnllbGxvdz0iOTUuMDAwMDAwIiB4bXBHOmJsYWNrPSIwLjAwMDAwMCIvPiA8
+cmRmOmxpIHhtcEc6c3dhdGNoTmFtZT0iQz0wIE09NTAgWT0xMDAgSz0wIiB4bXBHOm1vZGU9IkNN
+WUsiIHhtcEc6dHlwZT0iUFJPQ0VTUyIgeG1wRzpjeWFuPSIwLjAwMDAwMCIgeG1wRzptYWdlbnRh
+PSI1MC4wMDAwMDAiIHhtcEc6eWVsbG93PSIxMDAuMDAwMDAwIiB4bXBHOmJsYWNrPSIwLjAwMDAw
+MCIvPiA8cmRmOmxpIHhtcEc6c3dhdGNoTmFtZT0iQz0wIE09MzUgWT04NSBLPTAiIHhtcEc6bW9k
+ZT0iQ01ZSyIgeG1wRzp0eXBlPSJQUk9DRVNTIiB4bXBHOmN5YW49IjAuMDAwMDAwIiB4bXBHOm1h
+Z2VudGE9IjM1LjAwMDAwMCIgeG1wRzp5ZWxsb3c9Ijg1LjAwMDAwMCIgeG1wRzpibGFjaz0iMC4w
+MDAwMDAiLz4gPHJkZjpsaSB4bXBHOnN3YXRjaE5hbWU9IkM9NSBNPTAgWT05MCBLPTAiIHhtcEc6
+bW9kZT0iQ01ZSyIgeG1wRzp0eXBlPSJQUk9DRVNTIiB4bXBHOmN5YW49IjUuMDAwMDAwIiB4bXBH
+Om1hZ2VudGE9IjAuMDAwMDAwIiB4bXBHOnllbGxvdz0iOTAuMDAwMDAwIiB4bXBHOmJsYWNrPSIw
+LjAwMDAwMCIvPiA8cmRmOmxpIHhtcEc6c3dhdGNoTmFtZT0iQz0yMCBNPTAgWT0xMDAgSz0wIiB4
+bXBHOm1vZGU9IkNNWUsiIHhtcEc6dHlwZT0iUFJPQ0VTUyIgeG1wRzpjeWFuPSIyMC4wMDAwMDAi
+IHhtcEc6bWFnZW50YT0iMC4wMDAwMDAiIHhtcEc6eWVsbG93PSIxMDAuMDAwMDAwIiB4bXBHOmJs
+YWNrPSIwLjAwMDAwMCIvPiA8cmRmOmxpIHhtcEc6c3dhdGNoTmFtZT0iQz01MCBNPTAgWT0xMDAg
+Sz0wIiB4bXBHOm1vZGU9IkNNWUsiIHhtcEc6dHlwZT0iUFJPQ0VTUyIgeG1wRzpjeWFuPSI1MC4w
+MDAwMDAiIHhtcEc6bWFnZW50YT0iMC4wMDAwMDAiIHhtcEc6eWVsbG93PSIxMDAuMDAwMDAwIiB4
+bXBHOmJsYWNrPSIwLjAwMDAwMCIvPiA8cmRmOmxpIHhtcEc6c3dhdGNoTmFtZT0iQz03NSBNPTAg
+WT0xMDAgSz0wIiB4bXBHOm1vZGU9IkNNWUsiIHhtcEc6dHlwZT0iUFJPQ0VTUyIgeG1wRzpjeWFu
+PSI3NS4wMDAwMDAiIHhtcEc6bWFnZW50YT0iMC4wMDAwMDAiIHhtcEc6eWVsbG93PSIxMDAuMDAw
+MDAwIiB4bXBHOmJsYWNrPSIwLjAwMDAwMCIvPiA8cmRmOmxpIHhtcEc6c3dhdGNoTmFtZT0iQz04
+NSBNPTEwIFk9MTAwIEs9MTAiIHhtcEc6bW9kZT0iQ01ZSyIgeG1wRzp0eXBlPSJQUk9DRVNTIiB4
+bXBHOmN5YW49Ijg1LjAwMDAwMCIgeG1wRzptYWdlbnRhPSIxMC4wMDAwMDAiIHhtcEc6eWVsbG93
+PSIxMDAuMDAwMDAwIiB4bXBHOmJsYWNrPSIxMC4wMDAwMDAiLz4gPHJkZjpsaSB4bXBHOnN3YXRj
+aE5hbWU9IkM9OTAgTT0zMCBZPTk1IEs9MzAiIHhtcEc6bW9kZT0iQ01ZSyIgeG1wRzp0eXBlPSJQ
+Uk9DRVNTIiB4bXBHOmN5YW49IjkwLjAwMDAwMCIgeG1wRzptYWdlbnRhPSIzMC4wMDAwMDAiIHht
+cEc6eWVsbG93PSI5NS4wMDAwMDAiIHhtcEc6YmxhY2s9IjMwLjAwMDAwMCIvPiA8cmRmOmxpIHht
+cEc6c3dhdGNoTmFtZT0iQz03NSBNPTAgWT03NSBLPTAiIHhtcEc6bW9kZT0iQ01ZSyIgeG1wRzp0
+eXBlPSJQUk9DRVNTIiB4bXBHOmN5YW49Ijc1LjAwMDAwMCIgeG1wRzptYWdlbnRhPSIwLjAwMDAw
+MCIgeG1wRzp5ZWxsb3c9Ijc1LjAwMDAwMCIgeG1wRzpibGFjaz0iMC4wMDAwMDAiLz4gPHJkZjps
+aSB4bXBHOnN3YXRjaE5hbWU9IkM9ODAgTT0xMCBZPTQ1IEs9MCIgeG1wRzptb2RlPSJDTVlLIiB4
+bXBHOnR5cGU9IlBST0NFU1MiIHhtcEc6Y3lhbj0iODAuMDAwMDAwIiB4bXBHOm1hZ2VudGE9IjEw
+LjAwMDAwMCIgeG1wRzp5ZWxsb3c9IjQ1LjAwMDAwMCIgeG1wRzpibGFjaz0iMC4wMDAwMDAiLz4g
+PHJkZjpsaSB4bXBHOnN3YXRjaE5hbWU9IkM9NzAgTT0xNSBZPTAgSz0wIiB4bXBHOm1vZGU9IkNN
+WUsiIHhtcEc6dHlwZT0iUFJPQ0VTUyIgeG1wRzpjeWFuPSI3MC4wMDAwMDAiIHhtcEc6bWFnZW50
+YT0iMTUuMDAwMDAwIiB4bXBHOnllbGxvdz0iMC4wMDAwMDAiIHhtcEc6YmxhY2s9IjAuMDAwMDAw
+Ii8+IDxyZGY6bGkgeG1wRzpzd2F0Y2hOYW1lPSJDPTg1IE09NTAgWT0wIEs9MCIgeG1wRzptb2Rl
+PSJDTVlLIiB4bXBHOnR5cGU9IlBST0NFU1MiIHhtcEc6Y3lhbj0iODUuMDAwMDAwIiB4bXBHOm1h
+Z2VudGE9IjUwLjAwMDAwMCIgeG1wRzp5ZWxsb3c9IjAuMDAwMDAwIiB4bXBHOmJsYWNrPSIwLjAw
+MDAwMCIvPiA8cmRmOmxpIHhtcEc6c3dhdGNoTmFtZT0iQz0xMDAgTT05NSBZPTUgSz0wIiB4bXBH
+Om1vZGU9IkNNWUsiIHhtcEc6dHlwZT0iUFJPQ0VTUyIgeG1wRzpjeWFuPSIxMDAuMDAwMDAwIiB4
+bXBHOm1hZ2VudGE9Ijk1LjAwMDAwMCIgeG1wRzp5ZWxsb3c9IjUuMDAwMDAwIiB4bXBHOmJsYWNr
+PSIwLjAwMDAwMCIvPiA8cmRmOmxpIHhtcEc6c3dhdGNoTmFtZT0iQz0xMDAgTT0xMDAgWT0yNSBL
+PTI1IiB4bXBHOm1vZGU9IkNNWUsiIHhtcEc6dHlwZT0iUFJPQ0VTUyIgeG1wRzpjeWFuPSIxMDAu
+MDAwMDAwIiB4bXBHOm1hZ2VudGE9IjEwMC4wMDAwMDAiIHhtcEc6eWVsbG93PSIyNS4wMDAwMDAi
+IHhtcEc6YmxhY2s9IjI1LjAwMDAwMCIvPiA8cmRmOmxpIHhtcEc6c3dhdGNoTmFtZT0iQz03NSBN
+PTEwMCBZPTAgSz0wIiB4bXBHOm1vZGU9IkNNWUsiIHhtcEc6dHlwZT0iUFJPQ0VTUyIgeG1wRzpj
+eWFuPSI3NS4wMDAwMDAiIHhtcEc6bWFnZW50YT0iMTAwLjAwMDAwMCIgeG1wRzp5ZWxsb3c9IjAu
+MDAwMDAwIiB4bXBHOmJsYWNrPSIwLjAwMDAwMCIvPiA8cmRmOmxpIHhtcEc6c3dhdGNoTmFtZT0i
+Qz01MCBNPTEwMCBZPTAgSz0wIiB4bXBHOm1vZGU9IkNNWUsiIHhtcEc6dHlwZT0iUFJPQ0VTUyIg
+eG1wRzpjeWFuPSI1MC4wMDAwMDAiIHhtcEc6bWFnZW50YT0iMTAwLjAwMDAwMCIgeG1wRzp5ZWxs
+b3c9IjAuMDAwMDAwIiB4bXBHOmJsYWNrPSIwLjAwMDAwMCIvPiA8cmRmOmxpIHhtcEc6c3dhdGNo
+TmFtZT0iQz0zNSBNPTEwMCBZPTM1IEs9MTAiIHhtcEc6bW9kZT0iQ01ZSyIgeG1wRzp0eXBlPSJQ
+Uk9DRVNTIiB4bXBHOmN5YW49IjM1LjAwMDAwMCIgeG1wRzptYWdlbnRhPSIxMDAuMDAwMDAwIiB4
+bXBHOnllbGxvdz0iMzUuMDAwMDAwIiB4bXBHOmJsYWNrPSIxMC4wMDAwMDAiLz4gPHJkZjpsaSB4
+bXBHOnN3YXRjaE5hbWU9IkM9MTAgTT0xMDAgWT01MCBLPTAiIHhtcEc6bW9kZT0iQ01ZSyIgeG1w
+Rzp0eXBlPSJQUk9DRVNTIiB4bXBHOmN5YW49IjEwLjAwMDAwMCIgeG1wRzptYWdlbnRhPSIxMDAu
+MDAwMDAwIiB4bXBHOnllbGxvdz0iNTAuMDAwMDAwIiB4bXBHOmJsYWNrPSIwLjAwMDAwMCIvPiA8
+cmRmOmxpIHhtcEc6c3dhdGNoTmFtZT0iQz0wIE09OTUgWT0yMCBLPTAiIHhtcEc6bW9kZT0iQ01Z
+SyIgeG1wRzp0eXBlPSJQUk9DRVNTIiB4bXBHOmN5YW49IjAuMDAwMDAwIiB4bXBHOm1hZ2VudGE9
+Ijk1LjAwMDAwMCIgeG1wRzp5ZWxsb3c9IjIwLjAwMDAwMCIgeG1wRzpibGFjaz0iMC4wMDAwMDAi
+Lz4gPHJkZjpsaSB4bXBHOnN3YXRjaE5hbWU9IkM9MjUgTT0yNSBZPTQwIEs9MCIgeG1wRzptb2Rl
+PSJDTVlLIiB4bXBHOnR5cGU9IlBST0NFU1MiIHhtcEc6Y3lhbj0iMjUuMDAwMDAwIiB4bXBHOm1h
+Z2VudGE9IjI1LjAwMDAwMCIgeG1wRzp5ZWxsb3c9IjQwLjAwMDAwMCIgeG1wRzpibGFjaz0iMC4w
+MDAwMDAiLz4gPHJkZjpsaSB4bXBHOnN3YXRjaE5hbWU9IkM9NDAgTT00NSBZPTUwIEs9NSIgeG1w
+Rzptb2RlPSJDTVlLIiB4bXBHOnR5cGU9IlBST0NFU1MiIHhtcEc6Y3lhbj0iNDAuMDAwMDAwIiB4
+bXBHOm1hZ2VudGE9IjQ1LjAwMDAwMCIgeG1wRzp5ZWxsb3c9IjUwLjAwMDAwMCIgeG1wRzpibGFj
+az0iNS4wMDAwMDAiLz4gPHJkZjpsaSB4bXBHOnN3YXRjaE5hbWU9IkM9NTAgTT01MCBZPTYwIEs9
+MjUiIHhtcEc6bW9kZT0iQ01ZSyIgeG1wRzp0eXBlPSJQUk9DRVNTIiB4bXBHOmN5YW49IjUwLjAw
+MDAwMCIgeG1wRzptYWdlbnRhPSI1MC4wMDAwMDAiIHhtcEc6eWVsbG93PSI2MC4wMDAwMDAiIHht
+cEc6YmxhY2s9IjI1LjAwMDAwMCIvPiA8cmRmOmxpIHhtcEc6c3dhdGNoTmFtZT0iQz01NSBNPTYw
+IFk9NjUgSz00MCIgeG1wRzptb2RlPSJDTVlLIiB4bXBHOnR5cGU9IlBST0NFU1MiIHhtcEc6Y3lh
+bj0iNTUuMDAwMDAwIiB4bXBHOm1hZ2VudGE9IjYwLjAwMDAwMCIgeG1wRzp5ZWxsb3c9IjY1LjAw
+MDAwMCIgeG1wRzpibGFjaz0iNDAuMDAwMDAwIi8+IDxyZGY6bGkgeG1wRzpzd2F0Y2hOYW1lPSJD
+PTI1IE09NDAgWT02NSBLPTAiIHhtcEc6bW9kZT0iQ01ZSyIgeG1wRzp0eXBlPSJQUk9DRVNTIiB4
+bXBHOmN5YW49IjI1LjAwMDAwMCIgeG1wRzptYWdlbnRhPSI0MC4wMDAwMDAiIHhtcEc6eWVsbG93
+PSI2NS4wMDAwMDAiIHhtcEc6YmxhY2s9IjAuMDAwMDAwIi8+IDxyZGY6bGkgeG1wRzpzd2F0Y2hO
+YW1lPSJDPTMwIE09NTAgWT03NSBLPTEwIiB4bXBHOm1vZGU9IkNNWUsiIHhtcEc6dHlwZT0iUFJP
+Q0VTUyIgeG1wRzpjeWFuPSIzMC4wMDAwMDAiIHhtcEc6bWFnZW50YT0iNTAuMDAwMDAwIiB4bXBH
+OnllbGxvdz0iNzUuMDAwMDAwIiB4bXBHOmJsYWNrPSIxMC4wMDAwMDAiLz4gPHJkZjpsaSB4bXBH
+OnN3YXRjaE5hbWU9IkM9MzUgTT02MCBZPTgwIEs9MjUiIHhtcEc6bW9kZT0iQ01ZSyIgeG1wRzp0
+eXBlPSJQUk9DRVNTIiB4bXBHOmN5YW49IjM1LjAwMDAwMCIgeG1wRzptYWdlbnRhPSI2MC4wMDAw
+MDAiIHhtcEc6eWVsbG93PSI4MC4wMDAwMDAiIHhtcEc6YmxhY2s9IjI1LjAwMDAwMCIvPiA8cmRm
+OmxpIHhtcEc6c3dhdGNoTmFtZT0iQz00MCBNPTY1IFk9OTAgSz0zNSIgeG1wRzptb2RlPSJDTVlL
+IiB4bXBHOnR5cGU9IlBST0NFU1MiIHhtcEc6Y3lhbj0iNDAuMDAwMDAwIiB4bXBHOm1hZ2VudGE9
+IjY1LjAwMDAwMCIgeG1wRzp5ZWxsb3c9IjkwLjAwMDAwMCIgeG1wRzpibGFjaz0iMzUuMDAwMDAw
+Ii8+IDxyZGY6bGkgeG1wRzpzd2F0Y2hOYW1lPSJDPTQwIE09NzAgWT0xMDAgSz01MCIgeG1wRzpt
+b2RlPSJDTVlLIiB4bXBHOnR5cGU9IlBST0NFU1MiIHhtcEc6Y3lhbj0iNDAuMDAwMDAwIiB4bXBH
+Om1hZ2VudGE9IjcwLjAwMDAwMCIgeG1wRzp5ZWxsb3c9IjEwMC4wMDAwMDAiIHhtcEc6YmxhY2s9
+IjUwLjAwMDAwMCIvPiA8cmRmOmxpIHhtcEc6c3dhdGNoTmFtZT0iQz01MCBNPTcwIFk9ODAgSz03
+MCIgeG1wRzptb2RlPSJDTVlLIiB4bXBHOnR5cGU9IlBST0NFU1MiIHhtcEc6Y3lhbj0iNTAuMDAw
+MDAwIiB4bXBHOm1hZ2VudGE9IjcwLjAwMDAwMCIgeG1wRzp5ZWxsb3c9IjgwLjAwMDAwMCIgeG1w
+RzpibGFjaz0iNzAuMDAwMDAwIi8+IDxyZGY6bGkgeG1wRzpzd2F0Y2hOYW1lPSLjg63jgrTvvI/n
+ibnpnZIiIHhtcEc6dHlwZT0iU1BPVCIgeG1wRzp0aW50PSIxMDAuMDAwMDAwIiB4bXBHOm1vZGU9
+IkNNWUsiIHhtcEc6Y3lhbj0iMTAwLjAwMDAwMCIgeG1wRzptYWdlbnRhPSI3NS4wMDAwMDAiIHht
+cEc6eWVsbG93PSIwLjAwMDAwMCIgeG1wRzpibGFjaz0iMC4wMDAwMDAiLz4gPC9yZGY6U2VxPiA8
+L3htcEc6Q29sb3JhbnRzPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6bGk+IDxyZGY6bGk+IDxy
+ZGY6RGVzY3JpcHRpb24geG1wRzpncm91cE5hbWU9IuOCsOODrOODvCIgeG1wRzpncm91cFR5cGU9
+IjEiPiA8eG1wRzpDb2xvcmFudHM+IDxyZGY6U2VxPiA8cmRmOmxpIHhtcEc6c3dhdGNoTmFtZT0i
+Qz0wIE09MCBZPTAgSz0xMDAiIHhtcEc6bW9kZT0iQ01ZSyIgeG1wRzp0eXBlPSJQUk9DRVNTIiB4
+bXBHOmN5YW49IjAuMDAwMDAwIiB4bXBHOm1hZ2VudGE9IjAuMDAwMDAwIiB4bXBHOnllbGxvdz0i
+MC4wMDAwMDAiIHhtcEc6YmxhY2s9IjEwMC4wMDAwMDAiLz4gPHJkZjpsaSB4bXBHOnN3YXRjaE5h
+bWU9IkM9MCBNPTAgWT0wIEs9OTAiIHhtcEc6bW9kZT0iQ01ZSyIgeG1wRzp0eXBlPSJQUk9DRVNT
+IiB4bXBHOmN5YW49IjAuMDAwMDAwIiB4bXBHOm1hZ2VudGE9IjAuMDAwMDAwIiB4bXBHOnllbGxv
+dz0iMC4wMDAwMDAiIHhtcEc6YmxhY2s9Ijg5Ljk5OTQwMCIvPiA8cmRmOmxpIHhtcEc6c3dhdGNo
+TmFtZT0iQz0wIE09MCBZPTAgSz04MCIgeG1wRzptb2RlPSJDTVlLIiB4bXBHOnR5cGU9IlBST0NF
+U1MiIHhtcEc6Y3lhbj0iMC4wMDAwMDAiIHhtcEc6bWFnZW50YT0iMC4wMDAwMDAiIHhtcEc6eWVs
+bG93PSIwLjAwMDAwMCIgeG1wRzpibGFjaz0iNzkuOTk4ODAwIi8+IDxyZGY6bGkgeG1wRzpzd2F0
+Y2hOYW1lPSJDPTAgTT0wIFk9MCBLPTcwIiB4bXBHOm1vZGU9IkNNWUsiIHhtcEc6dHlwZT0iUFJP
+Q0VTUyIgeG1wRzpjeWFuPSIwLjAwMDAwMCIgeG1wRzptYWdlbnRhPSIwLjAwMDAwMCIgeG1wRzp5
+ZWxsb3c9IjAuMDAwMDAwIiB4bXBHOmJsYWNrPSI2OS45OTk3MDAiLz4gPHJkZjpsaSB4bXBHOnN3
+YXRjaE5hbWU9IkM9MCBNPTAgWT0wIEs9NjAiIHhtcEc6bW9kZT0iQ01ZSyIgeG1wRzp0eXBlPSJQ
+Uk9DRVNTIiB4bXBHOmN5YW49IjAuMDAwMDAwIiB4bXBHOm1hZ2VudGE9IjAuMDAwMDAwIiB4bXBH
+OnllbGxvdz0iMC4wMDAwMDAiIHhtcEc6YmxhY2s9IjU5Ljk5OTEwMCIvPiA8cmRmOmxpIHhtcEc6
+c3dhdGNoTmFtZT0iQz0wIE09MCBZPTAgSz01MCIgeG1wRzptb2RlPSJDTVlLIiB4bXBHOnR5cGU9
+IlBST0NFU1MiIHhtcEc6Y3lhbj0iMC4wMDAwMDAiIHhtcEc6bWFnZW50YT0iMC4wMDAwMDAiIHht
+cEc6eWVsbG93PSIwLjAwMDAwMCIgeG1wRzpibGFjaz0iNTAuMDAwMDAwIi8+IDxyZGY6bGkgeG1w
+Rzpzd2F0Y2hOYW1lPSJDPTAgTT0wIFk9MCBLPTQwIiB4bXBHOm1vZGU9IkNNWUsiIHhtcEc6dHlw
+ZT0iUFJPQ0VTUyIgeG1wRzpjeWFuPSIwLjAwMDAwMCIgeG1wRzptYWdlbnRhPSIwLjAwMDAwMCIg
+eG1wRzp5ZWxsb3c9IjAuMDAwMDAwIiB4bXBHOmJsYWNrPSIzOS45OTk0MDAiLz4gPHJkZjpsaSB4
+bXBHOnN3YXRjaE5hbWU9IkM9MCBNPTAgWT0wIEs9MzAiIHhtcEc6bW9kZT0iQ01ZSyIgeG1wRzp0
+eXBlPSJQUk9DRVNTIiB4bXBHOmN5YW49IjAuMDAwMDAwIiB4bXBHOm1hZ2VudGE9IjAuMDAwMDAw
+IiB4bXBHOnllbGxvdz0iMC4wMDAwMDAiIHhtcEc6YmxhY2s9IjI5Ljk5ODgwMCIvPiA8cmRmOmxp
+IHhtcEc6c3dhdGNoTmFtZT0iQz0wIE09MCBZPTAgSz0yMCIgeG1wRzptb2RlPSJDTVlLIiB4bXBH
+OnR5cGU9IlBST0NFU1MiIHhtcEc6Y3lhbj0iMC4wMDAwMDAiIHhtcEc6bWFnZW50YT0iMC4wMDAw
+MDAiIHhtcEc6eWVsbG93PSIwLjAwMDAwMCIgeG1wRzpibGFjaz0iMTkuOTk5NzAwIi8+IDxyZGY6
+bGkgeG1wRzpzd2F0Y2hOYW1lPSJDPTAgTT0wIFk9MCBLPTEwIiB4bXBHOm1vZGU9IkNNWUsiIHht
+cEc6dHlwZT0iUFJPQ0VTUyIgeG1wRzpjeWFuPSIwLjAwMDAwMCIgeG1wRzptYWdlbnRhPSIwLjAw
+MDAwMCIgeG1wRzp5ZWxsb3c9IjAuMDAwMDAwIiB4bXBHOmJsYWNrPSI5Ljk5OTEwMCIvPiA8cmRm
+OmxpIHhtcEc6c3dhdGNoTmFtZT0iQz0wIE09MCBZPTAgSz01IiB4bXBHOm1vZGU9IkNNWUsiIHht
+cEc6dHlwZT0iUFJPQ0VTUyIgeG1wRzpjeWFuPSIwLjAwMDAwMCIgeG1wRzptYWdlbnRhPSIwLjAw
+MDAwMCIgeG1wRzp5ZWxsb3c9IjAuMDAwMDAwIiB4bXBHOmJsYWNrPSI0Ljk5ODgwMCIvPiA8L3Jk
+ZjpTZXE+IDwveG1wRzpDb2xvcmFudHM+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpsaT4gPHJk
+ZjpsaT4gPHJkZjpEZXNjcmlwdGlvbiB4bXBHOmdyb3VwTmFtZT0i6Lyd44GNIiB4bXBHOmdyb3Vw
+VHlwZT0iMSI+IDx4bXBHOkNvbG9yYW50cz4gPHJkZjpTZXE+IDxyZGY6bGkgeG1wRzpzd2F0Y2hO
+YW1lPSJDPTAgTT0xMDAgWT0xMDAgSz0wIiB4bXBHOm1vZGU9IkNNWUsiIHhtcEc6dHlwZT0iUFJP
+Q0VTUyIgeG1wRzpjeWFuPSIwLjAwMDAwMCIgeG1wRzptYWdlbnRhPSIxMDAuMDAwMDAwIiB4bXBH
+OnllbGxvdz0iMTAwLjAwMDAwMCIgeG1wRzpibGFjaz0iMC4wMDAwMDAiLz4gPHJkZjpsaSB4bXBH
+OnN3YXRjaE5hbWU9IkM9MCBNPTc1IFk9MTAwIEs9MCIgeG1wRzptb2RlPSJDTVlLIiB4bXBHOnR5
+cGU9IlBST0NFU1MiIHhtcEc6Y3lhbj0iMC4wMDAwMDAiIHhtcEc6bWFnZW50YT0iNzUuMDAwMDAw
+IiB4bXBHOnllbGxvdz0iMTAwLjAwMDAwMCIgeG1wRzpibGFjaz0iMC4wMDAwMDAiLz4gPHJkZjps
+aSB4bXBHOnN3YXRjaE5hbWU9IkM9MCBNPTEwIFk9OTUgSz0wIiB4bXBHOm1vZGU9IkNNWUsiIHht
+cEc6dHlwZT0iUFJPQ0VTUyIgeG1wRzpjeWFuPSIwLjAwMDAwMCIgeG1wRzptYWdlbnRhPSIxMC4w
+MDAwMDAiIHhtcEc6eWVsbG93PSI5NS4wMDAwMDAiIHhtcEc6YmxhY2s9IjAuMDAwMDAwIi8+IDxy
+ZGY6bGkgeG1wRzpzd2F0Y2hOYW1lPSJDPTg1IE09MTAgWT0xMDAgSz0wIiB4bXBHOm1vZGU9IkNN
+WUsiIHhtcEc6dHlwZT0iUFJPQ0VTUyIgeG1wRzpjeWFuPSI4NS4wMDAwMDAiIHhtcEc6bWFnZW50
+YT0iMTAuMDAwMDAwIiB4bXBHOnllbGxvdz0iMTAwLjAwMDAwMCIgeG1wRzpibGFjaz0iMC4wMDAw
+MDAiLz4gPHJkZjpsaSB4bXBHOnN3YXRjaE5hbWU9IkM9MTAwIE09OTAgWT0wIEs9MCIgeG1wRzpt
+b2RlPSJDTVlLIiB4bXBHOnR5cGU9IlBST0NFU1MiIHhtcEc6Y3lhbj0iMTAwLjAwMDAwMCIgeG1w
+RzptYWdlbnRhPSI5MC4wMDAwMDAiIHhtcEc6eWVsbG93PSIwLjAwMDAwMCIgeG1wRzpibGFjaz0i
+MC4wMDAwMDAiLz4gPHJkZjpsaSB4bXBHOnN3YXRjaE5hbWU9IkM9NjAgTT05MCBZPTAgSz0wIiB4
+bXBHOm1vZGU9IkNNWUsiIHhtcEc6dHlwZT0iUFJPQ0VTUyIgeG1wRzpjeWFuPSI2MC4wMDAwMDAi
+IHhtcEc6bWFnZW50YT0iOTAuMDAwMDAwIiB4bXBHOnllbGxvdz0iMC4wMDMxMDAiIHhtcEc6Ymxh
+Y2s9IjAuMDAzMTAwIi8+IDwvcmRmOlNlcT4gPC94bXBHOkNvbG9yYW50cz4gPC9yZGY6RGVzY3Jp
+cHRpb24+IDwvcmRmOmxpPiA8L3JkZjpTZXE+IDwveG1wVFBnOlN3YXRjaEdyb3Vwcz4gPC9yZGY6
+RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+ICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPD94cGFja2V0IGVuZD0idyI/Pv/iDFhJ
+Q0NfUFJPRklMRQABAQAADEhMaW5vAhAAAG1udHJSR0IgWFlaIAfOAAIACQAGADEAAGFjc3BNU0ZU
+AAAAAElFQyBzUkdCAAAAAAAAAAAAAAAAAAD21gABAAAAANMtSFAgIAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEWNwcnQAAAFQAAAAM2Rlc2MAAAGEAAAAbHd0
+cHQAAAHwAAAAFGJrcHQAAAIEAAAAFHJYWVoAAAIYAAAAFGdYWVoAAAIsAAAAFGJYWVoAAAJAAAAA
+FGRtbmQAAAJUAAAAcGRtZGQAAALEAAAAiHZ1ZWQAAANMAAAAhnZpZXcAAAPUAAAAJGx1bWkAAAP4
+AAAAFG1lYXMAAAQMAAAAJHRlY2gAAAQwAAAADHJUUkMAAAQ8AAAIDGdUUkMAAAQ8AAAIDGJUUkMA
+AAQ8AAAIDHRleHQAAAAAQ29weXJpZ2h0IChjKSAxOTk4IEhld2xldHQtUGFja2FyZCBDb21wYW55
+AABkZXNjAAAAAAAAABJzUkdCIElFQzYxOTY2LTIuMQAAAAAAAAAAAAAAEnNSR0IgSUVDNjE5NjYt
+Mi4xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABYWVog
+AAAAAAAA81EAAQAAAAEWzFhZWiAAAAAAAAAAAAAAAAAAAAAAWFlaIAAAAAAAAG+iAAA49QAAA5BY
+WVogAAAAAAAAYpkAALeFAAAY2lhZWiAAAAAAAAAkoAAAD4QAALbPZGVzYwAAAAAAAAAWSUVDIGh0
+dHA6Ly93d3cuaWVjLmNoAAAAAAAAAAAAAAAWSUVDIGh0dHA6Ly93d3cuaWVjLmNoAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGRlc2MAAAAAAAAALklFQyA2MTk2
+Ni0yLjEgRGVmYXVsdCBSR0IgY29sb3VyIHNwYWNlIC0gc1JHQgAAAAAAAAAAAAAALklFQyA2MTk2
+Ni0yLjEgRGVmYXVsdCBSR0IgY29sb3VyIHNwYWNlIC0gc1JHQgAAAAAAAAAAAAAAAAAAAAAAAAAA
+AABkZXNjAAAAAAAAACxSZWZlcmVuY2UgVmlld2luZyBDb25kaXRpb24gaW4gSUVDNjE5NjYtMi4x
+AAAAAAAAAAAAAAAsUmVmZXJlbmNlIFZpZXdpbmcgQ29uZGl0aW9uIGluIElFQzYxOTY2LTIuMQAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAdmlldwAAAAAAE6T+ABRfLgAQzxQAA+3MAAQTCwADXJ4A
+AAABWFlaIAAAAAAATAlWAFAAAABXH+dtZWFzAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAACjwAA
+AAJzaWcgAAAAAENSVCBjdXJ2AAAAAAAABAAAAAAFAAoADwAUABkAHgAjACgALQAyADcAOwBAAEUA
+SgBPAFQAWQBeAGMAaABtAHIAdwB8AIEAhgCLAJAAlQCaAJ8ApACpAK4AsgC3ALwAwQDGAMsA0ADV
+ANsA4ADlAOsA8AD2APsBAQEHAQ0BEwEZAR8BJQErATIBOAE+AUUBTAFSAVkBYAFnAW4BdQF8AYMB
+iwGSAZoBoQGpAbEBuQHBAckB0QHZAeEB6QHyAfoCAwIMAhQCHQImAi8COAJBAksCVAJdAmcCcQJ6
+AoQCjgKYAqICrAK2AsECywLVAuAC6wL1AwADCwMWAyEDLQM4A0MDTwNaA2YDcgN+A4oDlgOiA64D
+ugPHA9MD4APsA/kEBgQTBCAELQQ7BEgEVQRjBHEEfgSMBJoEqAS2BMQE0wThBPAE/gUNBRwFKwU6
+BUkFWAVnBXcFhgWWBaYFtQXFBdUF5QX2BgYGFgYnBjcGSAZZBmoGewaMBp0GrwbABtEG4wb1BwcH
+GQcrBz0HTwdhB3QHhgeZB6wHvwfSB+UH+AgLCB8IMghGCFoIbgiCCJYIqgi+CNII5wj7CRAJJQk6
+CU8JZAl5CY8JpAm6Cc8J5Qn7ChEKJwo9ClQKagqBCpgKrgrFCtwK8wsLCyILOQtRC2kLgAuYC7AL
+yAvhC/kMEgwqDEMMXAx1DI4MpwzADNkM8w0NDSYNQA1aDXQNjg2pDcMN3g34DhMOLg5JDmQOfw6b
+DrYO0g7uDwkPJQ9BD14Peg+WD7MPzw/sEAkQJhBDEGEQfhCbELkQ1xD1ERMRMRFPEW0RjBGqEckR
+6BIHEiYSRRJkEoQSoxLDEuMTAxMjE0MTYxODE6QTxRPlFAYUJxRJFGoUixStFM4U8BUSFTQVVhV4
+FZsVvRXgFgMWJhZJFmwWjxayFtYW+hcdF0EXZReJF64X0hf3GBsYQBhlGIoYrxjVGPoZIBlFGWsZ
+kRm3Gd0aBBoqGlEadxqeGsUa7BsUGzsbYxuKG7Ib2hwCHCocUhx7HKMczBz1HR4dRx1wHZkdwx3s
+HhYeQB5qHpQevh7pHxMfPh9pH5Qfvx/qIBUgQSBsIJggxCDwIRwhSCF1IaEhziH7IiciVSKCIq8i
+3SMKIzgjZiOUI8Ij8CQfJE0kfCSrJNolCSU4JWgllyXHJfcmJyZXJocmtyboJxgnSSd6J6sn3CgN
+KD8ocSiiKNQpBik4KWspnSnQKgIqNSpoKpsqzysCKzYraSudK9EsBSw5LG4soizXLQwtQS12Last
+4S4WLkwugi63Lu4vJC9aL5Evxy/+MDUwbDCkMNsxEjFKMYIxujHyMioyYzKbMtQzDTNGM38zuDPx
+NCs0ZTSeNNg1EzVNNYc1wjX9Njc2cjauNuk3JDdgN5w31zgUOFA4jDjIOQU5Qjl/Obw5+To2OnQ6
+sjrvOy07azuqO+g8JzxlPKQ84z0iPWE9oT3gPiA+YD6gPuA/IT9hP6I/4kAjQGRApkDnQSlBakGs
+Qe5CMEJyQrVC90M6Q31DwEQDREdEikTORRJFVUWaRd5GIkZnRqtG8Ec1R3tHwEgFSEtIkUjXSR1J
+Y0mpSfBKN0p9SsRLDEtTS5pL4kwqTHJMuk0CTUpNk03cTiVObk63TwBPSU+TT91QJ1BxULtRBlFQ
+UZtR5lIxUnxSx1MTU19TqlP2VEJUj1TbVShVdVXCVg9WXFapVvdXRFeSV+BYL1h9WMtZGllpWbha
+B1pWWqZa9VtFW5Vb5Vw1XIZc1l0nXXhdyV4aXmxevV8PX2Ffs2AFYFdgqmD8YU9homH1YklinGLw
+Y0Njl2PrZEBklGTpZT1lkmXnZj1mkmboZz1nk2fpaD9olmjsaUNpmmnxakhqn2r3a09rp2v/bFds
+r20IbWBtuW4SbmtuxG8eb3hv0XArcIZw4HE6cZVx8HJLcqZzAXNdc7h0FHRwdMx1KHWFdeF2Pnab
+dvh3VnezeBF4bnjMeSp5iXnnekZ6pXsEe2N7wnwhfIF84X1BfaF+AX5ifsJ/I3+Ef+WAR4CogQqB
+a4HNgjCCkoL0g1eDuoQdhICE44VHhauGDoZyhteHO4efiASIaYjOiTOJmYn+imSKyoswi5aL/Ixj
+jMqNMY2Yjf+OZo7OjzaPnpAGkG6Q1pE/kaiSEZJ6kuOTTZO2lCCUipT0lV+VyZY0lp+XCpd1l+CY
+TJi4mSSZkJn8mmia1ZtCm6+cHJyJnPedZJ3SnkCerp8dn4uf+qBpoNihR6G2oiailqMGo3aj5qRW
+pMelOKWpphqmi6b9p26n4KhSqMSpN6mpqhyqj6sCq3Wr6axcrNCtRK24ri2uoa8Wr4uwALB1sOqx
+YLHWskuywrM4s660JbSctRO1irYBtnm28Ldot+C4WbjRuUq5wro7urW7LrunvCG8m70VvY++Cr6E
+vv+/er/1wHDA7MFnwePCX8Lbw1jD1MRRxM7FS8XIxkbGw8dBx7/IPci8yTrJuco4yrfLNsu2zDXM
+tc01zbXONs62zzfPuNA50LrRPNG+0j/SwdNE08bUSdTL1U7V0dZV1tjXXNfg2GTY6Nls2fHadtr7
+24DcBdyK3RDdlt4c3qLfKd+v4DbgveFE4cziU+Lb42Pj6+Rz5PzlhOYN5pbnH+ep6DLovOlG6dDq
+W+rl63Dr++yG7RHtnO4o7rTvQO/M8Fjw5fFy8f/yjPMZ86f0NPTC9VD13vZt9vv3ivgZ+Kj5OPnH
++lf65/t3/Af8mP0p/br+S/7c/23////uAA5BZG9iZQBkgAAAAAH/2wCEAAwICAgJCAwJCQwRCwoL
+ERUPDAwPFRgTExUTExgRDAwMDAwMEQwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwBDQsLDQ4N
+EA4OEBQODg4UFA4ODg4UEQwMDAwMEREMDAwMDAwRDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwM
+DP/AABEIAPED6gMBIgACEQEDEQH/3QAEAD//xAE/AAABBQEBAQEBAQAAAAAAAAADAAECBAUGBwgJ
+CgsBAAEFAQEBAQEBAAAAAAAAAAEAAgMEBQYHCAkKCxAAAQQBAwIEAgUHBggFAwwzAQACEQMEIRIx
+BUFRYRMicYEyBhSRobFCIyQVUsFiMzRygtFDByWSU/Dh8WNzNRaisoMmRJNUZEXCo3Q2F9JV4mXy
+s4TD03Xj80YnlKSFtJXE1OT0pbXF1eX1VmZ2hpamtsbW5vY3R1dnd4eXp7fH1+f3EQACAgECBAQD
+BAUGBwcGBTUBAAIRAyExEgRBUWFxIhMFMoGRFKGxQiPBUtHwMyRi4XKCkkNTFWNzNPElBhaisoMH
+JjXC0kSTVKMXZEVVNnRl4vKzhMPTdePzRpSkhbSVxNTk9KW1xdXl9VZmdoaWprbG1ub2JzdHV2d3
+h5ent8f/2gAMAwEAAhEDEQA/APVUkkklKSSSSUpJJJJSklnZtPUn5lT8Z5bSI3e6ANfdvb+etFRw
+yGUpxMJR4DQlL5cnjBcY0AbBvt+ipJJQtD3VuDDteQQ0+B7KQ6DutZpKp06vKrpIyX+o4ulpnd7f
+6ytpsJGURIgxv9E7hMhRIu/FSSSSchSSSSSlJJJJKUkkkkpSSSSSlJJJJKUkkkkpSSSSSlJJJJKU
+kkkkpSSSSSlJJJJKUkkkkpSSSSSlJJJJKUkkkkpSSSSSlJJJJKUkkkkpSSSSSlJJJJKUkkkkpSSS
+SSlJJJJKUkkkkpSSSSSlJJJJKUkkkkpSSSSSlJJJJKUkkkkpSSSSSlJJJJKUkkkkpSSSSSlJJJJK
+UkkkkpSSSSSlJJJJKUkkkkpSSSSSlJJJJKUkkkkpSSSSSlJJJJKUkkkkpSSSSSlJJJJKUkkkkpSS
+SSSlJJJJKUkkkkpSSSSSlJJJJKUkkkkpSSSSSlJJJJKf/9D1VJJJJTF+7Y7Zo+DtJ4nsqvTRmtY9
+uY6XzLRIJj+yrizerepU6rJqJa4EscR4H3NUGc8FZvUfb3jE+kxl14f6q+Gvo09XXydJJUsTqLbQ
+G2+1/j2Ks23MqYXuPHA8U+GbHKPGJDh6+HmgwkDRDmdZz7abK66HbXMO9xHj+a0q507qFWdVub7b
+G/zjPA+P9VYOY51j3Pdq5xkqrjZFuNeLajDm/cR+6Vh/6TyY+alOVywzNGH7sR8sof1m393EsYA+
+YdXs1S6hlFjDVWfcfpEdgqv7c9SuGV7bD3JkD4IRJcyTqTyVo5echOFYZXY1lswwwkG5D6Oth/0S
+n+oPyIyDh/0Wr+qEZXMfyR/uhhl8x81JJJJ6FJJJJKUkkkkpSSSSSlJJJJKUkkkkpSSSSSlJJJJK
+UkkkkpSSSSSlJJJJKUkkkkpSSSSSlJJJJKUkkkkpSSSSSlJJJJKUkkkkpSSSSSlJJJJKUkkkkpSS
+SSSlJJJJKUkkkkpSSSSSlJJJJKUkkkkpSSSSSlJJJJKUkkkkpSSSSSlJJJJKUkkkkpSSSSSlJJJJ
+KUkkkkpSSSSSlJJJJKUkkkkpSSSSSlJJJJKUkkkkpSSSSSlJJJJKUkkkkpSSSSSlJJJJKUkkkkpS
+SSSSlJJJJKUkkkkpSSSSSlJJJJKUkkkkpSSSSSlJJJJKUkkkkp//0fVUkkklKVfOq9XFsZ3A3D4j
+3KwkmziJRMTtIEfakGiD2efxzwrb9a1XfX6OQ+vs1xj4HVqsjWtY0QQJRO4sfY2ydj3cvJHKoHRy
+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
+f9/XC4FjcjrnUsms7qrsl72O8QX2v/6ly7v6sA7Mg9iWD7tyz4/9s8P92f8A0cjh5f5g/wCC6+Tk
+0YmPZk5DxVRS0vssdwGtEucvKuuf4wuvdfzP2Z9W67KKXktYahORYP39zf6Oz+p/26vSuvdGp650
+u3pl9tlNNxbvdUQHQ1ws2+9r2/Saqn1Z+qXS/q3RZXhbrLbnTZkWwbCPza9zGs/RtW20hTw/R/8A
+FJn5JGR13L9AvO59NX6S0zz6l7/0TX/1fXXadL+ov1W6ZBpwWW2j/C5H6V0/vfpdzGf9bYxb6SVK
+srNa1oDWgBo0AGgCdJJJCkkkklKSSSSUpJJJJSkkkklKSSSSUpJJJJSkkkklKSSSSUpJJJJSkkkk
+lKSSSSUpJJJJSkkkklKSSSSUpJJJJSkkkklKSSSSUpJJJJSkkkklKSSSSUpJJJJSkkkklKSSSSUp
+JJJJSkkkklKSSSSUpJJJJSkkkklKSSSSUpJJJJSkkkklKSSSSUpJJJJSkkkklKSSSSU0+qXHHw7r
+xqaqrHj4tbuXk37R6h1ayy+5wFTXEOI03O/c/sr1P6wkjo+aRz9mvj/MK8n6Pi324zmUPlrGutfu
+MADSXQoM8OKiN+ipZDCBEd5OdkYtbLrMhwLXvuZDz7WmqyvK3Ag+z+ewP51CbdVU1lmGz1Mqu0WV
+WEbQ2yvbkVn9IWfSbWz3t/SXfzVafLz30m/I0cC70mN2stEsZ6tdrqsum9jf5y707a/Ttp/Sf6RC
+y6nk1sedj8r07H2WEvDm3Q77S/1G7nfy/Z+jenAfLv0YwDUTr0Cao5DK2F4qLLnWmoVOLmhrH7fb
+I/mf0np0e9/81YjNe5+Pc2vVrS11je4+kxr/APp7f+uIeJ9oqtOPnUml3phtDCC0CpjnNY2trvfs
+3+pZ7/0lvqet/hFssrx8VlbqyBbazdYA2IBMsbu+k/2hliZklwk6IIAkdKc7GoypkgtYOHO0kfyW
+qV7qb2FthsBrJALCIH9kj/v6vOs3VvsJ8gPis691TWvaSWm3Xx4/zU2EjI2RVdll6tvpznODAwQy
+qBPjH5v/AJJHtvIDm1ktJlp+Cp4d7GtbXVwPvTvuh9jD9KZHwOqaYkzJWXq1b7T6xbc0ROgPBH7y
+JnZxcK2vOjG8DzS6qGnFZa36TD+B5/6ShhdMdmUPybCZY3c1sgEtB27tp+l9JP8ASQJHStGQAEWv
+RlX2EBjAAdGjuh9Y6k/HpOPU6byP0rx+aD+a3+Up5mTX02v06ofmPHyY394rAJe8El24uJ3nk66l
+GEBI8Vekbf1kQhxniPyDYfv/APoKfpQecyguJd+kb+Vep/Vb/lan/i3f9SvLektIzqiDID2jXnn9
+0r1H6rf8rU/8W7/qU3N/PYvMfmtzfz+L+XV7tv0R8ApKLPoN+AUlabT/AP/T9VSSSSU0uqYf2mnc
+wfpa9W+Y/OauK6/0luZjueBDhq49wRw//wAmvQlldS6fBORUJB1sb/35UOc5c8XvYxqPnH70f3mx
+gy16T9HA+pP1pc7b0LqjtuVV7ca1x/nGj6NRd/pG/wCD/wBIxB+uP1Hde9/U+kMm10uvxW/nH862
+j+X+/UqXXfq8Lm/aMeWuZqC3lp5/zP8AqFc+r316sxnN6d9YZa4e2vN5BHb14/8AP3/bv76OHNDJ
+EQn9JNnDlzcrl97Af78P0Zx8ngHNc1xa4FrmmCDoQQmXrvWfqp0Xr9YyRFd7xLMuiDuH5pfHsub/
+AK+ouG6p9QevYJLqaxm0jh9P0o/lUO/Sf9t+olPDKO3qHcPRcp8Z5XOAJSGHJ1hkND/Bn8snm0lO
+6i+h5rvrdU8cseC0/wCa5QUbpggixqpJJFx8XJyn+njUvvf+7W0uP3MlJBIAsmgOpRKdVVt1jaqW
+OsseYYxoJJJ7NaF03Sv8XvW8wh+XtwaTyX+6yP5NLD/58fWu36Z0LoP1ZxnZA2sc0fpcy8jd8A7R
+rP6lalhglLU+keLmc58a5bADHGffy9I4/k/wsjlfU/6lDppb1HqTQ7N5qq5FX8o/vXf+e1W+tX12
+y2ZX7N+r7t1tRP2jIa0P1H+Cr3hzPb/hHqr9YPrnldXL+ndD3VYp9t2WZa5w/dZ+dUz/AMFf/IWb
+hYNWJXsZq4/SceSU3PzMMUeGBrxG58nnck8vM5Tmzm5H5Y/owj+7wvX/AFT+s9XXsV+D1ANGfW0t
+uqcAG2s+i54rP/g1a5L63/U63pFjs3CabOnPMkcmkn8yz/gv9Hb/ANbs/wCFDl4VzbmZ2C805dRD
+mPaYkhdh9Wvrli9Xb+z+phtHUI2OreIZb2Ozd+e7/Q/5idizQzwAJ9X6Ml/Lczl5LKcmMcWOX85i
+6SH8v0ny1JehfWL/ABdMtc/K6IRW86uxHGGk/wDAWf4P/i3/AKP+XWuEzMHMwbjRmUvotH5rwR/a
+b+83+U1MnjlA6j6vU8pz/L81G8U/V+ljlpkj/goEkkk1tKSSSSUpHw8LKzslmLiVm6+ww1jfyn91
+rfznLX6H9TOsdXLbPTOLiHU5FoIkf8FX9O3/AM9/8IvQ+n9K6H9VcB9u5tTQP0+Xafe7+T/5Cmv/
+AKtS48JlqfTHuXL5/wCMYeWBhjIzZ9hCOsYH/WS/7hh9Vvqvj9BxZdFudcB69w4H/A1f8E3/AMF/
+zPT4365Z9fVfrO3ByLvsmHiH0Ta5pdtP07rfTb7nbvoM/sLf6N9aLPrH9ZfQxy7H6fh1PuYyYdc6
+W0A3f8H+m3tqXO/Xjqp6tntprwn0uwX21OscJNglrWnRvt2+n/01JklH26j8oO379OV8Jlly89PL
+luU5QlxZbiPu/H8soxl/4Xwudc6mvqjMSnrFtmAS0OzIsaGgj3foN2/2Lt/qdjYNDsvIxOr2dVa1
+gD6i1zNvL2u22vduc7Y7YuFyc3pz+t15NfTvSw2lm7B3H3QPcN0f4Rdr9UutdMyMyzAwukOwG3sL
+rLASQdn0Q87Wu/P9qbiI49xvp834N34rDKeU9Mcn82JZL+7cOh4p+7Xr4/8Azn9Dy31ePq235AG1
+tlrnBvhpP/f16F9WR+q2u8bI+4D+9cBh0Dp/XM7p1Ti6mi8trnmNxZr/ACtq7n6sOP6w3t7D/wBW
+s/HcfieK/wBKEo/UCbh5dcBrwLvJJJLbaKkkkklKSSSSUpJJJJSkkkklKSSSSUpJJJJSkkkklKSS
+SSUpJJJJSkkkklKSSSSUpJJJJSkkkklKSSSSUpJJJJSkkkklKSSSSUpJJJJSkkkklKSSSSUpJJJJ
+SkkkklKSSSSUpJJJJSkkkklKSSSSUpJJJJSkkkklKSSSSUpJJJJSkkkklKSSSSUpJJJJSkkkklKS
+SSSUpJJJJSkkkklOb9YBPSMxvjjXD/oFeQ9PycigW9OqH6XKr9Evn6LCWvsP9qtu1exdYaX4F7AJ
+LqbAAO8tXjRt9DqD3EFry07SAT7fo+3aP5W1Q5Sbob8JI/vJlG8ZNbFnl4NHrN6dRcKzl7GZDntD
+mO2k21abS+t/qfot1X5lqzbMGms1+gWP3MquDmt2QXgWOp5f/NP3N3/v+9WrLIcchzH2CpzLHGHt
+ENduhzwzcz1NmxrkPEtBdWxlRYPTLSGb3H6T7d7t+/3bXbf0f+jQhxCAuzId1uKIlUSeE3pbXpo/
+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
+6SrYP1dfuD8whrR/gmmSf6zgt9rWtaGtENAgAcABHkeVzTz/AHrPH2+EGOLGfm9X6UmLmM0eH24G
+7+YrpJJLWaikkkklKSSSSUpJJJJSkkkklKSSSSUpJJJJSkkkklKSSSSUpJJJJSkkkklKSSSSUpJJ
+JJSkkkklKSSSSUpJJJJSkkkklKSSSSUpJJJJSkkkklKSSSSUpJJJJSkkkklKSSSSUpJJJJSkkkkl
+KSSSSUpJJJJSkkkklKSSSSUpJJJJSkkkklKSSSSUpJJJJSkkkklKSSSSUpJJJJSkkkklNbOMVEzE
+NdqfgvPvrN9Xn5Lxl9PYz9GS65um2THvbIfu+j+k2/8Aopd71VwbiWOPArefuC57Aymvoa5hhwE6
++P8AKVPmp8OSB7As+EXGQ8rHg+YWU5rw7HYeY9Tb7GyPcz6IY3buP5yY1Gt81aBoP0XeO73Nd6bd
+u7cu96v9W8TOacukvxcgGCxgmtx/ksb/ANXWuazOjZeCf07XNpsJDXbDr/b27d/8lOhnEti28eDF
+K6vyJ18nKa60tcxji1zhEm3Tj3Me0NZv9vtTtoyXbjEFwMS4Dnl30Eeo4zCXy2zbzoNI/P0Kj9rH
+qgNgkgjQAaEe6U/iJ/3maGGER8xjZ6SQ2V5Dw6kFpFYgMBHj7dnta1i1ei/Vrq9+W3IxfSZfX7w5
+1jTH0W+9tbbdjv536X7/APwazbLrK6y+oBxJ1JAP3Suq+ozxkMych42+lZW57uA4tbb7f+m16dA6
+7NfmoxETcjY7kyBH6Ldu6V9YqnepVfRU1oYbXhzWE7WQ/fOM92z1/Vez3rLvzeuZDDTkXh9W4Ehp
+a1pj+S2mt7v89a3VuqnJe6qkn0J1P7xH/fVmSq+fmbJjD5die7hZ+Zu4Qrh2J7oa2CHsuBNdjdrm
+tI9wlriw6j2v2qfoYpvFzjY4jcYLWak+vscff9Kr16tn/hf9G+r1f0c5/wBdEyhjnnEVE6eTDDPk
+gOGJ08mrZg1WdIv6X6rw3IJcbi0HbL8azb6Xq+724mz+cVjJ/T5WblVv9B/UAG3BzPUgsbZRTdVt
+uo22Mx7vT9N/6P2eonTFH7xk8PsT95yXdj7GNePi1uodVDfslePTjveN1lbaHvtu2sj0bn5bbPpP
+9H7PZ/NLY+rRB6xXEAbHafJZBK1fquf8rs/qP/InRySnkx8XQhMc0smTHxV6S9+z6DfgFJRr+g34
+BSWg6L//1fVUkkklKSSSSUpJJJJSkxAIgiQnSSUidi47/pMHy0/Igu6ZiO/NI+ZVtJRywYpbwif8
+ELhOQ2kftaX7HwTywn+0f4KbOmdPYZbQwn+UN3/V7laSTRy2AGxihffhio5Jn9I/as1rWiGgADgD
+ROkkplqkkkklKSSSSUsQHAhwkHkFVLek4NhkV+mfFmn/AEfoq4kmTxY8gqcRL+8LTGUo7Ejyc79j
+tb9C0x4ESpt6c9v54+5XklF9zwDaNfWS/wB6fdqtwyOXfgpjFZ+cSfwR0k8cviH6P2rTkl3YMqrZ
+9FoHn3U0klIAAKAryW3e6lCyqu1u2xoe3wIlTSSIBFEWFNQ9K6eTJpH3u/8AJI9OPRQIprayeYGp
++KIkmRw4om444xPeMYxK4zkdDInzKkkklItUkkkkpSSSSSlJJJJKUkkkkpSSSSSlJJJJKUkkkkpS
+SSSSlJJJJKUkkkkpSSSSSlJJJJKUkkkkpSSSSSlJJJJKUkkkkpSSSSSlJJJJKUkkkkpSSSSSlJJJ
+JKUkkkkpSSSSSlJJJJKUkkkkpSSSSSlJJJJKUkkkkpSSSSSlJJJJKUkkkkpSSSSSlJJJJKUkkkkp
+SSSSSlJJJJKUkkkkpSSSSSmn1Omy7FsqrEufW9o+LhAXIY/1a69Q4ljWgEQQHf7F3aSiyYY5K4r0
+7LTD1xmCYyhsYvHP6F1q1lNVrQWVuDvpfun27vb+arlvSOq7S1u26pwh9N2oI/r+7/wT1l0qSjHJ
+YhsZD6tk8zM9I/Y8Lf8AUDEzat/ovwMhp0bW4OrJ7vcz3bv/AAJY13+Lnr9eQLMb0X18xuLXf2pb
+t/6a9TSUoxAdT9SgczkHbe3yJn+Lz60hxBqZtOulgkH95i3OnfU/ruPh10ua1rm7y8NfoS4/S9v8
+hrF6CkjLGJAiyL7LMuSWSHBI0D23eF/5qdY/dZ/nJf8ANTrH7rP85d0kovumPx+1qfdMfj9rwv8A
+zU6x+6z/ADv9ib/mn1j91n+cu7SS+6Y/H7VfdMfj9rwf/NPrH7rP85N/zT6x+4z/ADl3qSX3TH4/
+ar7pi8fteBP1S6z+43/O/wBivdE+r/U8LqDci9gFYa4HaZOoXYJIx5aESCL0NpjyuOMhIXY13Y16
+MbPgFJJJTs7/AP/W9VSXyqkkp+qkl8qpJKfqpJfKqSSn6qSXyqkkp+qkl8qpJKfqpJfKqSSn6qSX
+yqkkp+qkl8qpJKfqpJfKqSSn6qSXyqkkp+qkl8qpJKfqpJfKqSSn6qSXyqkkp+qkl8qpJKfqpJfK
+qSSn6qSXyqkkp+qkl8qpJKfqpJfKqSSn6qSXyqkkp+qkl8qpJKfqpJfKqSSn6qSXyqkkp+qkl8qp
+JKfqpJfKqSSn6qSXyqkkp+qkl8qpJKfqpJfKqSSn6qSXyqkkp+qkl8qpJKfqpJfKqSSn6qSXyqkk
+p+qkl8qpJKfqpJfKqSSn6qSXyqkkp+qkl8qpJKfqpJfKqSSn6qSXyqkkp+qkl8qpJKfqpJfKqSSn
+6qSXyqkkp+qkl8qpJKfqpJfKqSSn6qSXyqkkp+qkl8qpJKfqpJfKqSSn6qSXyqkkp+qkl8qpJKfq
+pJfKqSSn6qSXyqkkp+qkl8qpJKfqpJfKqSSn6qSXyqkkp+qkl8qpJKfqpJfKqSSn6qSXyqkkp+qk
+l8qpJKfqpJfKqSSn6qSXyqkkp+qkl8qpJKfqpJfKqSSn6qSXyqkkp+qkl8qpJKfqpJfKqSSn/9k=
+
+--_004_TYWP286MB21882DFE9D513D0F8570CEB8949EATYWP286MB2188JPNP_--
