@@ -124,7 +124,6 @@ class ChatSession:
             full_response_content = ""
             completion_tokens = 0
             
-            # @Antigravity, 20260130, [ADD]: State machine for parsing tagged language
             buffer = ""
             in_file_write_block = False
             
@@ -135,12 +134,10 @@ class ChatSession:
 
                 buffer += content
                 
-                # Process buffer line by line or by tag boundaries
-                while True:
+                while True: # Loop to process buffer continuously
                     if not in_file_write_block:
                         start_tag_match = re.search(r'<write_file path="([^"]+)">', buffer)
                         if start_tag_match:
-                            # Content before the tag is a normal text chunk
                             pre_tag_content = buffer[:start_tag_match.start()]
                             if pre_tag_content:
                                 yield TextChunk(content=pre_tag_content)
@@ -148,64 +145,40 @@ class ChatSession:
                                 if self.tokenizer:
                                     completion_tokens += len(self.tokenizer.encode(pre_tag_content))
 
-                            # Yield the start of file writing
                             file_path = start_tag_match.group(1)
                             yield FileWriteStart(path=file_path)
                             
-                            # Update state and buffer
                             buffer = buffer[start_tag_match.end():]
                             in_file_write_block = True
                         else:
-                            # No start tag found, yield all but the last part of the buffer
-                            # to avoid splitting a tag in the middle
-                            last_newline = buffer.rfind('\n')
-                            if last_newline != -1:
-                                content_to_yield = buffer[:last_newline+1]
-                                yield TextChunk(content=content_to_yield)
-                                full_response_content += content_to_yield
-                                if self.tokenizer:
-                                    completion_tokens += len(self.tokenizer.encode(content_to_yield))
-                                buffer = buffer[last_newline+1:]
-                            break # Wait for more content
+                            # No start tag found, nothing more to process in the buffer for now
+                            break
                     
                     if in_file_write_block:
                         end_tag_match = re.search(r'</write_file>', buffer)
                         if end_tag_match:
-                            # Content before the end tag is file content
                             file_content_chunk = buffer[:end_tag_match.start()]
                             if file_content_chunk:
                                 yield FileContentChunk(content=file_content_chunk)
-                                full_response_content += file_content_chunk # Also add to history
+                                full_response_content += file_content_chunk
                                 if self.tokenizer:
                                     completion_tokens += len(self.tokenizer.encode(file_content_chunk))
                             
-                            # Yield the end of file writing
                             yield FileWriteEnd()
                             
-                            # Update state and buffer
                             buffer = buffer[end_tag_match.end():]
                             in_file_write_block = False
                         else:
-                            # No end tag yet, yield the buffer as file content chunk
-                            if buffer:
-                                yield FileContentChunk(content=buffer)
-                                full_response_content += buffer
-                                if self.tokenizer:
-                                    completion_tokens += len(self.tokenizer.encode(buffer))
-                                buffer = ""
-                            break # Wait for more content
-
-            # After the loop, yield any remaining content in the buffer
-            if buffer:
-                if in_file_write_block: # Should not happen if LLM is well-behaved
-                    logger.warning("Stream ended with an unclosed <write_file> tag.")
-                    yield FileContentChunk(content=buffer)
-                else:
-                    yield TextChunk(content=buffer)
+                            # No end tag found yet in the buffer
+                            break
+                
+            # After the stream, process any text left in the buffer that wasn't part of a tag
+            if buffer and not in_file_write_block:
+                yield TextChunk(content=buffer)
                 full_response_content += buffer
                 if self.tokenizer:
                     completion_tokens += len(self.tokenizer.encode(buffer))
-            
+
             logger.debug("OpenAI stream finished.")
             end_time = time.time()
             

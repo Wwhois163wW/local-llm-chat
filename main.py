@@ -132,46 +132,50 @@ def main():
             for event in stream:
                 if isinstance(event, TextChunk):
                     print(event.content, end="", flush=True)
-                elif isinstance(event, FileWriteStart):
-                    try:
-                        # Ensure logs directory exists if no other path is specified
-                        if not os.path.dirname(event.path):
-                             event.path = os.path.join(log_dir, event.path)
-                        output_file_path = event.path
-                        output_file_handle = open(output_file_path, "w", encoding="utf-8")
-                        print(f"\n[Saving to file: {output_file_path}]", end="", flush=True)
-                    except Exception as e:
-                        logger.error(f"Failed to open file for writing: {e}")
-                        print(f"\n[Error: Could not open file {event.path}]", end="", flush=True)
-                elif isinstance(event, FileContentChunk):
-                    if output_file_handle:
-                        try:
-                            output_file_handle.write(event.content)
-                        except Exception as e:
-                             logger.error(f"Failed to write to file: {e}")
-                elif isinstance(event, FileWriteEnd):
-                    if output_file_handle:
-                        output_file_handle.close()
-                        print(f"\n[File saved: {output_file_path}]", end="", flush=True)
-                        output_file_handle = None
-                        output_file_path = None
-                elif isinstance(event, StatsUpdate):
-                    final_stats = event
-
-            # Ensure file is closed even if stream ends without a FileWriteEnd tag
-            if output_file_handle:
-                output_file_handle.close()
-                logger.warning(f"File stream ended without a closing tag. File '{output_file_path}' was closed.")
-                print(f"\n[File saved: {output_file_path}]", end="", flush=True)
-
-            if final_stats:
-                save_usage_stats(log_dir, chat_session.model, final_stats)
-                usage = final_stats.usage
-                print(f"\n\n[Stats] Latency: {final_stats.latency:.2f}s | Tokens: {usage['total_tokens']} "
-                      f"(In: {usage['prompt_tokens']}, Out: {usage['completion_tokens']})")
-            else:
-                print()
-
+                                elif isinstance(event, FileWriteStart):
+                                    try:
+                                        # @Antigravity, 20260130, [ADD]: Security sandbox for file writing
+                                        output_dir = os.path.join(os.path.dirname(__file__), 'output')
+                                        if not os.path.exists(output_dir):
+                                            os.makedirs(output_dir)
+                                        
+                                        safe_filename = os.path.basename(event.path) # Sanitize path to just the filename
+                                        output_file_path = os.path.join(output_dir, safe_filename)
+                                        
+                                        output_file_handle = open(output_file_path, "w", encoding="utf-8")
+                                        print(f"\n[Saving to sandbox: {output_file_path}]", end="", flush=True)
+                                    except Exception as e:
+                                        logger.error(f"Failed to open file for writing: {e}")
+                                        print(f"\n[Error: Could not open file {event.path}]", end="", flush=True)
+                                elif isinstance(event, FileContentChunk):
+                                    if output_file_handle:
+                                        try:
+                                            output_file_handle.write(event.content)
+                                        except Exception as e:
+                                             logger.error(f"Failed to write to file: {e}")
+                                elif isinstance(event, FileWriteEnd):
+                                    if output_file_handle:
+                                        output_file_handle.close()
+                                        print(f" -> Done.]", end="", flush=True)
+                                        output_file_handle = None
+                                        output_file_path = None
+                                elif isinstance(event, StatsUpdate):
+                                    final_stats = event
+                            
+                            # Ensure file is closed even if stream ends without a FileWriteEnd tag
+                            if output_file_handle:
+                                output_file_handle.close()
+                                logger.warning(f"File stream ended without a closing tag. File '{output_file_path}' was closed.")
+                                print(f" -> Done.]", end="", flush=True)
+                
+                            # After the stream is finished
+                            if final_stats:
+                                save_usage_stats(log_dir, chat_session.model, final_stats)
+                                usage = final_stats.usage
+                                print(f"\n\n[Stats] Latency: {final_stats.latency:.2f}s | Tokens: {usage['total_tokens']} "
+                                      f"(In: {usage['prompt_tokens']}, Out: {usage['completion_tokens']})")
+                            else:
+                                print()
             if chat_session.last_errors:
                 print()
                 for error_msg in chat_session.last_errors:
