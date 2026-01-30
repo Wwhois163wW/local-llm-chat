@@ -7,11 +7,9 @@ __pycache__/
 *.pyo
 *.pyd
 
-# 日志文件
+# 日志与输出文件
 logs/
-
-# 测试用附件
-test_attachments/
+output/
 
 # 配置文件 (建议不提交, 除非确定没有敏感信息)
 config.ini
