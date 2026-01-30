@@ -22,7 +22,8 @@ from chat_module import ChatSession, TextChunk, StatsUpdate # @Antigravity, 2026
 
 # @Antigravity, 20260130, [DEL]: Spinner logic is no longer needed in streaming mode
 # # @Antigravity, 20260129, [ADD]: Helper function to save stats to CSV
-def save_usage_stats(log_dir, model_name, stats):
+# @Antigravity, 20260130, [MOD]: Update function to handle StatsUpdate object instead of dict
+def save_usage_stats(log_dir, model_name, stats: StatsUpdate):
     """Appends usage statistics to a CSV file."""
     if not stats:
         return
@@ -31,13 +32,15 @@ def save_usage_stats(log_dir, model_name, stats):
     file_exists = os.path.isfile(csv_file)
     
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    usage = stats.get('usage', {})
+    # # usage = stats.get('usage', {})
+    usage = stats.usage # @Antigravity, 20260130, [FIX]: Access attribute directly
     
     row = {
         'timestamp': timestamp,
         'model': model_name,
-        'latency_sec': f"{stats.get('latency', 0):.4f}",
-        'total_tokens': usage.get('total_tokens', 0),
+        # # 'latency_sec': f"{stats.get('latency', 0):.4f}",
+        'latency_sec': f"{stats.latency:.4f}", # @Antigravity, 20260130, [FIX]: Access attribute directly
+        'total_tokens': usage.get('total_tokens', 0), # usage is still a dict
         'prompt_tokens': usage.get('prompt_tokens', 0),
         'completion_tokens': usage.get('completion_tokens', 0)
     }
