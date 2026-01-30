@@ -115,7 +115,8 @@ def main():
             
             for event in stream:
                 if isinstance(event, TextChunk):
-                    print(event.content, end="", flush=True)
+                    # print(event.content, end="", flush=True)
+                    print(".", end="", flush=True) # @Antigravity, 20260130, [DEBUG]: Print dots to diagnose buffering issues
                 elif isinstance(event, FileWriteStart):
                     try:
                         output_dir = os.path.join(os.path.dirname(__file__), 'output')
