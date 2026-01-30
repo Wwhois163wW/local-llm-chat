@@ -30,55 +30,68 @@ class ChatSession:
         if not client:
             raise ValueError("OpenAI client must be initialized.")
         self.client = client
-        self.model = config['LLM'].get('model', 'local-model')
-        # Use getint for integer conversion, with a fallback default of 10
-        self.max_history_length = config['LLM'].getint('max_history_length', 10)
-        self.history = []
-        logger.info(
-            f"ChatSession initialized. Max history length: {self.max_history_length}"
-        )
-
-    def send_message(self, user_content: str, files: list = None): # @Antigravity, 20260130, [MOD]: Add 'files' parameter
-        """
-        Sends a user message to the LLM, manages history, and returns the response.
-        Optionally, injects file contents into the conversation context before the user message.
-
-        Args:
-            user_content (str): The user's input message.
-            files (list, optional): A list of file paths to inject into the context. Defaults to None.
-
-        Returns:
-            tuple: (response_content, stats)
-                - response_content (str): The model's response content, or None on error.
-                - stats (dict): A dictionary containing 'latency' and 'usage' (token counts).
-        """
-        # @Antigravity, 20260129, [MOD]: Update return type in docstring above
-        try:
-            # @Antigravity, 20260130, [ADD]: Process file contents before adding user message
-            injected_file_messages = []
-            if files:
-                for file_path in files:
-                    if not os.path.exists(file_path):
-                        logger.warning(f"File not found, skipping: {file_path}")
-                        continue
-                    try:
-                        with open(file_path, 'r', encoding='utf-8') as f:
-                            file_content = f.read()
-                        
-                        file_name = os.path.basename(file_path)
-                        # Default prompt template for file injection
-                        file_injection_prompt = (
-                            f"The following is the content of the file '{file_name}', please read it carefully:\n\n"
-                            f"```\n{file_content}\n```\n\n"
-                            f"Once read, you can proceed with the user's main query."
-                        )
-                        injected_file_messages.append({"role": "user", "content": file_injection_prompt})
-                        logger.info(f"Injected file '{file_name}' content to history.")
-                    except Exception as e:
-                        logger.error(f"Failed to read or inject file {file_path}: {e}")
-            
-            # 1. Add injected file messages (if any) to history
-            self.history.extend(injected_file_messages);
+                self.model = config['LLM'].get('model', 'local-model')
+                # Use getint for integer conversion, with a fallback default of 10
+                self.max_history_length = config['LLM'].getint('max_history_length', 10)
+                self.max_file_size_kb = config['LLM'].getint('max_file_size_kb', 1024) # @Antigravity, 20260130, [ADD]: Load file size limit
+                self.history = []
+                self.last_errors = [] # @Antigravity, 20260130, [ADD]: List to hold non-critical errors for the UI
+                logger.info(
+                    f"ChatSession initialized. Max history: {self.max_history_length}, Max file size: {self.max_file_size_kb} KB"
+                )
+        
+            def send_message(self, user_content: str, files: list = None): # @Antigravity, 20260130, [MOD]: Add 'files' parameter
+                """
+                Sends a user message to the LLM, manages history, and returns the response.
+                Optionally, injects file contents into the conversation context before the user message.
+        
+                Args:
+                    user_content (str): The user's input message.
+                    files (list, optional): A list of file paths to inject into the context. Defaults to None.
+        
+                Returns:
+                    tuple: (response_content, stats)
+                        - response_content (str): The model's response content, or None on error.
+                        - stats (dict): A dictionary containing 'latency' and 'usage' (token counts).
+                """
+                # @Antigravity, 20260129, [MOD]: Update return type in docstring above
+                try:
+                    self.last_errors.clear() # @Antigravity, 20260130, [ADD]: Clear previous errors
+                    # @Antigravity, 20260130, [ADD]: Process file contents before adding user message
+                    injected_file_messages = []
+                    if files:
+                        for file_path in files:
+                            if not os.path.exists(file_path):
+                                # logger.warning(f"File not found, skipping: {file_path}")
+                                self.last_errors.append(f"File not found, skipped: {file_path}") # @Antigravity, 20260130, [MOD]: Report error to UI
+                                continue
+                            
+                            # @Antigravity, 20260130, [ADD]: Check file size
+                            try:
+                                file_size_kb = os.path.getsize(file_path) / 1024
+                                if file_size_kb > self.max_file_size_kb:
+                                    self.last_errors.append(f"File '{os.path.basename(file_path)}' is too large ({file_size_kb:.1f} KB > {self.max_file_size_kb} KB), skipped.")
+                                    continue
+        
+                                with open(file_path, 'r', encoding='utf-8') as f:
+                                    file_content = f.read()
+                                
+                                file_name = os.path.basename(file_path)
+                                # Default prompt template for file injection
+                                file_injection_prompt = (
+                                    f"The following is the content of the file '{file_name}', please read it carefully:\n\n"
+                                    f"```\n{file_content}\n```\n\n"
+                                    f"Once read, you can proceed with the user's main query."
+                                )
+                                injected_file_messages.append({"role": "user", "content": file_injection_prompt})
+                                logger.info(f"Injected file '{file_name}' content to history.")
+                            except Exception as e:
+                                # logger.error(f"Failed to read or inject file {file_path}: {e}")
+                                self.last_errors.append(f"Failed to read file '{os.path.basename(file_path)}': {e}") # @Antigravity, 20260130, [MOD]: Report error to UI
+                    
+                    # 1. Add injected file messages (if any) to history
+                    self.history.extend(injected_file_messages)
+        ;
 
             # 2. Add user message to history
             self.history.append({"role": "user", "content": user_content})

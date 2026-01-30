@@ -173,8 +173,12 @@ def main():
             stop_spinner.set()
             spinner_thread.join()
 
-            response = result_container.get('response')
             stats = result_container.get('stats')
+
+            # @Antigravity, 20260130, [ADD]: Check for and display any file injection errors
+            if chat_session.last_errors:
+                for error_msg in chat_session.last_errors:
+                    print(f"[Warning] {error_msg}")
 
             if response:
                 print(f"\nLLM > {response}")
@@ -187,7 +191,7 @@ def main():
                     usage = stats['usage']
                     print(f"\n[Stats] Latency: {stats['latency']:.2f}s | Tokens: {usage['total_tokens']} "
                           f"(In: {usage['prompt_tokens']}, Out: {usage['completion_tokens']})")
-            else:
+            elif not chat_session.last_errors: # Only print generic error if no specific errors were already shown
                 print("\nLLM > Sorry, I encountered an error.")
 
         except KeyboardInterrupt:
