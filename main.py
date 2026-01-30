@@ -91,8 +91,9 @@ def main():
                         continue
                     file_path = parts[1].strip()
                     if (file_path.startswith('"') and file_path.endswith('"')) or \
-                       (file_path.startswith("'"') and file_path.endswith("'")):
+                       (file_path.startswith("'") and file_path.endswith("'")):
                         file_path = file_path[1:-1]
+                    
                     files_to_send.append(file_path)
                     final_user_query = f"I've uploaded the file '{os.path.basename(file_path)}', please review it."
                     print(f"File '{os.path.basename(file_path)}' queued for context...")
