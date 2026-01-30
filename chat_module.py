@@ -3,28 +3,41 @@
 # chat_module.py
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
-# Date: 20260129
-# Version: 1.3.0
+# Date: 20260130
+# Version: 1.4.0
 
 from openai import OpenAI
 import configparser
 import logging
-import logging.config # @Antigravity, 20260129, [FIX]: Explicitly import logging.config
+import logging.config
 import os
-import time # @Antigravity, 20260129, [ADD]: Import time for latency calculation
+import time
 from dataclasses import dataclass
-import tiktoken # @Antigravity, 20260130, [ADD]: For client-side token counting
+import tiktoken
 
-# @Antigravity, 20260130, [ADD]: Event classes for streaming architecture
 @dataclass
 class TextChunk:
-# ... (rest of file)
-# In ChatSession __init__
-        self.max_file_size_kb = config['LLM'].getint('max_file_size_kb', 10240) # @Antigravity, 20260130, [ADD]: Load file size limit
+    content: str
+
+@dataclass
+class StatsUpdate:
+    latency: float
+    usage: dict
+
+logger = logging.getLogger(__name__)
+
+class ChatSession:
+    """Manages a single, stateful conversation with the LLM, including history."""
+    def __init__(self, client: OpenAI, config: configparser.ConfigParser):
+        if not client:
+            raise ValueError("OpenAI client must be initialized.")
+        self.client = client
+        self.model = config['LLM'].get('model', 'local-model')
+        self.max_history_length = config['LLM'].getint('max_history_length', 10)
+        self.max_file_size_kb = config['LLM'].getint('max_file_size_kb', 10240)
         self.history = []
-        self.last_errors = [] # @Antigravity, 20260130, [ADD]: List to hold non-critical errors for the UI
+        self.last_errors = []
         
-        # @Antigravity, 20260130, [ADD]: Initialize tokenizer for client-side counting
         try:
             self.tokenizer = tiktoken.get_encoding("cl100k_base")
         except Exception as e:
@@ -35,13 +48,13 @@ class TextChunk:
             f"ChatSession initialized. Max history: {self.max_history_length}, Max file size: {self.max_file_size_kb} KB"
         )
         
-    def send_message(self, user_content: str, files: list|None = None): # @Antigravity, 20260130, [MOD]: Add 'files' parameter
+    def send_message(self, user_content: str, files: list|None = None):
         """
         Sends a user message to the LLM and yields events for streaming output.
-
+        
         Args:
             user_content (str): The user's input message.
-            files (list, optional): A list of file paths to inject into the context. Defaults to None.
+            files (list, optional): A list of file paths to inject into the context.
         
         Yields:
             Event objects (e.g., TextChunk, StatsUpdate) representing the stream.
@@ -82,7 +95,6 @@ class TextChunk:
                 self.history = self.history[-self.max_history_length:]
                 logger.debug(f"History trimmed to the last {self.max_history_length} messages.")
 
-            # @Antigravity, 20260130, [ADD]: Calculate prompt_tokens before streaming
             prompt_tokens = 0
             if self.tokenizer:
                 for message in self.history:
@@ -97,7 +109,7 @@ class TextChunk:
             )
 
             full_response_content = ""
-            completion_tokens = 0 # @Antigravity, 20260130, [ADD]: Initialize completion token counter
+            completion_tokens = 0
             for chunk in stream:
                 content = chunk.choices[0].delta.content or ""
                 if content:
@@ -112,7 +124,6 @@ class TextChunk:
             self.history.append({"role": "assistant", "content": full_response_content})
 
             latency = end_time - start_time
-            # @Antigravity, 20260130, [MOD]: Use calculated token counts
             usage = {
                 "prompt_tokens": prompt_tokens, 
                 "completion_tokens": completion_tokens, 
@@ -131,22 +142,16 @@ class TextChunk:
                         break
 
 if __name__ == '__main__':
-    # Example Usage
     from api_client import Get_LLM_Client_by_Config
     from logging_setup import get_logging_config
 
-    # --- Setup Logging and Config for test ---
-    # # logging.config.dictConfig(get_logging_config(log_level='INFO'))
-    # @Antigravity, 20260129, [FIX]: Provide log_dir for logging config
-    script_dir = os.path.dirname(__file__)
-    log_dir = os.path.join(script_dir, 'logs')
-    if not os.path.exists(log_dir):
-        os.makedirs(log_dir)
-    logging.config.dictConfig(get_logging_config(log_dir=log_dir, log_level='INFO'))
+    logging.config.dictConfig(get_logging_config(log_dir='.', log_level='DEBUG'))
     
     config = configparser.ConfigParser()
-    # # script_dir = os.path.dirname(__file__)
+    script_dir = os.path.dirname(__file__)
     config_path = os.path.join(script_dir, 'config.ini')
+    if not os.path.exists(config_path):
+        logger.error("config.ini not found, please create it from config.example.ini")
     config.read(config_path)
 
     if not config.has_section('LLM'):
@@ -154,29 +159,35 @@ if __name__ == '__main__':
     else:
         llm_client = Get_LLM_Client_by_Config(config)
         if llm_client:
-            # 1. Create a session
             chat_session = ChatSession(llm_client, config)
-
-            # 2. Send a first message
+            
             logger.info("--- Message 1 ---")
             question1 = "My name is aigniter. What is your name?"
             logger.info(f"> {question1}")
-            # # response1 = chat_session.send_message(question1)
-            # @Antigravity, 20260129, [FIX]: Handle tuple return
-            response1, stats1 = chat_session.send_message(question1)
-            logger.info(f"< {response1}")
-            logger.info(f"Stats: {stats1}\n")
+            
+            print("LLM > ", end="", flush=True)
+            final_stats1 = None
+            for event in chat_session.send_message(question1):
+                if isinstance(event, TextChunk):
+                    print(event.content, end="", flush=True)
+                elif isinstance(event, StatsUpdate):
+                    final_stats1 = event
+            
+            print(f"\nStats: {final_stats1}\n")
 
-            # 3. Send a second message to test history
             logger.info("--- Message 2 ---")
             question2 = "Do you remember my name?"
             logger.info(f"> {question2}")
-            # # response2 = chat_session.send_message(question2)
-            # @Antigravity, 20260129, [FIX]: Handle tuple return
-            response2, stats2 = chat_session.send_message(question2)
-            logger.info(f"< {response2}")
-            logger.info(f"Stats: {stats2}\n")
+            
+            print("LLM > ", end="", flush=True)
+            final_stats2 = None
+            for event in chat_session.send_message(question2):
+                if isinstance(event, TextChunk):
+                    print(event.content, end="", flush=True)
+                elif isinstance(event, StatsUpdate):
+                    final_stats2 = event
+            
+            print(f"\nStats: {final_stats2}\n")
 
-            # 4. Check history
             logger.info(f"Current history length: {len(chat_session.history)}")
             logger.debug(f"Full history: {chat_session.history}")

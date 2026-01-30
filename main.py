@@ -3,27 +3,22 @@
 # main.py
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
-# Date: 20260129
-# Version: 1.3.0
+# Date: 20260130
+# Version: 1.4.0
 
 import configparser
 import logging.config
 import logging
 import os
-import csv # @Antigravity, 20260129, [ADD]: Import for CSV logging
-import time # @Antigravity, 20260129, [ADD]: Import for spinner
-import threading # @Antigravity, 20260129, [ADD]: Import for non-blocking UI
-import sys # @Antigravity, 20260129, [ADD]: Import for stdout flushing
-from datetime import datetime # @Antigravity, 20260129, [ADD]: Import for timestamp
+import csv
+import sys
+from datetime import datetime
+
 from logging_setup import get_logging_config
-
 from api_client import Get_LLM_Client_by_Config
-from chat_module import ChatSession, TextChunk, StatsUpdate # @Antigravity, 20260130, [MOD]: Import event classes
+from chat_module import ChatSession, TextChunk, StatsUpdate
 
-# @Antigravity, 20260130, [DEL]: Spinner logic is no longer needed in streaming mode
-# # @Antigravity, 20260129, [ADD]: Helper function to save stats to CSV
-# @Antigravity, 20260130, [MOD]: Update function to handle StatsUpdate object instead of dict
-def save_usage_stats(log_dir, model_name, stats: StatsUpdate):
+def save_usage_stats(log_dir: str, model_name: str, stats: StatsUpdate):
     """Appends usage statistics to a CSV file."""
     if not stats:
         return
@@ -32,15 +27,13 @@ def save_usage_stats(log_dir, model_name, stats: StatsUpdate):
     file_exists = os.path.isfile(csv_file)
     
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    # # usage = stats.get('usage', {})
-    usage = stats.usage # @Antigravity, 20260130, [FIX]: Access attribute directly
+    usage = stats.usage
     
     row = {
         'timestamp': timestamp,
         'model': model_name,
-        # # 'latency_sec': f"{stats.get('latency', 0):.4f}",
-        'latency_sec': f"{stats.latency:.4f}", # @Antigravity, 20260130, [FIX]: Access attribute directly
-        'total_tokens': usage.get('total_tokens', 0), # usage is still a dict
+        'latency_sec': f"{stats.latency:.4f}",
+        'total_tokens': usage.get('total_tokens', 0),
         'prompt_tokens': usage.get('prompt_tokens', 0),
         'completion_tokens': usage.get('completion_tokens', 0)
     }
@@ -55,7 +48,7 @@ def save_usage_stats(log_dir, model_name, stats: StatsUpdate):
         logging.getLogger(__name__).error(f"Failed to save usage stats to CSV: {e}")
 
 def main():
-    # ... (Setup logic remains the same) ...
+    # --- Configuration and Logging Setup ---
     log_dir = os.path.join(os.path.dirname(__file__), 'logs')
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
@@ -71,6 +64,7 @@ def main():
 
     logger.info("Application starting up...")
 
+    # --- Main Logic ---
     if not config.has_section('LLM'):
         logger.error("Configuration file 'config.ini' is missing [LLM] section.")
         logger.error("Please copy 'config.example.ini' to 'config.ini' and fill in your details.")
@@ -124,8 +118,7 @@ def main():
                     print(f"Unknown command: {command}")
                     continue
 
-            # @Antigravity, 20260130, [MOD]: Refactor to consume streaming events
-            print(f"\nLLM > ", end="", flush=True) # Start the line, no newline
+            print(f"\nLLM > ", end="", flush=True)
             
             stream = chat_session.send_message(
                 user_content=final_user_query,
@@ -139,17 +132,16 @@ def main():
                 elif isinstance(event, StatsUpdate):
                     final_stats = event
 
-            # After the stream is finished
             if final_stats:
                 save_usage_stats(log_dir, chat_session.model, final_stats)
                 usage = final_stats.usage
                 print(f"\n\n[Stats] Latency: {final_stats.latency:.2f}s | Tokens: {usage['total_tokens']} "
                       f"(In: {usage['prompt_tokens']}, Out: {usage['completion_tokens']})")
             else:
-                print() # Ensure a newline if the stream was empty or failed
+                print()
 
             if chat_session.last_errors:
-                print() # Add a newline for cleaner error display
+                print()
                 for error_msg in chat_session.last_errors:
                     print(f"[Warning] {error_msg}")
 
