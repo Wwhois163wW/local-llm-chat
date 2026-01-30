@@ -125,52 +125,109 @@ def main():
                 files=files_to_send if files_to_send else None
             )
 
-            final_stats = None
-            output_file_handle = None
-            output_file_path = None
-            
-            for event in stream:
-                if isinstance(event, TextChunk):
-                    print(event.content, end="", flush=True)
-                                elif isinstance(event, FileWriteStart):
+                        final_stats = None
+
+                        output_file_handle = None
+
+                        output_file_path = None
+
+                        file_buffer = [] # @Antigravity, 20260130, [ADD]: Buffer for validation
+
+                        is_writing_file = False # @Antigravity, 20260130, [ADD]: State for validation
+
+                        
+
+                        for event in stream:
+
+                            if isinstance(event, TextChunk):
+
+                                print(event.content, end="", flush=True)
+
+                            elif isinstance(event, FileWriteStart):
+
+                                try:
+
+                                    output_dir = os.path.join(os.path.dirname(__file__), 'output')
+
+                                    if not os.path.exists(output_dir):
+
+                                        os.makedirs(output_dir)
+
+                                    
+
+                                    safe_filename = os.path.basename(event.path)
+
+                                    output_file_path = os.path.join(output_dir, safe_filename)
+
+                                    is_writing_file = True # Set state
+
+                                    file_buffer.clear() # Clear buffer for new file
+
+                                    print(f"\n[LLM wants to write file: {output_file_path}]", end="", flush=True)
+
+                                except Exception as e:
+
+                                    logger.error(f"Failed to prepare file for writing: {e}")
+
+                                    print(f"\n[Error: Could not prepare file {event.path}]", end="", flush=True)
+
+                            elif isinstance(event, FileContentChunk):
+
+                                if is_writing_file:
+
+                                    file_buffer.append(event.content)
+
+                            elif isinstance(event, FileWriteEnd):
+
+                                if is_writing_file:
+
                                     try:
-                                        # @Antigravity, 20260130, [ADD]: Security sandbox for file writing
-                                        output_dir = os.path.join(os.path.dirname(__file__), 'output')
-                                        if not os.path.exists(output_dir):
-                                            os.makedirs(output_dir)
-                                        
-                                        safe_filename = os.path.basename(event.path) # Sanitize path to just the filename
-                                        output_file_path = os.path.join(output_dir, safe_filename)
-                                        
-                                        output_file_handle = open(output_file_path, "w", encoding="utf-8")
-                                        print(f"\n[Saving to sandbox: {output_file_path}]", end="", flush=True)
+
+                                        with open(output_file_path, "w", encoding="utf-8") as f:
+
+                                            f.write("".join(file_buffer))
+
+                                        print(f" -> [Saved successfully.]", end="", flush=True)
+
                                     except Exception as e:
-                                        logger.error(f"Failed to open file for writing: {e}")
-                                        print(f"\n[Error: Could not open file {event.path}]", end="", flush=True)
-                                elif isinstance(event, FileContentChunk):
-                                    if output_file_handle:
-                                        try:
-                                            output_file_handle.write(event.content)
-                                        except Exception as e:
-                                             logger.error(f"Failed to write to file: {e}")
-                                elif isinstance(event, FileWriteEnd):
-                                    if output_file_handle:
-                                        output_file_handle.close()
-                                        print(f" -> Done.]", end="", flush=True)
-                                        output_file_handle = None
+
+                                        logger.error(f"Failed to save buffered content to file: {e}")
+
+                                        print(f" -> [Error saving file: {e}]", end="", flush=True)
+
+                                    finally:
+
+                                        # Reset state
+
+                                        is_writing_file = False
+
+                                        file_buffer.clear()
+
                                         output_file_path = None
-                                elif isinstance(event, StatsUpdate):
-                                    final_stats = event
-                            
-                            # Ensure file is closed even if stream ends without a FileWriteEnd tag
-                            if output_file_handle:
-                                output_file_handle.close()
-                                logger.warning(f"File stream ended without a closing tag. File '{output_file_path}' was closed.")
-                                print(f" -> Done.]", end="", flush=True)
-                
-                            # After the stream is finished
-                            if final_stats:
-                                save_usage_stats(log_dir, chat_session.model, final_stats)
+
+                            elif isinstance(event, StatsUpdate):
+
+                                final_stats = event
+
+                        
+
+                        # After stream, check if a file write was started but not finished
+
+                        if is_writing_file:
+
+                            logger.warning(f"File write operation for '{output_file_path}' started but was not completed by the LLM (missing </write_file> tag).")
+
+                            print(f" -> [Save failed: Incomplete response.]", end="", flush=True)
+
+            
+
+                        # After the stream is finished
+
+                        if final_stats:
+
+                            save_usage_stats(log_dir, chat_session.model, final_stats)
+
+            
                                 usage = final_stats.usage
                                 print(f"\n\n[Stats] Latency: {final_stats.latency:.2f}s | Tokens: {usage['total_tokens']} "
                                       f"(In: {usage['prompt_tokens']}, Out: {usage['completion_tokens']})")
