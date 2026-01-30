@@ -13,40 +13,24 @@ import logging.config # @Antigravity, 20260129, [FIX]: Explicitly import logging
 import os
 import time # @Antigravity, 20260129, [ADD]: Import time for latency calculation
 from dataclasses import dataclass
+import tiktoken # @Antigravity, 20260130, [ADD]: For client-side token counting
 
 # @Antigravity, 20260130, [ADD]: Event classes for streaming architecture
 @dataclass
 class TextChunk:
-    content: str
-
-@dataclass
-class StatsUpdate:
-    latency: float
-    usage: dict
-
-logger = logging.getLogger(__name__)
-
-class ChatSession:
-    """
-    Manages a single, stateful conversation with the LLM, including history.
-    """
-    def __init__(self, client: OpenAI, config: configparser.ConfigParser):
-        """
-        Initializes the chat session.
-
-        Args:
-            client (OpenAI): The OpenAI client instance.
-            config (configparser.ConfigParser): The loaded configuration object.
-        """
-        if not client:
-            raise ValueError("OpenAI client must be initialized.")
-        self.client = client
-        self.model = config['LLM'].get('model', 'local-model')
-        # Use getint for integer conversion, with a fallback default of 10
-        self.max_history_length = config['LLM'].getint('max_history_length', 10)
+# ... (rest of file)
+# In ChatSession __init__
         self.max_file_size_kb = config['LLM'].getint('max_file_size_kb', 10240) # @Antigravity, 20260130, [ADD]: Load file size limit
         self.history = []
         self.last_errors = [] # @Antigravity, 20260130, [ADD]: List to hold non-critical errors for the UI
+        
+        # @Antigravity, 20260130, [ADD]: Initialize tokenizer for client-side counting
+        try:
+            self.tokenizer = tiktoken.get_encoding("cl100k_base")
+        except Exception as e:
+            logger.warning(f"Failed to initialize tiktoken, token counts will be 0: {e}")
+            self.tokenizer = None
+            
         logger.info(
             f"ChatSession initialized. Max history: {self.max_history_length}, Max file size: {self.max_file_size_kb} KB"
         )
@@ -98,6 +82,12 @@ class ChatSession:
                 self.history = self.history[-self.max_history_length:]
                 logger.debug(f"History trimmed to the last {self.max_history_length} messages.")
 
+            # @Antigravity, 20260130, [ADD]: Calculate prompt_tokens before streaming
+            prompt_tokens = 0
+            if self.tokenizer:
+                for message in self.history:
+                    prompt_tokens += len(self.tokenizer.encode(message['content']))
+
             start_time = time.time()
             logger.debug("Calling OpenAI API with stream=True...")
             stream = self.client.chat.completions.create(
@@ -107,9 +97,12 @@ class ChatSession:
             )
 
             full_response_content = ""
+            completion_tokens = 0 # @Antigravity, 20260130, [ADD]: Initialize completion token counter
             for chunk in stream:
                 content = chunk.choices[0].delta.content or ""
                 if content:
+                    if self.tokenizer:
+                        completion_tokens += len(self.tokenizer.encode(content))
                     full_response_content += content
                     yield TextChunk(content=content)
             
@@ -119,10 +112,12 @@ class ChatSession:
             self.history.append({"role": "assistant", "content": full_response_content})
 
             latency = end_time - start_time
-            # Note: The 'usage' field is typically not available in the final chunk of a stream.
-            # We will use placeholder stats for now.
-            usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
-            logger.warning("Token usage statistics are not available in streaming mode with this implementation.")
+            # @Antigravity, 20260130, [MOD]: Use calculated token counts
+            usage = {
+                "prompt_tokens": prompt_tokens, 
+                "completion_tokens": completion_tokens, 
+                "total_tokens": prompt_tokens + completion_tokens
+            }
             yield StatsUpdate(latency=latency, usage=usage)
 
         except Exception as e:
