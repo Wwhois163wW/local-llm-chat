@@ -100,7 +100,7 @@ def main():
     
     # --- Interactive Loop ---
     print("\n--- Local LLM Chat ---")
-    print("Enter 'quit', 'exit', or 'goodbye' to end the session.")
+    print("Commands: /add <file_path> | quit, exit, goodbye")
 
     while True:
         try:
@@ -166,8 +166,11 @@ def main():
             spinner_thread = threading.Thread(target=spinner_task, args=(stop_spinner,))
             spinner_thread.start()
 
-            # Wait for API call to finish
-            api_thread.join()
+            # Wait for API call to finish, but in a non-blocking way to catch interrupts
+            # # api_thread.join()
+            # @Antigravity, 20260130, [FIX]: Non-blocking wait for interruptible spinner
+            while api_thread.is_alive():
+                api_thread.join(timeout=0.2)
             
             # Stop spinner
             stop_spinner.set()
