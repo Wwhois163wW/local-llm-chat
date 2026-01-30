@@ -54,12 +54,14 @@ class ChatSession:
                 - response_content (str): The model's response content, or None on error.
                 - stats (dict): A dictionary containing 'latency' and 'usage' (token counts).
         """
+        logger.debug("send_message started.") # @Antigravity, 20260130, [ADD]: Debug log
         # @Antigravity, 20260129, [MOD]: Update return type in docstring above
         try:
             self.last_errors.clear() # @Antigravity, 20260130, [ADD]: Clear previous errors
             # @Antigravity, 20260130, [ADD]: Process file contents before adding user message
             injected_file_messages = []
             if files:
+                logger.debug(f"Processing {len(files)} files for injection.") # @Antigravity, 20260130, [ADD]: Debug log
                 for file_path in files:
                     if not os.path.exists(file_path):
                         # logger.warning(f"File not found, skipping: {file_path}")
@@ -96,6 +98,7 @@ class ChatSession:
 
             # 2. Add user message to history
             self.history.append({"role": "user", "content": user_content})
+            logger.debug(f"History prepared for API call. Length: {len(self.history)}") # @Antigravity, 20260130, [ADD]: Debug log
 
             # 3. Trim history if it exceeds the max length (sliding window)
             if len(self.history) > self.max_history_length:
@@ -105,10 +108,12 @@ class ChatSession:
 
             # 4. Send the full history to the LLM
             start_time = time.time() # @Antigravity, 20260129, [ADD]: Start timing
+            logger.debug("Calling OpenAI API...") # @Antigravity, 20260130, [ADD]: Debug log
             completion = self.client.chat.completions.create(
                 model=self.model,
                 messages=self.history,
             )
+            logger.debug("OpenAI API call returned.") # @Antigravity, 20260130, [ADD]: Debug log
             end_time = time.time() # @Antigravity, 20260129, [ADD]: End timing
 
             # @Antigravity, 20260129, [FIX]: Extract response and stats
