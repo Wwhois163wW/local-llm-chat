@@ -38,12 +38,14 @@ class ChatSession:
             f"ChatSession initialized. Max history length: {self.max_history_length}"
         )
 
-    def send_message(self, user_content: str):
+    def send_message(self, user_content: str, files: list = None): # @Antigravity, 20260130, [MOD]: Add 'files' parameter
         """
         Sends a user message to the LLM, manages history, and returns the response.
+        Optionally, injects file contents into the conversation context before the user message.
 
         Args:
             user_content (str): The user's input message.
+            files (list, optional): A list of file paths to inject into the context. Defaults to None.
 
         Returns:
             tuple: (response_content, stats)
@@ -52,16 +54,42 @@ class ChatSession:
         """
         # @Antigravity, 20260129, [MOD]: Update return type in docstring above
         try:
-            # 1. Add user message to history
+            # @Antigravity, 20260130, [ADD]: Process file contents before adding user message
+            injected_file_messages = []
+            if files:
+                for file_path in files:
+                    if not os.path.exists(file_path):
+                        logger.warning(f"File not found, skipping: {file_path}")
+                        continue
+                    try:
+                        with open(file_path, 'r', encoding='utf-8') as f:
+                            file_content = f.read()
+                        
+                        file_name = os.path.basename(file_path)
+                        # Default prompt template for file injection
+                        file_injection_prompt = (
+                            f"The following is the content of the file '{file_name}', please read it carefully:\n\n"
+                            f"```\n{file_content}\n```\n\n"
+                            f"Once read, you can proceed with the user's main query."
+                        )
+                        injected_file_messages.append({"role": "user", "content": file_injection_prompt})
+                        logger.info(f"Injected file '{file_name}' content to history.")
+                    except Exception as e:
+                        logger.error(f"Failed to read or inject file {file_path}: {e}")
+            
+            # 1. Add injected file messages (if any) to history
+            self.history.extend(injected_file_messages);
+
+            # 2. Add user message to history
             self.history.append({"role": "user", "content": user_content})
 
-            # 2. Trim history if it exceeds the max length (sliding window)
+            # 3. Trim history if it exceeds the max length (sliding window)
             if len(self.history) > self.max_history_length:
                 # Keep the last `max_history_length` items
                 self.history = self.history[-self.max_history_length:]
                 logger.debug(f"History trimmed to the last {self.max_history_length} messages.")
 
-            # 3. Send the full history to the LLM
+            # 4. Send the full history to the LLM
             start_time = time.time() # @Antigravity, 20260129, [ADD]: Start timing
             completion = self.client.chat.completions.create(
                 model=self.model,
@@ -69,18 +97,11 @@ class ChatSession:
             )
             end_time = time.time() # @Antigravity, 20260129, [ADD]: End timing
 
-            # # response_content = completion.choices[0].message.content
             # @Antigravity, 20260129, [FIX]: Extract response and stats
             response_content = completion.choices[0].message.content
             latency = end_time - start_time
             
             # Extract usage statistics
-            # # usage = {
-            # #     "prompt_tokens": completion.usage.prompt_tokens,
-            # #     "completion_tokens": completion.usage.completion_tokens,
-            # #     "total_tokens": completion.usage.total_tokens
-            # # }
-            
             # @Antigravity, 20260129, [FIX]: Safe usage extraction
             if hasattr(completion, 'usage') and completion.usage:
                 usage = {
@@ -98,18 +119,25 @@ class ChatSession:
             }
             logger.debug(f"Stats generated: {stats}")
 
-            # 4. Add assistant's response to history
+            # 5. Add assistant's response to history
             self.history.append({"role": "assistant", "content": response_content})
             
-            # # return response_content
             return response_content, stats # @Antigravity, 20260129, [MOD]: Return content and stats
 
         except Exception as e:
             logger.error(f"Error during API call: {e}")
             # Optionally remove the user's message if the call failed
-            if self.history and self.history[-1]["role"] == "user":
-                self.history.pop()
-            # # return None
+            # @Antigravity, 20260130, [FIX]: Correctly handle removal of multiple messages (injected + user)
+            # Remove the user's message and any injected file messages if the API call failed
+            if self.history:
+                # Assuming injected file messages are always before the user_content
+                # Count how many messages were added in this turn
+                messages_added_this_turn = 1 + len(injected_file_messages)
+                for _ in range(messages_added_this_turn):
+                    if self.history and self.history[-1]["role"] == "user":
+                        self.history.pop()
+                    else: # Should not happen if logic is correct, but for safety
+                        break
             return None, None # @Antigravity, 20260129, [MOD]: Return None for both on error
 
 if __name__ == '__main__':

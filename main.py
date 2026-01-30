@@ -114,6 +114,10 @@ def main():
             if not user_input.strip():
                 continue
 
+            # @Antigravity, 20260130, [ADD]: Initialize files_to_send for potential file commands
+            files_to_send = []
+            final_user_query = user_input # Default to user's direct input
+
             # @Antigravity, 20260129, [ADD]: Handle commands like /add
             if user_input.startswith('/'):
                 parts = user_input.split(maxsplit=1)
@@ -122,7 +126,7 @@ def main():
                 if command == '/add':
                     if len(parts) < 2:
                         print("Error: Please provide a file path. Usage: /add <path>")
-                        continue
+                        continue # Skip to next loop iteration
                     
                     file_path = parts[1].strip()
                     # @Antigravity, 20260129, [ADD]: Strip surrounding quotes from path (Windows convenience)
@@ -132,34 +136,26 @@ def main():
                     
                     if not os.path.exists(file_path):
                         print(f"Error: File not found: {file_path}")
-                        continue
+                        continue # Skip to next loop iteration
                     
-                    try:
-                        with open(file_path, 'r', encoding='utf-8') as f:
-                            file_content = f.read()
-                        
-                        file_name = os.path.basename(file_path)
-                        # Wrap content for LLM
-                        user_input = (
-                            f"The following is the content of the file '{file_name}':\n\n"
-                            f"{file_content}\n\n"
-                            f"Please acknowledge that you have read and understood this file."
-                        )
-                        print(f"Adding file '{file_name}' to context...")
-                    except Exception as e:
-                        logger.error(f"Failed to read file {file_path}: {e}")
-                        print(f"Error: Could not read file: {e}")
-                        continue
+                    # @Antigravity, 20260130, [MOD]: Add file to list, not modify user_input
+                    files_to_send.append(file_path)
+                    final_user_query = "我已上传了一些文件，请查阅。" # Default message when uploading files
+                    print(f"Adding file '{os.path.basename(file_path)}' to context...")
                 else:
                     print(f"Unknown command: {command}")
-                    continue
+                    continue # Skip to next loop iteration
 
             # # response, stats = chat_session.send_message(user_input)
             
             # @Antigravity, 20260129, [MOD]: Threaded execution with spinner
             result_container = {}
             def api_call_wrapper():
-                result_container['response'], result_container['stats'] = chat_session.send_message(user_input)
+                # @Antigravity, 20260130, [MOD]: Adapt to new send_message signature
+                result_container['response'], result_container['stats'] = chat_session.send_message(
+                    user_content=final_user_query,
+                    files=files_to_send if files_to_send else None # Only pass if files were actually added
+                )
 
             # Start API thread
             api_thread = threading.Thread(target=api_call_wrapper)
