@@ -152,11 +152,16 @@ def main():
             # @Antigravity, 20260129, [MOD]: Threaded execution with spinner
             result_container = {}
             def api_call_wrapper():
-                # @Antigravity, 20260130, [MOD]: Adapt to new send_message signature
-                result_container['response'], result_container['stats'] = chat_session.send_message(
-                    user_content=final_user_query,
-                    files=files_to_send if files_to_send else None # Only pass if files were actually added
-                )
+                # @Antigravity, 20260130, [FIX]: Add try/except to ensure container is always populated
+                try:
+                    # @Antigravity, 20260130, [MOD]: Adapt to new send_message signature
+                    result_container['response'], result_container['stats'] = chat_session.send_message(
+                        user_content=final_user_query,
+                        files=files_to_send if files_to_send else None # Only pass if files were actually added
+                    )
+                except Exception as e:
+                    logger.error(f"Exception occurred in api_call_wrapper thread: {e}")
+                    result_container['response'], result_container['stats'] = None, None
 
             # Start API thread
             api_thread = threading.Thread(target=api_call_wrapper)
@@ -168,8 +173,6 @@ def main():
             spinner_thread.start()
 
             # Wait for API call to finish, but in a non-blocking way to catch interrupts
-            # # api_thread.join()
-            # @Antigravity, 20260130, [FIX]: Non-blocking wait for interruptible spinner
             while api_thread.is_alive():
                 api_thread.join(timeout=0.2)
             
@@ -177,6 +180,8 @@ def main():
             stop_spinner.set()
             spinner_thread.join()
 
+            # @Antigravity, 20260130, [FIX]: Define response and stats from container
+            response = result_container.get('response')
             stats = result_container.get('stats')
 
             # @Antigravity, 20260130, [ADD]: Check for and display any file injection errors
