@@ -134,14 +134,15 @@ def main():
                        (file_path.startswith("'") and file_path.endswith("'")):
                         file_path = file_path[1:-1]
                     
-                    if not os.path.exists(file_path):
-                        print(f"Error: File not found: {file_path}")
-                        continue # Skip to next loop iteration
+                    # @Antigravity, 20260130, [DEL]: Removed redundant path check, will be handled by ChatSession
+                    # if not os.path.exists(file_path):
+                    #     print(f"Error: File not found: {file_path}")
+                    #     continue # Skip to next loop iteration
                     
                     # @Antigravity, 20260130, [MOD]: Add file to list, not modify user_input
                     files_to_send.append(file_path)
-                    final_user_query = "我已上传了一些文件，请查阅。" # Default message when uploading files
-                    print(f"Adding file '{os.path.basename(file_path)}' to context...")
+                    final_user_query = f"I've uploaded the file '{os.path.basename(file_path)}', please review it."
+                    print(f"File '{os.path.basename(file_path)}' queued for context...")
                 else:
                     print(f"Unknown command: {command}")
                     continue # Skip to next loop iteration
@@ -198,6 +199,9 @@ def main():
                 print("\nLLM > Sorry, I encountered an error.")
 
         except KeyboardInterrupt:
+            # @Antigravity, 20260130, [FIX]: Ensure spinner line is cleared on interrupt
+            sys.stdout.write("\r" + " " * 20 + "\r")
+            sys.stdout.flush()
             logger.info("Keyboard interrupt received. Shutting down.")
             print("\nGoodbye!")
             break
