@@ -22,4 +22,11 @@ config.ini
 implementation_plan.md
 
 # 备份文件
+
 *.bak
+
+
+
+# 测试附件
+
+test_attachments/

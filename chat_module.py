@@ -4,7 +4,7 @@
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
 # Date: 20260130
-# Version: 1.4.0
+# Version: 1.5.0
 
 from openai import OpenAI
 import configparser
@@ -21,14 +21,47 @@ from prompts import get_file_injection_prompt
 
 logger = logging.getLogger(__name__)
 
-# ... (rest of the class is the same)
-
-# In send_message method:
+class ChatSession:
+    """Manages a single, stateful conversation with the LLM, including history."""
+    def __init__(self, client: OpenAI, config: configparser.ConfigParser):
+        if not client:
+            raise ValueError("OpenAI client must be initialized.")
+        self.client = client
+        self.model = config['LLM'].get('model', 'local-model')
+        self.max_history_length = config['LLM'].getint('max_history_length', 10)
+        self.max_file_size_kb = config['LLM'].getint('max_file_size_kb', 10240)
+        self.history = []
+        self.last_errors = []
+        
+        try:
+            self.tokenizer = tiktoken.get_encoding("cl100k_base")
+        except Exception as e:
+            logger.warning(f"Failed to initialize tiktoken, token counts will be 0: {e}")
+            self.tokenizer = None
+            
+        logger.info(
+            f"ChatSession initialized. Max history: {self.max_history_length}, Max file size: {self.max_file_size_kb} KB"
+        )
+        
+    def send_message(self, user_content: str, files: list|None = None):
+        logger.debug("send_message stream started.")
+        try:
+            self.last_errors.clear()
+            injected_file_messages = []
+            if files:
+                logger.debug(f"Processing {len(files)} files for injection.")
+                for file_path in files:
+                    if not os.path.exists(file_path):
+                        self.last_errors.append(f"File not found, skipped: {file_path}")
+                        continue
+                    try:
+                        file_size_kb = os.path.getsize(file_path) / 1024
+                        if file_size_kb > self.max_file_size_kb:
+                            self.last_errors.append(f"File '{os.path.basename(file_path)}' is too large ({file_size_kb:.1f} KB > {self.max_file_size_kb} KB), skipped.")
+                            continue
                         with open(file_path, 'r', encoding='utf-8') as f:
                             file_content = f.read()
-                        
                         file_name = os.path.basename(file_path)
-                        # Default prompt template for file injection
                         file_injection_prompt = get_file_injection_prompt(file_name, file_content)
                         injected_file_messages.append({"role": "user", "content": file_injection_prompt})
                         logger.info(f"Injected file '{file_name}' content to history.")
@@ -58,7 +91,6 @@ logger = logging.getLogger(__name__)
 
             full_response_content = ""
             completion_tokens = 0
-            
             buffer = ""
             in_file_write_block = False
             
@@ -66,10 +98,9 @@ logger = logging.getLogger(__name__)
                 content = chunk.choices[0].delta.content or ""
                 if not content:
                     continue
-
                 buffer += content
                 
-                while True: # Loop to process buffer continuously
+                while True:
                     if not in_file_write_block:
                         start_tag_match = re.search(r'<write_file path="([^"]+)">', buffer)
                         if start_tag_match:
@@ -79,16 +110,12 @@ logger = logging.getLogger(__name__)
                                 full_response_content += pre_tag_content
                                 if self.tokenizer:
                                     completion_tokens += len(self.tokenizer.encode(pre_tag_content))
-
                             file_path = start_tag_match.group(1)
                             yield FileWriteStart(path=file_path)
-                            
                             buffer = buffer[start_tag_match.end():]
                             in_file_write_block = True
                         else:
-                            # No start tag found, nothing more to process in the buffer for now
                             break
-                    
                     if in_file_write_block:
                         end_tag_match = re.search(r'</write_file>', buffer)
                         if end_tag_match:
@@ -98,16 +125,12 @@ logger = logging.getLogger(__name__)
                                 full_response_content += file_content_chunk
                                 if self.tokenizer:
                                     completion_tokens += len(self.tokenizer.encode(file_content_chunk))
-                            
                             yield FileWriteEnd()
-                            
                             buffer = buffer[end_tag_match.end():]
                             in_file_write_block = False
                         else:
-                            # No end tag found yet in the buffer
                             break
-                
-            # After the stream, process any text left in the buffer that wasn't part of a tag
+            
             if buffer and not in_file_write_block:
                 yield TextChunk(content=buffer)
                 full_response_content += buffer
@@ -116,13 +139,11 @@ logger = logging.getLogger(__name__)
 
             logger.debug("OpenAI stream finished.")
             end_time = time.time()
-            
             self.history.append({"role": "assistant", "content": full_response_content})
 
             latency = end_time - start_time
             usage = {
-                "prompt_tokens": prompt_tokens, 
-                "completion_tokens": completion_tokens, 
+                "prompt_tokens": prompt_tokens, "completion_tokens": completion_tokens,
                 "total_tokens": prompt_tokens + completion_tokens
             }
             yield StatsUpdate(latency=latency, usage=usage)
@@ -142,25 +163,20 @@ if __name__ == '__main__':
     from logging_setup import get_logging_config
 
     logging.config.dictConfig(get_logging_config(log_dir='.', log_level='DEBUG'))
-    
     config = configparser.ConfigParser()
     script_dir = os.path.dirname(__file__)
     config_path = os.path.join(script_dir, 'config.ini')
     if not os.path.exists(config_path):
-        logger.error("config.ini not found, please create it from config.example.ini")
+        logger.error("config.ini not found")
     config.read(config_path)
 
-    if not config.has_section('LLM'):
-        logger.error("Config file is missing [LLM] section.")
-    else:
+    if config.has_section('LLM'):
         llm_client = Get_LLM_Client_by_Config(config)
         if llm_client:
             chat_session = ChatSession(llm_client, config)
-            
             logger.info("--- Message 1 ---")
             question1 = "My name is aigniter. What is your name?"
             logger.info(f"> {question1}")
-            
             print("LLM > ", end="", flush=True)
             final_stats1 = None
             for event in chat_session.send_message(question1):
@@ -168,13 +184,11 @@ if __name__ == '__main__':
                     print(event.content, end="", flush=True)
                 elif isinstance(event, StatsUpdate):
                     final_stats1 = event
-            
             print(f"\nStats: {final_stats1}\n")
 
             logger.info("--- Message 2 ---")
             question2 = "Do you remember my name?"
             logger.info(f"> {question2}")
-            
             print("LLM > ", end="", flush=True)
             final_stats2 = None
             for event in chat_session.send_message(question2):
@@ -182,8 +196,6 @@ if __name__ == '__main__':
                     print(event.content, end="", flush=True)
                 elif isinstance(event, StatsUpdate):
                     final_stats2 = event
-            
             print(f"\nStats: {final_stats2}\n")
-
-            logger.info(f"Current history length: {len(chat_session.history)}")
-            logger.debug(f"Full history: {chat_session.history}")
+    else:
+        logger.error("Config file is missing [LLM] section.")
