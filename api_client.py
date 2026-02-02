@@ -33,7 +33,8 @@ def Get_LLM_Client_by_Config(config): # @Antigravity, 20260128, [FIX]: Accept co
         
         client = OpenAI(
             base_url=base_url,
-            api_key=api_key
+            api_key=api_key,
+            timeout=20.0, # @Antigravity, 20260202, [ADD]: Increase timeout to handle slow model loading
         )
         logger.info(f"Querying EVO-X2 ({ip}) via uv...") # @Antigravity, 20260128, [FIX]: Use logger.info instead of print
         return client
