@@ -96,60 +96,72 @@ class ChatSession:
             full_response_content = ""
             completion_tokens = 0
             buffer = ""
-            in_file_write_block = False
-            
+            # State can be 'text' or 'tag'
+            parsing_state = 'text'
+
             for chunk in stream:
-                content = chunk.choices[0].delta.content or ""
-                if not content:
-                    continue
-                buffer += content
+                buffer += chunk.choices[0].delta.content or ""
                 
-                while True:
-                    if not in_file_write_block:
-                        start_tag_match = re.search(r'<write_file path="([^"]+)">', buffer)
-                        if start_tag_match:
-                            pre_tag_content = buffer[:start_tag_match.start()]
-                            if pre_tag_content:
-                                yield TextChunk(content=pre_tag_content)
-                                full_response_content += pre_tag_content
-                                if self.tokenizer:
-                                    completion_tokens += len(self.tokenizer.encode(pre_tag_content))
-                            file_path = start_tag_match.group(1)
-                            yield FileWriteStart(path=file_path)
-                            buffer = buffer[start_tag_match.end():]
-                            in_file_write_block = True
-                        else:
-                            yield_boundary = buffer.rfind('\n')
-                            if yield_boundary == -1 and len(buffer) > 100:
-                                yield_boundary = len(buffer) - 20
-                            if yield_boundary != -1:
-                                content_to_yield = buffer[:yield_boundary]
-                                if content_to_yield:
-                                    yield TextChunk(content=content_to_yield)
-                                    full_response_content += content_to_yield
-                                    if self.tokenizer:
-                                        completion_tokens += len(self.tokenizer.encode(content_to_yield))
-                                buffer = buffer[yield_boundary:]
-                            break
+                if parsing_state == 'text':
+                    # Greedily look for a potential tag start
+                    tag_start_pos = buffer.find('<')
+                    if tag_start_pos != -1:
+                        # Yield content before the potential tag
+                        content_to_yield = buffer[:tag_start_pos]
+                        if content_to_yield:
+                            yield TextChunk(content=content_to_yield)
+                            full_response_content += content_to_yield
+                            if self.tokenizer:
+                                completion_tokens += len(self.tokenizer.encode(content_to_yield))
+                        
+                        # Switch to tag parsing mode
+                        buffer = buffer[tag_start_pos:]
+                        parsing_state = 'tag'
+                    else:
+                        # No tag start found, yield the whole buffer
+                        if buffer:
+                            yield TextChunk(content=buffer)
+                            full_response_content += buffer
+                            if self.tokenizer:
+                                completion_tokens += len(self.tokenizer.encode(buffer))
+                        buffer = ""
+
+                if parsing_state == 'tag':
+                    # Try to match a complete write_file tag
+                    write_file_match = re.search(r'^(<write_file path="([^"]+)">)(.*?)(</write_file>)', buffer, re.DOTALL)
+                    if write_file_match:
+                        # Matched a complete tag, process it
+                        path, content = write_file_match.group(2), write_file_match.group(3)
+                        yield FileWriteStart(path=path)
+                        if content:
+                            yield FileContentChunk(content=content)
+                        yield FileWriteEnd()
+                        
+                        # Add to history and count tokens
+                        full_response_content += write_file_match.group(0)
+                        if self.tokenizer:
+                            completion_tokens += len(self.tokenizer.encode(write_file_match.group(0)))
+
+                        # Switch back to text mode
+                        buffer = buffer[write_file_match.end():]
+                        parsing_state = 'text'
+                        # Loop again to process rest of the buffer
+                        continue
                     
-                    if in_file_write_block:
-                        end_tag_match = re.search(r'</write_file>', buffer)
-                        if end_tag_match:
-                            file_content_chunk = buffer[:end_tag_match.start()]
-                            if file_content_chunk:
-                                yield FileContentChunk(content=file_content_chunk)
-                                full_response_content += file_content_chunk
-                                if self.tokenizer:
-                                    completion_tokens += len(self.tokenizer.encode(file_content_chunk))
-                            yield FileWriteEnd()
-                            buffer = buffer[end_tag_match.end():]
-                            in_file_write_block = False
-                        else:
-                            break
-            
-            if buffer and not in_file_write_block:
-                if buffer:
-                    yield TextChunk(content=buffer)
+                    # If we are in tag state but haven't found a complete tag, we just buffer
+                    # and wait for more content. A simple check to prevent infinite buffering.
+                    if len(buffer) > self.max_file_size_kb * 1024: # Safety break
+                        logger.warning("Tag parsing buffer exceeded limit, flushing as text.")
+                        yield TextChunk(content=buffer)
+                        full_response_content += buffer
+                        if self.tokenizer:
+                            completion_tokens += len(self.tokenizer.encode(buffer))
+                        buffer = ""
+                        parsing_state = 'text'
+
+            # After the loop, yield any remaining content
+            if buffer:
+                yield TextChunk(content=buffer)
                 full_response_content += buffer
                 if self.tokenizer:
                     completion_tokens += len(self.tokenizer.encode(buffer))
