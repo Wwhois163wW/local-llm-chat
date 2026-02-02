@@ -17,7 +17,7 @@ import re
 import tiktoken
 
 from events import TextChunk, StatsUpdate, FileWriteStart, FileContentChunk, FileWriteEnd
-from prompts import get_file_injection_prompt
+from prompts import get_file_injection_prompt, get_system_prompt
 
 logger = logging.getLogger(__name__)
 
@@ -38,6 +38,10 @@ class ChatSession:
         except Exception as e:
             logger.warning(f"Failed to initialize tiktoken, token counts will be 0: {e}")
             self.tokenizer = None
+            
+        # @Antigravity, 20260202, [ADD]: Pre-seed history with the system prompt
+        system_prompt = get_system_prompt()
+        self.history.append({"role": "system", "content": system_prompt})
             
         logger.info(
             f"ChatSession initialized. Max history: {self.max_history_length}, Max file size: {self.max_file_size_kb} KB"
