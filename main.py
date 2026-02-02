@@ -112,9 +112,12 @@ def main():
             output_file_path = None
             file_buffer = []
             is_writing_file = False
+            has_text_output = False # @Antigravity, 20260202, [ADD]: Flag to track text output
+            file_written_successfully = False # @Antigravity, 20260202, [ADD]: Flag to track file write status
             
             for event in stream:
                 if isinstance(event, TextChunk):
+                    has_text_output = True # @Antigravity, 20260202, [ADD]: Set flag on text output
                     logger.debug(f"Received TextChunk of size: {len(event.content)}")
                     print(event.content, end="", flush=True)
                 elif isinstance(event, FileWriteStart):
@@ -139,19 +142,24 @@ def main():
                             with open(output_file_path, "w", encoding="utf-8") as f:
                                 f.write("".join(file_buffer))
                             print(f" -> [Saved successfully.]", end="", flush=True)
+                            file_written_successfully = True # @Antigravity, 20260202, [ADD]: Set flag on success
                         except Exception as e:
                             logger.error(f"Failed to save buffered content to file: {e}")
                             print(f" -> [Error saving file: {e}]", end="", flush=True)
                         finally:
                             is_writing_file = False
                             file_buffer.clear()
-                            output_file_path = None
+                            # Do not reset output_file_path here, needed for the check below
                 elif isinstance(event, StatsUpdate):
                     final_stats = event
             
             if is_writing_file:
                 logger.warning(f"File write op for '{output_file_path}' not completed (missing tag).")
                 print(f" -> [Save failed: Incomplete response.]", end="", flush=True)
+
+            # @Antigravity, 20260202, [ADD]: Add a confirmation message if only a file was written
+            if file_written_successfully and not has_text_output:
+                print("OK, the file has been saved.", end="")
 
             if final_stats:
                 save_usage_stats(log_dir, chat_session.model, final_stats)
