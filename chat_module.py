@@ -3,8 +3,8 @@
 # chat_module.py
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
-# Date: 20260130
-# Version: 1.5.1
+# Date: 20260203
+# Version: 1.6.0
 
 from openai import OpenAI
 import configparser
@@ -12,12 +12,11 @@ import logging
 import logging.config
 import os
 import time
-from dataclasses import dataclass
-import re
 import tiktoken
 
-from events import TextChunk, StatsUpdate, FileWriteStart, FileContentChunk, FileWriteEnd
+from events import TextChunk, StatsUpdate
 from prompts import get_file_injection_prompt, get_system_prompt
+from parser import parse_stream
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +38,6 @@ class ChatSession:
             logger.warning(f"Failed to initialize tiktoken, token counts will be 0: {e}")
             self.tokenizer = None
             
-        # @Antigravity, 20260202, [ADD]: Pre-seed history with the system prompt
         system_prompt = get_system_prompt()
         self.history.append({"role": "system", "content": system_prompt})
             
@@ -87,86 +85,26 @@ class ChatSession:
 
             start_time = time.time()
             logger.debug("Calling OpenAI API with stream=True...")
-            stream = self.client.chat.completions.create(
+            raw_stream = self.client.chat.completions.create(
                 model=self.model,
                 messages=self.history,
                 stream=True,
             )
 
+            event_stream = parse_stream(raw_stream)
+            
             full_response_content = ""
             completion_tokens = 0
-            buffer = ""
-            # State can be 'text' or 'tag'
-            parsing_state = 'text'
 
-            for chunk in stream:
-                buffer += chunk.choices[0].delta.content or ""
+            for event in event_stream:
+                if isinstance(event, TextChunk):
+                    full_response_content += event.content
+                    if self.tokenizer:
+                        completion_tokens += len(self.tokenizer.encode(event.content))
                 
-                if parsing_state == 'text':
-                    # Greedily look for a potential tag start
-                    tag_start_pos = buffer.find('<')
-                    if tag_start_pos != -1:
-                        # Yield content before the potential tag
-                        content_to_yield = buffer[:tag_start_pos]
-                        if content_to_yield:
-                            yield TextChunk(content=content_to_yield)
-                            full_response_content += content_to_yield
-                            if self.tokenizer:
-                                completion_tokens += len(self.tokenizer.encode(content_to_yield))
-                        
-                        # Switch to tag parsing mode
-                        buffer = buffer[tag_start_pos:]
-                        parsing_state = 'tag'
-                    else:
-                        # No tag start found, yield the whole buffer
-                        if buffer:
-                            yield TextChunk(content=buffer)
-                            full_response_content += buffer
-                            if self.tokenizer:
-                                completion_tokens += len(self.tokenizer.encode(buffer))
-                        buffer = ""
-
-                if parsing_state == 'tag':
-                    # Try to match a complete write_file tag
-                    write_file_match = re.search(r'^(<write_file path="([^"]+)">)(.*?)(</write_file>)', buffer, re.DOTALL)
-                    if write_file_match:
-                        # Matched a complete tag, process it
-                        path, content = write_file_match.group(2), write_file_match.group(3)
-                        yield FileWriteStart(path=path)
-                        if content:
-                            yield FileContentChunk(content=content)
-                        yield FileWriteEnd()
-                        
-                        # Add to history and count tokens
-                        full_response_content += write_file_match.group(0)
-                        if self.tokenizer:
-                            completion_tokens += len(self.tokenizer.encode(write_file_match.group(0)))
-
-                        # Switch back to text mode
-                        buffer = buffer[write_file_match.end():]
-                        parsing_state = 'text'
-                        # Loop again to process rest of the buffer
-                        continue
-                    
-                    # If we are in tag state but haven't found a complete tag, we just buffer
-                    # and wait for more content. A simple check to prevent infinite buffering.
-                    if len(buffer) > self.max_file_size_kb * 1024: # Safety break
-                        logger.warning("Tag parsing buffer exceeded limit, flushing as text.")
-                        yield TextChunk(content=buffer)
-                        full_response_content += buffer
-                        if self.tokenizer:
-                            completion_tokens += len(self.tokenizer.encode(buffer))
-                        buffer = ""
-                        parsing_state = 'text'
-
-            # After the loop, yield any remaining content
-            if buffer:
-                yield TextChunk(content=buffer)
-                full_response_content += buffer
-                if self.tokenizer:
-                    completion_tokens += len(self.tokenizer.encode(buffer))
-
-            logger.debug("OpenAI stream finished.")
+                yield event
+            
+            logger.debug("Stream parsing finished.")
             end_time = time.time()
             self.history.append({"role": "assistant", "content": full_response_content})
 
@@ -186,45 +124,3 @@ class ChatSession:
                         self.history.pop()
                     else:
                         break
-
-if __name__ == '__main__':
-    from api_client import Get_LLM_Client_by_Config
-    from logging_setup import get_logging_config
-
-    logging.config.dictConfig(get_logging_config(log_dir='.', log_level='DEBUG'))
-    config = configparser.ConfigParser()
-    script_dir = os.path.dirname(__file__)
-    config_path = os.path.join(script_dir, 'config.ini')
-    if not os.path.exists(config_path):
-        logger.error("config.ini not found")
-    config.read(config_path)
-
-    if config.has_section('LLM'):
-        llm_client = Get_LLM_Client_by_Config(config)
-        if llm_client:
-            chat_session = ChatSession(llm_client, config)
-            logger.info("--- Message 1 ---")
-            question1 = "My name is aigniter. What is your name?"
-            logger.info(f"> {question1}")
-            print("LLM > ", end="", flush=True)
-            final_stats1 = None
-            for event in chat_session.send_message(question1):
-                if isinstance(event, TextChunk):
-                    print(event.content, end="", flush=True)
-                elif isinstance(event, StatsUpdate):
-                    final_stats1 = event
-            print(f"\nStats: {final_stats1}\n")
-
-            logger.info("--- Message 2 ---")
-            question2 = "Do you remember my name?"
-            logger.info(f"> {question2}")
-            print("LLM > ", end="", flush=True)
-            final_stats2 = None
-            for event in chat_session.send_message(question2):
-                if isinstance(event, TextChunk):
-                    print(event.content, end="", flush=True)
-                elif isinstance(event, StatsUpdate):
-                    final_stats2 = event
-            print(f"\nStats: {final_stats2}\n")
-    else:
-        logger.error("Config file is missing [LLM] section.")
