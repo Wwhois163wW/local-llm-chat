@@ -4,7 +4,7 @@
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
 # Date: 20260203
-# Version: 1.7.0
+# Version: 1.7.1
 
 from openai import OpenAI
 import configparser
@@ -51,9 +51,10 @@ class ChatSession:
         injected_file_messages = []
         if files:
             for file_path in files:
-                # This logic is now part of _execute_read_file, but can be kept for pre-check
-                pass
-        
+                tool_response = self._execute_read_file(file_path)
+                injected_file_messages.append({"role": "system", "content": tool_response})
+
+        self.history.extend(injected_file_messages)
         self.history.append({"role": "user", "content": user_content})
 
         max_react_loops = 5
@@ -61,7 +62,6 @@ class ChatSession:
             logger.debug(f"ReAct loop iteration {i+1}/{max_react_loops}. History length: {len(self.history)}")
 
             if len(self.history) > self.max_history_length:
-                # Simple trim, could be more sophisticated
                 self.history = [self.history[0]] + self.history[-(self.max_history_length-1):]
                 logger.debug(f"History trimmed to the last {self.max_history_length} messages.")
 
@@ -120,11 +120,18 @@ class ChatSession:
         supported_extensions = ['.txt', '.md', '.py', '.json', '.csv', '.xml', '.html']
         
         try:
-            # Security: Prevent path traversal
             safe_base_dir = os.path.abspath(os.path.dirname(__file__))
             target_path = os.path.abspath(os.path.join(safe_base_dir, path))
-            if not target_path.startswith(safe_base_dir):
-                return f"Tool <read_file> failed: Path traversal attempt detected."
+            
+            output_dir = os.path.abspath(os.path.join(safe_base_dir, 'output'))
+            logs_dir = os.path.abspath(os.path.join(safe_base_dir, 'logs'))
+            
+            is_in_safe_dir = target_path.startswith(safe_base_dir) or \
+                              target_path.startswith(output_dir) or \
+                              target_path.startswith(logs_dir)
+
+            if not is_in_safe_dir:
+                return f"Tool <read_file> failed: Path traversal attempt detected. Access is restricted."
 
             _, ext = os.path.splitext(target_path)
             if ext not in supported_extensions:
@@ -142,4 +149,5 @@ class ChatSession:
 
             return f"Successfully read file '{os.path.basename(path)}'. Its content is:\n\n```\n{content}\n```"
         except Exception as e:
-            return f"Tool <read_file> failed with error: {e}"
+            logger.error(f"An unexpected exception occurred in _execute_read_file: {e}")
+            return f"Tool <read_file> failed with an internal error: {e}"
