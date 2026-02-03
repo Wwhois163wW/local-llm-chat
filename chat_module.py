@@ -4,7 +4,7 @@
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
 # Date: 20260203
-# Version: 1.7.2
+# Version: 1.7.5
 
 from openai import OpenAI
 import configparser
@@ -50,18 +50,24 @@ class ChatSession:
     def send_message(self, user_content: str, files: list|None = None):
         self.last_errors.clear()
         
-        injected_file_messages = []
+        # Initial context setup from user
         if files:
             for file_path in files:
                 tool_response = self._execute_read_file(file_path)
-                injected_file_messages.append({"role": "system", "content": tool_response})
+                self.history.append({"role": "system", "content": tool_response})
 
-        self.history.extend(injected_file_messages)
         self.history.append({"role": "user", "content": user_content})
 
-        max_react_loops = 10
+        max_react_loops = 5
         for i in range(max_react_loops):
             logger.debug(f"ReAct loop iteration {i+1}/{max_react_loops}. History length: {len(self.history)}")
+            
+            # --- Add a meta-prompt to guide the LLM in subsequent loops ---
+            if i > 0:
+                self.history.append({
+                    "role": "system",
+                    "content": "You have already called a tool. Review the tool's output and provide a final answer to the user. Do not call any more tools unless absolutely necessary."
+                })
 
             if len(self.history) > self.max_history_length:
                 self.history = [self.history[0]] + self.history[-(self.max_history_length-1):]
@@ -71,12 +77,17 @@ class ChatSession:
             if self.tokenizer:
                 for message in self.history:
                     prompt_tokens += len(self.tokenizer.encode(message.get('content', '')))
-
-            start_time = time.time()
-            raw_stream = self.client.chat.completions.create(
-                model=self.model, messages=self.history, stream=True,
-            )
             
+            start_time = time.time()
+            try:
+                raw_stream = self.client.chat.completions.create(
+                    model=self.model, messages=self.history, stream=True,
+                )
+            except Exception as e:
+                logger.error(f"Error during API call: {e}")
+                self.last_errors.append(f"API Error: {e}")
+                return
+
             event_stream = parse_stream(raw_stream)
             
             full_response_content = ""
@@ -86,14 +97,14 @@ class ChatSession:
             for event in event_stream:
                 if isinstance(event, (TextChunk, FileContentChunk)):
                     full_response_content += event.content
-                    if self.tokenizer:
-                        completion_tokens += len(self.tokenizer.encode(event.content))
                 
                 if isinstance(event, FileReadRequest):
                     tool_called = True
                     logger.info(f"LLM requested to read file: {event.path}")
                     tool_response_content = self._execute_read_file(event.path)
-                    self.history.append({"role": "assistant", "content": f'<read_file path="{event.path}" />'})
+                    
+                    # Add the assistant's tool call and the system's tool response to history
+                    self.history.append({"role": "assistant", "content": full_response_content + f'<read_file path="{event.path}" />'})
                     self.history.append({"role": "system", "content": tool_response_content})
                     break 
                 
@@ -106,6 +117,8 @@ class ChatSession:
             end_time = time.time()
             self.history.append({"role": "assistant", "content": full_response_content})
 
+            if self.tokenizer:
+                completion_tokens = len(self.tokenizer.encode(full_response_content))
             latency = end_time - start_time
             usage = {
                 "prompt_tokens": prompt_tokens, "completion_tokens": completion_tokens,
@@ -115,13 +128,10 @@ class ChatSession:
             return
 
         logger.error("Max ReAct loops reached. Aborting.")
-        self.last_errors.append("Error: Too many nested tool calls.")
+        self.last_errors.append("Error: Too many nested tool calls. The agent may be in a loop.")
 
     def _execute_read_file(self, path: str) -> str:
-        """
-        Executes the read_file tool call and returns a string result,
-        either the file content or a formatted error message.
-        """
+        # ... (This method remains the same)
         supported_extensions = ['.txt', '.md', '.py', '.json', '.csv', '.xml', '.html']
         
         try:
@@ -152,7 +162,7 @@ class ChatSession:
             if file_size_kb > self.max_file_size_kb:
                  return f"Tool <read_file> failed: File '{os.path.basename(path)}' is too large ({file_size_kb:.1f} KB > {self.max_file_size_kb} KB)."
 
-            if self.tokenizer:
+            if self.tokenizer and self.max_read_file_output_tokens > 0:
                 encoded_content = self.tokenizer.encode(content)
                 if len(encoded_content) > self.max_read_file_output_tokens:
                     truncated_encoded_content = encoded_content[:self.max_read_file_output_tokens]
