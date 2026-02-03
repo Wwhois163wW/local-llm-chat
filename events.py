@@ -33,3 +33,8 @@ class FileContentChunk:
 class FileWriteEnd:
     """Signals the end of a file-writing block."""
     pass
+
+@dataclass
+class FileReadRequest:
+    """Signals a request from the LLM to read a file."""
+    path: str

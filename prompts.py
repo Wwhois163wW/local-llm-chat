@@ -30,6 +30,15 @@ def get_system_prompt() -> str:
       </write_file>
     </usage>
   </tool>
+  <tool>
+    <name>read_file</name>
+    <description>
+      Reads the content of a local text file. Supported extensions: .txt, .md, .py, .json, .csv, .xml, .html
+    </description>
+    <usage>
+      <read_file path="path/to/filename.ext" />
+    </usage>
+  </tool>
 </tools>
 
 When you need to use a tool, you MUST enclose your entire response in its usage tags. Do not add any text outside of the tags.

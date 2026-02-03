@@ -4,7 +4,7 @@
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
 # Date: 20260203
-# Version: 1.6.0
+# Version: 1.7.0
 
 from openai import OpenAI
 import configparser
@@ -14,7 +14,7 @@ import os
 import time
 import tiktoken
 
-from events import TextChunk, StatsUpdate
+from events import TextChunk, StatsUpdate, FileReadRequest, FileContentChunk, FileWriteEnd
 from prompts import get_file_injection_prompt, get_system_prompt
 from parser import parse_stream
 
@@ -46,65 +46,61 @@ class ChatSession:
         )
         
     def send_message(self, user_content: str, files: list|None = None):
-        logger.debug("send_message stream started.")
-        try:
-            self.last_errors.clear()
-            injected_file_messages = []
-            if files:
-                logger.debug(f"Processing {len(files)} files for injection.")
-                for file_path in files:
-                    if not os.path.exists(file_path):
-                        self.last_errors.append(f"File not found, skipped: {file_path}")
-                        continue
-                    try:
-                        file_size_kb = os.path.getsize(file_path) / 1024
-                        if file_size_kb > self.max_file_size_kb:
-                            self.last_errors.append(f"File '{os.path.basename(file_path)}' is too large ({file_size_kb:.1f} KB > {self.max_file_size_kb} KB), skipped.")
-                            continue
-                        with open(file_path, 'r', encoding='utf-8') as f:
-                            file_content = f.read()
-                        file_name = os.path.basename(file_path)
-                        file_injection_prompt = get_file_injection_prompt(file_name, file_content)
-                        injected_file_messages.append({"role": "user", "content": file_injection_prompt})
-                        logger.info(f"Injected file '{file_name}' content to history.")
-                    except Exception as e:
-                        self.last_errors.append(f"Failed to read file '{os.path.basename(file_path)}': {e}")
+        self.last_errors.clear()
+        
+        injected_file_messages = []
+        if files:
+            for file_path in files:
+                # This logic is now part of _execute_read_file, but can be kept for pre-check
+                pass
+        
+        self.history.append({"role": "user", "content": user_content})
 
-            self.history.extend(injected_file_messages)
-            self.history.append({"role": "user", "content": user_content})
-            logger.debug(f"History prepared for API call. Length: {len(self.history)}")
+        max_react_loops = 5
+        for i in range(max_react_loops):
+            logger.debug(f"ReAct loop iteration {i+1}/{max_react_loops}. History length: {len(self.history)}")
 
             if len(self.history) > self.max_history_length:
-                self.history = self.history[-self.max_history_length:]
+                # Simple trim, could be more sophisticated
+                self.history = [self.history[0]] + self.history[-(self.max_history_length-1):]
                 logger.debug(f"History trimmed to the last {self.max_history_length} messages.")
 
             prompt_tokens = 0
             if self.tokenizer:
                 for message in self.history:
-                    prompt_tokens += len(self.tokenizer.encode(message['content']))
+                    prompt_tokens += len(self.tokenizer.encode(message.get('content', '')))
 
             start_time = time.time()
-            logger.debug("Calling OpenAI API with stream=True...")
             raw_stream = self.client.chat.completions.create(
-                model=self.model,
-                messages=self.history,
-                stream=True,
+                model=self.model, messages=self.history, stream=True,
             )
-
+            
             event_stream = parse_stream(raw_stream)
             
             full_response_content = ""
             completion_tokens = 0
+            tool_called = False
 
             for event in event_stream:
-                if isinstance(event, TextChunk):
+                if isinstance(event, (TextChunk, FileContentChunk)):
                     full_response_content += event.content
                     if self.tokenizer:
                         completion_tokens += len(self.tokenizer.encode(event.content))
                 
+                if isinstance(event, FileReadRequest):
+                    tool_called = True
+                    logger.info(f"LLM requested to read file: {event.path}")
+                    tool_response_content = self._execute_read_file(event.path)
+                    self.history.append({"role": "assistant", "content": f'<read_file path="{event.path}" />'})
+                    self.history.append({"role": "system", "content": tool_response_content})
+                    break 
+                
                 yield event
-            
-            logger.debug("Stream parsing finished.")
+
+            if tool_called:
+                continue 
+
+            logger.debug("Stream parsing finished, no tool call detected.")
             end_time = time.time()
             self.history.append({"role": "assistant", "content": full_response_content})
 
@@ -114,13 +110,36 @@ class ChatSession:
                 "total_tokens": prompt_tokens + completion_tokens
             }
             yield StatsUpdate(latency=latency, usage=usage)
+            return
 
+        logger.error("Max ReAct loops reached. Aborting.")
+        self.last_errors.append("Error: Too many nested tool calls.")
+
+    def _execute_read_file(self, path: str) -> str:
+        """Helper to execute the read_file tool call."""
+        supported_extensions = ['.txt', '.md', '.py', '.json', '.csv', '.xml', '.html']
+        
+        try:
+            # Security: Prevent path traversal
+            safe_base_dir = os.path.abspath(os.path.dirname(__file__))
+            target_path = os.path.abspath(os.path.join(safe_base_dir, path))
+            if not target_path.startswith(safe_base_dir):
+                return f"Tool <read_file> failed: Path traversal attempt detected."
+
+            _, ext = os.path.splitext(target_path)
+            if ext not in supported_extensions:
+                return f"Tool <read_file> failed: File type '{ext}' is not supported."
+            
+            if not os.path.exists(target_path):
+                return f"Tool <read_file> failed: File not found at path '{path}'."
+            
+            with open(target_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            file_size_kb = len(content.encode('utf-8')) / 1024
+            if file_size_kb > self.max_file_size_kb:
+                 return f"Tool <read_file> failed: File '{os.path.basename(path)}' is too large ({file_size_kb:.1f} KB > {self.max_file_size_kb} KB)."
+
+            return f"Successfully read file '{os.path.basename(path)}'. Its content is:\n\n```\n{content}\n```"
         except Exception as e:
-            logger.error(f"Error during API stream: {e}")
-            if self.history:
-                messages_added_this_turn = 1 + len(injected_file_messages)
-                for _ in range(messages_added_this_turn):
-                    if self.history and self.history[-1]["role"] == "user":
-                        self.history.pop()
-                    else:
-                        break
+            return f"Tool <read_file> failed with error: {e}"

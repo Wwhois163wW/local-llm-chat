@@ -10,26 +10,26 @@ import re
 import logging
 from typing import Generator
 
-from events import TextChunk, FileWriteStart, FileContentChunk, FileWriteEnd
+from events import TextChunk, FileWriteStart, FileContentChunk, FileWriteEnd, FileReadRequest
 
 logger = logging.getLogger(__name__)
 
 def parse_stream(stream: Generator) -> Generator:
-    """
-    Parses a raw stream of LLM chunks and yields structured Event objects.
-    Implements a state machine to handle tagged language like <write_file>.
-    """
-    buffer = ""
-    in_file_write_block = False
-    
-    for chunk in stream:
-        content = chunk.choices[0].delta.content or ""
-        if not content:
-            continue
-        buffer += content
-        
+# ...
         while True:
             if not in_file_write_block:
+                # Check for read_file first as it's self-closing and simpler
+                read_file_match = re.search(r'<read_file path="([^"]+)"\s*/>', buffer)
+                if read_file_match:
+                    pre_tag_content = buffer[:read_file_match.start()]
+                    if pre_tag_content:
+                        yield TextChunk(content=pre_tag_content)
+                    
+                    yield FileReadRequest(path=read_file_match.group(1))
+                    
+                    buffer = buffer[read_file_match.end():]
+                    continue # Continue processing the rest of the buffer
+
                 start_tag_match = re.search(r'<write_file path="([^"]+)">', buffer)
                 if start_tag_match:
                     pre_tag_content = buffer[:start_tag_match.start()]
@@ -51,6 +51,7 @@ def parse_stream(stream: Generator) -> Generator:
                     break
             
             if in_file_write_block:
+# ...
                 end_tag_match = re.search(r'</write_file>', buffer)
                 if end_tag_match:
                     file_content_chunk = buffer[:end_tag_match.start()]
@@ -64,6 +65,10 @@ def parse_stream(stream: Generator) -> Generator:
                 else:
                     break
     
-    if buffer and not in_file_write_block:
-        if buffer:
-            yield TextChunk(content=buffer)
+                if buffer and not in_file_write_block:
+    
+                    if buffer:
+    
+                        yield TextChunk(content=buffer)
+    
+    
