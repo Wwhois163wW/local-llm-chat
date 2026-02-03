@@ -4,7 +4,7 @@
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
 # Date: 20260203
-# Version: 1.7.1
+# Version: 1.7.2
 
 from openai import OpenAI
 import configparser
@@ -40,9 +40,11 @@ class ChatSession:
             
         system_prompt = get_system_prompt()
         self.history.append({"role": "system", "content": system_prompt})
+        
+        self.max_read_file_output_tokens = config['LLM'].getint('max_read_file_output_tokens', 500)
             
         logger.info(
-            f"ChatSession initialized. Max history: {self.max_history_length}, Max file size: {self.max_file_size_kb} KB"
+            f"ChatSession initialized. Max history: {self.max_history_length}, Max file size: {self.max_file_size_kb} KB, Max read output tokens: {self.max_read_file_output_tokens}"
         )
         
     def send_message(self, user_content: str, files: list|None = None):
@@ -57,7 +59,7 @@ class ChatSession:
         self.history.extend(injected_file_messages)
         self.history.append({"role": "user", "content": user_content})
 
-        max_react_loops = 10 # @Antigravity, 20260203, [MOD]: Increase safety break for more complex ReAct loops
+        max_react_loops = 10
         for i in range(max_react_loops):
             logger.debug(f"ReAct loop iteration {i+1}/{max_react_loops}. History length: {len(self.history)}")
 
@@ -116,7 +118,10 @@ class ChatSession:
         self.last_errors.append("Error: Too many nested tool calls.")
 
     def _execute_read_file(self, path: str) -> str:
-        """Helper to execute the read_file tool call."""
+        """
+        Executes the read_file tool call and returns a string result,
+        either the file content or a formatted error message.
+        """
         supported_extensions = ['.txt', '.md', '.py', '.json', '.csv', '.xml', '.html']
         
         try:
@@ -147,6 +152,13 @@ class ChatSession:
             if file_size_kb > self.max_file_size_kb:
                  return f"Tool <read_file> failed: File '{os.path.basename(path)}' is too large ({file_size_kb:.1f} KB > {self.max_file_size_kb} KB)."
 
+            if self.tokenizer:
+                encoded_content = self.tokenizer.encode(content)
+                if len(encoded_content) > self.max_read_file_output_tokens:
+                    truncated_encoded_content = encoded_content[:self.max_read_file_output_tokens]
+                    truncated_content = self.tokenizer.decode(truncated_encoded_content)
+                    return f"Successfully read file '{os.path.basename(path)}'. Content was too long and has been truncated. Its beginning is:\n\n```\n{truncated_content}\n```"
+            
             return f"Successfully read file '{os.path.basename(path)}'. Its content is:\n\n```\n{content}\n```"
         except Exception as e:
             logger.error(f"An unexpected exception occurred in _execute_read_file: {e}")
