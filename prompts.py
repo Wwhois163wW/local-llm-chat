@@ -33,7 +33,8 @@ def get_system_prompt() -> str:
   <tool>
     <name>read_file</name>
     <description>
-      Reads the content of a local text file. Supported extensions: .txt, .md, .py, .json, .csv, .xml, .html
+      Reads the content of a local text file. Supported extensions: .txt, .md, .py, .json, .csv, .xml, .html.
+      Upon successful read, the file content will be provided to you as a system message. You should then integrate this content into your response to the user. Do not call read_file multiple times for the same file in a row unless explicitly requested.
     </description>
     <usage>
       <read_file path="path/to/filename.ext" />

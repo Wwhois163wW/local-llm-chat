@@ -57,7 +57,7 @@ class ChatSession:
         self.history.extend(injected_file_messages)
         self.history.append({"role": "user", "content": user_content})
 
-        max_react_loops = 5
+        max_react_loops = 10 # @Antigravity, 20260203, [MOD]: Increase safety break for more complex ReAct loops
         for i in range(max_react_loops):
             logger.debug(f"ReAct loop iteration {i+1}/{max_react_loops}. History length: {len(self.history)}")
 
