@@ -4,7 +4,7 @@
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
 # Date: 20260203
-# Version: 1.7.5
+# Version: 1.7.6
 
 from openai import OpenAI
 import configparser
@@ -50,7 +50,6 @@ class ChatSession:
     def send_message(self, user_content: str, files: list|None = None):
         self.last_errors.clear()
         
-        # Initial context setup from user
         if files:
             for file_path in files:
                 tool_response = self._execute_read_file(file_path)
@@ -62,7 +61,6 @@ class ChatSession:
         for i in range(max_react_loops):
             logger.debug(f"ReAct loop iteration {i+1}/{max_react_loops}. History length: {len(self.history)}")
             
-            # --- Add a meta-prompt to guide the LLM in subsequent loops ---
             if i > 0:
                 self.history.append({
                     "role": "system",
@@ -103,8 +101,9 @@ class ChatSession:
                     logger.info(f"LLM requested to read file: {event.path}")
                     tool_response_content = self._execute_read_file(event.path)
                     
-                    # Add the assistant's tool call and the system's tool response to history
-                    self.history.append({"role": "assistant", "content": full_response_content + f'<read_file path="{event.path}" />'})
+                    # Add the assistant's partial response AND the tool call to history
+                    assistant_response = full_response_content + f'<read_file path="{event.path}" />'
+                    self.history.append({"role": "assistant", "content": assistant_response})
                     self.history.append({"role": "system", "content": tool_response_content})
                     break 
                 
@@ -131,7 +130,6 @@ class ChatSession:
         self.last_errors.append("Error: Too many nested tool calls. The agent may be in a loop.")
 
     def _execute_read_file(self, path: str) -> str:
-        # ... (This method remains the same)
         supported_extensions = ['.txt', '.md', '.py', '.json', '.csv', '.xml', '.html']
         
         try:
