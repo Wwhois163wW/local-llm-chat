@@ -4,7 +4,7 @@
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
 # Date: 20260203
-# Version: 1.7.7
+# Version: 1.7.9
 
 from openai import OpenAI
 import configparser
@@ -31,7 +31,8 @@ class ChatSession:
         self.max_file_size_kb = config['LLM'].getint('max_file_size_kb', 10240)
         self.history = []
         self.last_errors = []
-        
+        self.file_contexts = {} # Correctly store file contents outside of history
+
         try:
             self.tokenizer = tiktoken.get_encoding("cl100k_base")
         except Exception as e:
@@ -86,7 +87,7 @@ class ChatSession:
             except Exception as e:
                 logger.error(f"Error during API call: {e}")
                 self.last_errors.append(f"API Error: {e}")
-                return
+                return # Stop generation
 
             event_stream = parse_stream(raw_stream)
             
@@ -102,7 +103,7 @@ class ChatSession:
                     tool_called = True
                     logger.info(f"LLM requested to read file: {event.path}")
                     # For ReAct, we do NOT inject the content back, only a confirmation.
-                    tool_response_content = self._execute_read_file(event.path, inject_content=False)
+                    tool_response_content = self._execute_read_file(event.path, store_content=True) # store_content is now correct
                     
                     assistant_response = full_response_content + f'<read_file path="{event.path}" />'
                     self.history.append({"role": "assistant", "content": assistant_response})
@@ -131,11 +132,12 @@ class ChatSession:
         logger.error("Max ReAct loops reached. Aborting.")
         self.last_errors.append("Error: Too many nested tool calls. The agent may be in a loop.")
 
-    def _execute_read_file(self, path: str, inject_content: bool = True) -> str:
+    def _execute_read_file(self, path: str, store_content: bool = False, inject_content: bool = False) -> str:
         """
         Executes the read_file tool call.
-        If inject_content is True, returns the file content (for /add).
-        If inject_content is False, returns only a success/failure message (for ReAct).
+        If store_content is True, reads and stores file content in self.file_contexts.
+        If inject_content is True, returns a string with the file content (for /add).
+        Otherwise, returns only a success/failure message (for ReAct).
         """
         supported_extensions = ['.txt', '.md', '.py', '.json', '.csv', '.xml', '.html']
         
@@ -168,6 +170,10 @@ class ChatSession:
             if file_size_kb > self.max_file_size_kb:
                  return f"Tool <read_file> failed: File '{os.path.basename(path)}' is too large."
 
+            if store_content:
+                self.file_contexts[path] = content
+                logger.info(f"Content of '{path}' stored in agent's context.")
+            
             if inject_content:
                 if self.tokenizer and self.max_read_file_output_tokens > 0:
                     encoded_content = self.tokenizer.encode(content)
@@ -176,8 +182,7 @@ class ChatSession:
                         return f"File '{os.path.basename(path)}' content (truncated) is now in context."
                 return f"File '{os.path.basename(path)}' content is now in context."
             else: # For ReAct loop, just confirm success.
-                return f"Tool <read_file> successfully read file '{os.path.basename(path)}'. You should now use this information to answer the user."
-
+                return f"Tool <read_file> successfully read file '{os.path.basename(path)}'. Its content is now available in your context."
         except Exception as e:
             logger.error(f"An unexpected exception occurred in _execute_read_file: {e}")
             return f"Tool <read_file> failed with an internal error: {e}"
