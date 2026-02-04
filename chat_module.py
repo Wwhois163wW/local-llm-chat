@@ -6,6 +6,7 @@
 # Date: 20260204
 # Version: 2.0.0
 
+import time
 import os
 import json
 import logging
@@ -33,6 +34,7 @@ class ChatSession:
             self.tokenizer = tiktoken.get_encoding("cl100k_base")
         except Exception as e:
             self.tokenizer = None
+            logger.warning(f"Failed to load tokenizer: {e}")
         
         logger.info("ChatSession initialized.")
 
