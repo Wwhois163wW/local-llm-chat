@@ -27,7 +27,21 @@ def save_usage_stats(log_dir: str, model_name: str, stats: StatsUpdate):
 def main():
     base_dir = os.path.dirname(__file__)
     log_dir = os.path.join(base_dir, 'logs')
-    # ... (Config and logger setup is correct)
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+
+    config = configparser.ConfigParser()
+    config_path = os.path.join(base_dir, 'config.ini')
+    config.read(config_path)
+
+    log_level_override = config.get('logging', 'level', fallback='INFO')
+    logging.config.dictConfig(get_logging_config(log_dir=log_dir, log_level=log_level_override))
+    logger = logging.getLogger(__name__)
+    logger.info("Application starting up...")
+
+    if not config.has_section('LLM'):
+        logger.error("Configuration file 'config.ini' is missing [LLM] section.")
+        return
 
     llm_client = Get_LLM_Client_by_Config(config)
     # ...
