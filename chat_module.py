@@ -4,7 +4,7 @@
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
 # Date: 20260204
-# Version: 1.8.0
+# Version: 1.8.1
 
 from openai import OpenAI
 import configparser
@@ -12,6 +12,7 @@ import logging
 import logging.config
 import os
 import time
+import json # Added for history persistence
 import tiktoken
 
 from events import TextChunk, StatsUpdate, FileReadRequest, FileContentChunk, FileWriteEnd
@@ -49,9 +50,10 @@ class ChatSession:
         )
         
     def send_message(self, user_content: str, files: list|None = None):
+        # ... (send_message logic is correct from last fix) ...
         self.last_errors.clear()
         
-        # Initial context setup from user's /add command
+        # This is for the /add command, which injects content directly
         if files:
             for file_path in files:
                 # For /add, we read the file and store it, then inject a confirmation into history
@@ -62,9 +64,23 @@ class ChatSession:
 
         max_react_loops = 5
         for i in range(max_react_loops):
-            logger.debug(f"ReAct loop iteration {i+1}/{max_react_loops}. History length: {len(self.history)}")
+            logger.debug(f"ReAct loop iteration {i+1}/{max_react_loops}.")
             
-            # --- API Call ---
+            if i > 0:
+                self.history.append({
+                    "role": "system",
+                    "content": "You have already called a tool. Review the tool's output and provide a final answer to the user. Do not call any more tools unless absolutely necessary."
+                })
+
+            if len(self.history) > self.max_history_length:
+                self.history = [self.history[0]] + self.history[-(self.max_history_length-1):]
+
+            prompt_tokens = 0
+            if self.tokenizer:
+                for message in self.history:
+                    prompt_tokens += len(self.tokenizer.encode(message.get('content', '')))
+            
+            start_time = time.time()
             try:
                 raw_stream = self.client.chat.completions.create(
                     model=self.model, messages=self.history, stream=True,
@@ -74,51 +90,38 @@ class ChatSession:
                 self.last_errors.append(f"API Error: {e}")
                 return
 
-            # --- Event Parsing and Tool Handling ---
             event_stream = parse_stream(raw_stream)
             
             full_response_content = ""
             tool_called = False
-            
+
             for event in event_stream:
-                if isinstance(event, TextChunk):
+                if isinstance(event, (TextChunk, FileContentChunk)):
                     full_response_content += event.content
-                    yield event # Yield text immediately to UI
                 
-                elif isinstance(event, FileReadRequest):
+                if isinstance(event, FileReadRequest):
                     tool_called = True
                     logger.info(f"LLM requested to read file: {event.path}")
-                    # The assistant's thought process (text before the tool call) is part of the response
-                    self.history.append({"role": "assistant", "content": full_response_content + f'<read_file path="{event.path}" />'})
+                    assistant_response = full_response_content + f'<read_file path="{event.path}" />'
+                    self.history.append({"role": "assistant", "content": assistant_response})
                     
-                    # Execute the tool, which stores the content in self.file_contexts
                     tool_result_msg = self._execute_read_file(event.path, store_content=True)
-                    
-                    # Inject a clean confirmation message into history for the next LLM call
                     self.history.append({"role": "system", "content": tool_result_msg})
-                    break
+                    break 
                 
-                # For other events like <write_file>, just pass them on for now
-                else:
-                    yield event
+                yield event
 
             if tool_called:
-                continue # Go to the next iteration of the ReAct loop
+                continue 
 
-            # --- Final Response Generation (if no tool was called) ---
             logger.debug("Stream parsing finished, no tool call detected.")
             self.history.append({"role": "assistant", "content": full_response_content})
 
-            # Calculate and yield final stats
-            end_time = time.time() # This is not accurate, but a placeholder
-            prompt_tokens = 0
+            end_time = time.time()
             completion_tokens = 0
             if self.tokenizer:
-                for message in self.history[:-1]: # Exclude the latest assistant response
-                    prompt_tokens += len(self.tokenizer.encode(message.get('content', '')))
                 completion_tokens = len(self.tokenizer.encode(full_response_content))
-            
-            latency = time.time() - start_time
+            latency = end_time - start_time
             usage = {
                 "prompt_tokens": prompt_tokens, "completion_tokens": completion_tokens,
                 "total_tokens": prompt_tokens + completion_tokens
@@ -129,22 +132,51 @@ class ChatSession:
         logger.error("Max ReAct loops reached. Aborting.")
         self.last_errors.append("Error: Too many nested tool calls. The agent may be in a loop.")
 
+    def save_history(self, file_path: str):
+        """Saves the current conversation history to a JSON file."""
+        try:
+            with open(file_path, 'w', encoding='utf-8') as f:
+                json.dump(self.history, f, ensure_ascii=False, indent=2)
+            logger.info(f"Conversation history saved to {file_path}")
+        except Exception as e:
+            logger.error(f"Failed to save history to {file_path}: {e}")
+
+    def load_history(self, file_path: str):
+        """Loads conversation history from a JSON file."""
+        if not os.path.exists(file_path):
+            logger.info("No history file found to load.")
+            return
+
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                loaded_history = json.load(f)
+            
+            if isinstance(loaded_history, list) and all(isinstance(i, dict) for i in loaded_history):
+                # Keep the initial system prompt, but replace the rest of the history
+                self.history = [self.history[0]] + loaded_history[1:] if loaded_history else [self.history[0]]
+                logger.info(f"Conversation history loaded from {file_path}")
+            else:
+                logger.warning(f"History file {file_path} has invalid format. Skipping load.")
+        except Exception as e:
+            logger.error(f"Failed to load history from {file_path}: {e}")
+
     def _execute_read_file(self, path: str, store_content: bool = False) -> str:
-        """
-        Executes the read_file tool call.
-        If store_content is True, reads and stores file content in self.file_contexts.
-        Returns a short, clean confirmation or error message for the LLM.
-        """
+        # ... (This method is correct from last fix)
         supported_extensions = ['.txt', '.md', '.py', '.json', '.csv', '.xml', '.html']
         
         try:
             safe_base_dir = os.path.abspath(os.path.dirname(__file__))
             target_path = os.path.abspath(os.path.join(safe_base_dir, path))
             
-            # Allow reading from project root and specific subdirectories
-            allowed_dirs = [safe_base_dir, os.path.join(safe_base_dir, 'output'), os.path.join(safe_base_dir, 'logs')]
-            if not any(target_path.startswith(d) for d in allowed_dirs):
-                return f"Tool <read_file> failed: Path traversal attempt detected."
+            output_dir = os.path.abspath(os.path.join(safe_base_dir, 'output'))
+            logs_dir = os.path.abspath(os.path.join(safe_base_dir, 'logs'))
+            
+            is_in_safe_dir = target_path.startswith(safe_base_dir) or \
+                              target_path.startswith(output_dir) or \
+                              target_path.startswith(logs_dir)
+
+            if not is_in_safe_dir:
+                return f"Tool <read_file> failed: Path traversal attempt detected. Access is restricted."
 
             _, ext = os.path.splitext(target_path)
             if ext not in supported_extensions:
@@ -164,7 +196,6 @@ class ChatSession:
                 self.file_contexts[path] = content
                 logger.info(f"Content of '{path}' stored in agent's context.")
             
-            # Return a clean confirmation, NOT the content
             return f"Tool <read_file> successfully read file '{os.path.basename(path)}'."
         except Exception as e:
             logger.error(f"An unexpected exception occurred in _execute_read_file: {e}")
