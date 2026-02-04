@@ -3,8 +3,8 @@
 # main.py
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
-# Date: 20260130
-# Version: 1.5.0
+# Date: 20260204
+# Version: 1.8.2
 
 import configparser
 import logging.config
@@ -12,15 +12,15 @@ import logging
 import os
 import csv
 import sys
+import time # For ReAct loop timeout
 from datetime import datetime
 
 from logging_setup import get_logging_config
 from api_client import Get_LLM_Client_by_Config
 from chat_module import ChatSession
-from events import TextChunk, StatsUpdate, FileWriteStart, FileContentChunk, FileWriteEnd
+from events import TextChunk, StatsUpdate, FileWriteStart, FileContentChunk, FileWriteEnd, FileReadRequest
 
 def save_usage_stats(log_dir: str, model_name: str, stats: StatsUpdate):
-    """Appends usage statistics to a CSV file."""
     if not stats:
         return
     csv_file = os.path.join(log_dir, 'usage_stats.csv')
@@ -67,6 +67,9 @@ def main():
     logger.info("LLM client initialized. Starting interactive chat session.")
     chat_session = ChatSession(llm_client, config)
     
+    history_file = os.path.join(os.path.dirname(__file__), 'output', 'chat_history.json')
+    chat_session.load_history(history_file)
+    
     print("\n--- Local LLM Chat ---")
     print("Commands: /add <file_path> | quit, exit, goodbye")
 
@@ -75,6 +78,7 @@ def main():
             user_input = input("\nYou > ")
             if user_input.lower() in ["quit", "exit", "goodbye"]:
                 logger.info("Exit command received. Shutting down.")
+                chat_session.save_history(history_file)
                 print("Goodbye!")
                 break
             if not user_input.strip():
@@ -94,7 +98,6 @@ def main():
                     if (file_path.startswith('"') and file_path.endswith('"')) or \
                        (file_path.startswith("'") and file_path.endswith("'")):
                         file_path = file_path[1:-1]
-                    
                     files_to_send.append(file_path)
                     final_user_query = f"I've uploaded the file '{os.path.basename(file_path)}', please review it."
                     print(f"File '{os.path.basename(file_path)}' queued for context...")
@@ -103,61 +106,104 @@ def main():
                     continue
 
             print(f"\nLLM > ", end="", flush=True)
-            stream = chat_session.send_message(
-                user_content=final_user_query,
-                files=files_to_send if files_to_send else None
-            )
-
-            final_stats = None
-            output_file_path = None
-            file_buffer = []
-            is_writing_file = False
-            has_text_output = False # @Antigravity, 20260202, [ADD]: Flag to track text output
-            file_written_successfully = False # @Antigravity, 20260202, [ADD]: Flag to track file write status
             
-            for event in stream:
-                if isinstance(event, TextChunk):
-                    has_text_output = True # @Antigravity, 20260202, [ADD]: Set flag on text output
-                    logger.debug(f"Received TextChunk of size: {len(event.content)}")
-                    print(event.content, end="", flush=True)
-                elif isinstance(event, FileWriteStart):
-                    try:
-                        output_dir = os.path.join(os.path.dirname(__file__), 'output')
-                        if not os.path.exists(output_dir):
-                            os.makedirs(output_dir)
-                        safe_filename = os.path.basename(event.path)
-                        output_file_path = os.path.join(output_dir, safe_filename)
-                        is_writing_file = True
-                        file_buffer.clear()
-                        print(f"\n[LLM wants to write file: {output_file_path}]", end="", flush=True)
-                    except Exception as e:
-                        logger.error(f"Failed to prepare file for writing: {e}")
-                        print(f"\n[Error: Could not prepare file {event.path}]", end="", flush=True)
-                elif isinstance(event, FileContentChunk):
-                    if is_writing_file:
-                        file_buffer.append(event.content)
-                elif isinstance(event, FileWriteEnd):
-                    if is_writing_file:
+            # --- ReAct loop is now here in main.py ---
+            max_react_loops = 5
+            react_loop_count = 0
+            
+            # This flag tracks if an LLM call resulted in a tool being called in the current turn
+            # and whether we should continue the ReAct loop
+            should_continue_react_loop = True 
+            
+            while should_continue_react_loop and react_loop_count < max_react_loops:
+                react_loop_count += 1
+                logger.debug(f"Main ReAct loop iteration {react_loop_count}/{max_react_loops}.")
+
+                # The chat_session.send_message now performs ONE LLM call
+                # and yields its events
+                stream = chat_session.send_message(
+                    user_content=final_user_query, # Only sent on the first iteration
+                    files=files_to_send if files_to_send else None # Only sent on the first iteration
+                )
+
+                final_stats = None
+                output_file_path = None
+                file_buffer = []
+                is_writing_file = False
+                has_text_output = False
+                file_written_successfully = False
+                tool_was_called_in_this_iteration = False # Track if any tool was called
+                
+                for event in stream:
+                    if isinstance(event, TextChunk):
+                        has_text_output = True
+                        print(event.content, end="", flush=True)
+                    elif isinstance(event, FileWriteStart):
                         try:
-                            with open(output_file_path, "w", encoding="utf-8") as f:
-                                f.write("".join(file_buffer))
-                            print(f" -> [Saved successfully.]", end="", flush=True)
-                            file_written_successfully = True # @Antigravity, 20260202, [ADD]: Set flag on success
-                        except Exception as e:
-                            logger.error(f"Failed to save buffered content to file: {e}")
-                            print(f" -> [Error saving file: {e}]", end="", flush=True)
-                        finally:
-                            is_writing_file = False
+                            output_dir = os.path.join(os.path.dirname(__file__), 'output')
+                            if not os.path.exists(output_dir):
+                                os.makedirs(output_dir)
+                            safe_filename = os.path.basename(event.path)
+                            output_file_path = os.path.join(output_dir, safe_filename)
+                            is_writing_file = True
                             file_buffer.clear()
-                            # Do not reset output_file_path here, needed for the check below
-                elif isinstance(event, StatsUpdate):
-                    final_stats = event
+                            print(f"\n[LLM wants to write file: {output_file_path}]")
+                        except Exception as e:
+                            logger.error(f"Failed to prepare file for writing: {e}")
+                            print(f"\n[Error: Could not prepare file {event.path}]")
+                    elif isinstance(event, FileContentChunk):
+                        if is_writing_file:
+                            file_buffer.append(event.content)
+                    elif isinstance(event, FileWriteEnd):
+                        if is_writing_file:
+                            try:
+                                with open(output_file_path, "w", encoding="utf-8") as f:
+                                    f.write("".join(file_buffer))
+                                print(f" -> [Saved successfully.]")
+                                file_written_successfully = True
+                            except Exception as e:
+                                logger.error(f"Failed to save buffered content to file: {e}")
+                                print(f" -> [Error saving file: {e}]")
+                            finally:
+                                is_writing_file = False
+                                file_buffer.clear()
+                    elif isinstance(event, FileReadRequest):
+                        tool_was_called_in_this_iteration = True
+                        logger.info(f"LLM requested to read file: {event.path}")
+                        
+                        # Execute the tool and get its result message
+                        tool_result_msg = chat_session._execute_read_file(event.path, store_content=True)
+                        
+                        # Add tool call and response to chat_session's history
+                        chat_session.history.append({"role": "assistant", "content": f'<read_file path="{event.path}" />'})
+                        chat_session.history.append({"role": "system", "content": tool_result_msg})
+                        
+                        # Set user_content and files_to_send to None for next LLM call in ReAct loop
+                        # as they've already been processed in the first iteration.
+                        final_user_query = None
+                        files_to_send = None
+                        
+                        # Break from current event stream processing to go to next ReAct loop iteration
+                        break 
+                    elif isinstance(event, StatsUpdate):
+                        final_stats = event
+                
+                # After iterating through all events from the stream
+                if is_writing_file: # Handle incomplete write_file tags
+                    logger.warning(f"File write op for '{output_file_path}' not completed (missing tag).")
+                    print(f" -> [Save failed: Incomplete response.]")
+                
+                if tool_was_called_in_this_iteration:
+                    should_continue_react_loop = True # Continue ReAct loop
+                else:
+                    should_continue_react_loop = False # No tool called, break ReAct loop
             
-            if is_writing_file:
-                logger.warning(f"File write op for '{output_file_path}' not completed (missing tag).")
-                print(f" -> [Save failed: Incomplete response.]", end="", flush=True)
-
-            # @Antigravity, 20260202, [ADD]: Add a confirmation message if only a file was written
+            # End of ReAct loop
+            if react_loop_count >= max_react_loops and should_continue_react_loop:
+                logger.error("Max ReAct loops reached. Agent may be in a loop.")
+                print("\n[Warning] Max agent tool calls reached. Please rephrase your request.")
+            
+            # --- Final output processing ---
             if file_written_successfully and not has_text_output:
                 print("OK, the file has been saved.", end="")
 
@@ -176,6 +222,7 @@ def main():
 
         except KeyboardInterrupt:
             print("\nGoodbye!")
+            chat_session.save_history(history_file)
             break
         except Exception as e:
             logger.error(f"An unexpected error occurred in the main loop: {e}")
