@@ -4,14 +4,15 @@
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
 # Date: 20260204
-# Version: 1.0.0
+# Version: 1.1.0
 
 import logging
 import time
+import os
 
 from chat_module import ChatSession
 from parser import parse_stream
-from events import FileReadRequest, TextChunk, FileWriteStart, FileContentChunk, FileWriteEnd, StatsUpdate
+from events import FileReadRequest, TextChunk, FileContentChunk, StatsUpdate
 from tools import read_file
 
 logger = logging.getLogger(__name__)
@@ -24,15 +25,24 @@ class Agent:
         """
         Runs the main ReAct loop for one turn of conversation.
         """
-        # Initial user request
-        self.chat_session.add_user_message(user_content, files)
+        if user_content:
+            self.chat_session.add_user_message(user_content)
+        if files:
+            for file_path in files:
+                tool_result = read_file(
+                    base_dir=self.chat_session.base_dir, path=file_path,
+                    max_file_size_kb=10240, max_output_tokens=500, # Use config values later
+                    tokenizer=self.chat_session.tokenizer
+                )
+                if tool_result["success"]:
+                    self.chat_session.add_system_message(f"User uploaded file '{os.path.basename(file_path)}'. Content is now in context.")
+                    self.chat_session.file_contexts[file_path] = tool_result["content"]
+                else:
+                    yield TextChunk(content=f"\n[Error reading file {file_path}: {tool_result['error']}]")
 
         max_react_loops = 5
         for i in range(max_react_loops):
             logger.debug(f"Agent ReAct loop iteration {i+1}/{max_react_loops}")
-
-            if i > 0:
-                self.chat_session.add_system_message("You have already called a tool. Review the tool's output and provide a final answer to the user.")
 
             raw_stream, prompt_tokens, start_time = self.chat_session.call_llm()
             event_stream = parse_stream(raw_stream)
@@ -44,36 +54,28 @@ class Agent:
                 if isinstance(event, FileReadRequest):
                     tool_called = True
                     logger.info(f"Agent received FileReadRequest for: {event.path}")
-                    
-                    # Add assistant's thought process to history
                     self.chat_session.add_assistant_message(full_response_content + f'<read_file path="{event.path}" />')
                     
-                    # Execute tool
                     tool_result = read_file(
-                        base_dir=self.chat_session.base_dir,
-                        path=event.path,
-                        max_file_size_kb=self.chat_session.max_file_size_kb,
-                        max_output_tokens=self.chat_session.max_read_file_output_tokens,
+                        base_dir=self.chat_session.base_dir, path=event.path,
+                        max_file_size_kb=10240, max_output_tokens=500, # Use config values later
                         tokenizer=self.chat_session.tokenizer
                     )
                     
-                    # Add tool result to history
                     if tool_result["success"]:
-                        self.chat_session.add_system_message(f"Tool <read_file> executed successfully. {tool_result['content']}")
+                        self.chat_session.add_system_message(f"Tool <read_file> executed successfully. You should now use the content to answer the user.")
+                        self.chat_session.file_contexts[event.path] = tool_result["content"]
                     else:
                         self.chat_session.add_system_message(f"Tool <read_file> failed. Error: {tool_result['error']}")
-                    break # Break event loop to start next ReAct iteration
-                
-                # For UI-related events, just yield them up
+                    break
                 else:
-                    if isinstance(event, (TextChunk, FileContentChunk)):
+                    if isinstance(event, TextChunk):
                         full_response_content += event.content
                     yield event
             
             if tool_called:
                 continue
 
-            # If no tool was called, the loop is finished
             self.chat_session.add_assistant_message(full_response_content)
             
             end_time = time.time()
@@ -86,6 +88,5 @@ class Agent:
             yield StatsUpdate(latency=latency, usage=usage)
             return
 
-        # If loop finishes due to max_react_loops
         logger.error("Max ReAct loops reached.")
         yield TextChunk(content="\n[Error: Agent reached maximum tool calls.]")
