@@ -4,23 +4,20 @@
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
 # Date: 20260205
-# Version: 1.0.0
+# Version: 1.0.1
 
 import asyncio
 import logging
 from agent import Agent
 from chat_module import ChatSession
-from events import TextChunk, StatsUpdate, FileReadRequest, FileWriteStart, FileWriteEnd
-from tools import read_file
-import os
+from events import TextChunk, StatsUpdate
 
 logger = logging.getLogger(__name__)
 
 _SECTION_TITLE = "\n--- Local LLM Chat ---"
-_SECTION_WELCOME = "Commands: /add <file_path> | quit, exit, goodbye"
+_SECTION_WELCOME = "Commands: quit, exit, goodbye" # Removed /add for now
 _SECTION_TIMEOUT_WARNING = "\n[Session Timeout] Closing connection..."
 
-# This function is now the main entry point for the CLI interaction
 async def consume_events(agent: Agent, chat_session: ChatSession, config: dict):
     print(_SECTION_TITLE)
     print(_SECTION_WELCOME)
@@ -54,29 +51,19 @@ async def chat_looping(agent: Agent, chat_session: ChatSession, config: dict) ->
 
     chat_session.add_conversation_message('user', user_input)
     
-    # /add command is handled inside add_conversation_message, so we just run the agent
-    if user_input.startswith('/add'):
-        # For /add command, we don't need to call the LLM, just print confirmation
-        # The confirmation is already added to history as an assistant message
-        last_message = chat_session.chat_history[-1]
-        print(f"\nLLM > {last_message['content']}")
-        return True
-
     print(f"\nLLM > ", end="", flush=True)
     try:
         event_stream = agent.run()
         
         async for event in event_stream:
-            # Simple event consumer logic
             if isinstance(event, TextChunk):
                 print(event.content, end="", flush=True)
             elif isinstance(event, StatsUpdate):
-                # ... handle stats if needed ...
+                # For now, we just consume it without printing
                 pass
             else:
-                # In this simplified model, other events are just logged
-                logger.info(f"Consumer received event: {event}")
-        print() # Final newline after stream
+                logger.info(f"Consumer received unhandled event: {event}")
+        print()
 
     except Exception as e:
         logger.error(f"An error occurred while running agent: {e}", exc_info=True)
