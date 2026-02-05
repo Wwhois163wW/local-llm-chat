@@ -18,75 +18,67 @@ from tools import read_file
 logger = logging.getLogger(__name__)
 
 class Agent:
-    def __init__(self, chat_session: ChatSession):
+    def __init__(self, chat_session: ChatSession,  debug_mode: bool = False):
         self.chat_session = chat_session
+        self.debug_mode = debug_mode # @zhu, 20260205, [mark] read from config.ini
 
-    def run(self, user_content: str, files: list | None = None):
+    async def _handle_event(self, event):
+        # @zhu, 20260205, [add] handle event
+        event_type_name = type(event).__name__.lower()
+        
+        # @zhu, 20260205, [note] query handler 
+        handler_name = f'_handle_{event_type_name}'
+        handler = getattr(self, handler_name, self._handle_default)
+        
+        if self.debug_mode:
+            yield TextChunk(content=f"\n[DEBUG: Event -> {str(event)}]\n")
+
+        # @zhu, 20260205, [note] yield result event
+        async for result_event in handler(event):
+            yield result_event
+
+    async def _handle_textchunk(self, event):
+        """
+        Handle text chunk event.
+        """
+        yield event
+
+    async def _handle_default(self, event):
+        # @zhu, 20260205, [add] handle default event
+        logger.warning(f"Unhandled event type: {type(event).__name__}")
+        yield TextChunk(
+            content=f"[Agent: Received an unhandled event: {str(event)}]"
+        )
+
+    async def run(self):
         """
         Runs the main ReAct loop for one turn of conversation.
         """
-        if user_content:
-            self.chat_session.add_user_message(user_content)
-        if files:
-            for file_path in files:
-                tool_result = read_file(
-                    base_dir=self.chat_session.base_dir, path=file_path,
-                    max_file_size_kb=10240, max_output_tokens=500, # Use config values later
-                    tokenizer=self.chat_session.tokenizer
-                )
-                if tool_result["success"]:
-                    self.chat_session.add_system_message(f"User uploaded file '{os.path.basename(file_path)}'. Content is now in context.")
-                    self.chat_session.file_contexts[file_path] = tool_result["content"]
-                else:
-                    yield TextChunk(content=f"\n[Error reading file {file_path}: {tool_result['error']}]")
+        # @zhu, 20260205, [note] store agent work track
+        full_response_content = ""
+        
+        # @zhu, 20260205, [note] call llm
+        stream, prompt_tokens, start_time = await self.chat_session.call_llm()
+        event_stream = parse_stream(stream)
 
-        max_react_loops = 5
-        for i in range(max_react_loops):
-            logger.debug(f"Agent ReAct loop iteration {i+1}/{max_react_loops}")
+        # @zhu, 20260205, [note] handle event
+        async for event in event_stream:
+            async for processed_event in self._handle_event(event):
+                full_response_content += event.content
+                yield processed_event
 
-            raw_stream, prompt_tokens, start_time = self.chat_session.call_llm()
-            event_stream = parse_stream(raw_stream)
-            
-            full_response_content = ""
-            tool_called = False
+        # @zhu, 20260205, [note] refresh chat history
+        self.chat_session.add_conversation_message('assistant', full_response_content)
 
-            for event in event_stream:
-                if isinstance(event, FileReadRequest):
-                    tool_called = True
-                    logger.info(f"Agent received FileReadRequest for: {event.path}")
-                    self.chat_session.add_assistant_message(full_response_content + f'<read_file path="{event.path}" />')
-                    
-                    tool_result = read_file(
-                        base_dir=self.chat_session.base_dir, path=event.path,
-                        max_file_size_kb=10240, max_output_tokens=500, # Use config values later
-                        tokenizer=self.chat_session.tokenizer
-                    )
-                    
-                    if tool_result["success"]:
-                        self.chat_session.add_system_message(f"Tool <read_file> executed successfully. You should now use the content to answer the user.")
-                        self.chat_session.file_contexts[event.path] = tool_result["content"]
-                    else:
-                        self.chat_session.add_system_message(f"Tool <read_file> failed. Error: {tool_result['error']}")
-                    break
-                else:
-                    if isinstance(event, TextChunk):
-                        full_response_content += event.content
-                    yield event
-            
-            if tool_called:
-                continue
+        # @zhu, 20260205, [note] calculate usage
+        end_time = time.time()
+        latency = end_time - start_time
+        completion_tokens = self.chat_session.count_tokens(full_response_content)
+        usage = {
+            "prompt_tokens": prompt_tokens, 
+            "completion_tokens": completion_tokens,
+            "total_tokens": prompt_tokens + completion_tokens
+        }
+        yield StatsUpdate(latency=latency, usage=usage)
 
-            self.chat_session.add_assistant_message(full_response_content)
-            
-            end_time = time.time()
-            latency = end_time - start_time
-            completion_tokens = self.chat_session.count_tokens(full_response_content)
-            usage = {
-                "prompt_tokens": prompt_tokens, "completion_tokens": completion_tokens,
-                "total_tokens": prompt_tokens + completion_tokens
-            }
-            yield StatsUpdate(latency=latency, usage=usage)
-            return
-
-        logger.error("Max ReAct loops reached.")
-        yield TextChunk(content="\n[Error: Agent reached maximum tool calls.]")
+        pass

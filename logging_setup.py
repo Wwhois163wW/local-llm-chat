@@ -9,7 +9,10 @@
 import sys
 import os
 
-def get_logging_config(log_dir: str, log_level='INFO'):
+def get_logging_config(
+    log_dir: str, 
+    log_level='INFO'
+)-> dict:
     """
     Returns a dictionary with the default logging configuration.
     The log file path is constructed dynamically based on the provided directory.
