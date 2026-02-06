@@ -42,4 +42,14 @@ class StatsUpdate(Event):
 class FileReadRequest(Event):
     """Signals a request from the LLM to read a file."""
     path: str = ""
-    # trigger_text is renamed to content and inherited
+    # @Antigravity, 20260206, [NEW]: 添加 EchoRequest 事件用于循环验证
+@dataclass
+class EchoRequest(Event):
+    """Represents a request to echo a message back for loop validation.
+    
+    Attributes:
+        message (str): The message to be echoed.
+    """
+    message: str = ""
+    # content is inherited
+

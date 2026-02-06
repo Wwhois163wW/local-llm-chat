@@ -12,7 +12,8 @@ import logging
 import configparser
 import tiktoken
 from openai import OpenAI, Stream
-from typing import Any, cast
+from typing import cast, Any
+from collections.abc import Iterable
 import os
 
 from core.prompts import get_system_prompt
@@ -50,7 +51,7 @@ class ChatSession:
             "role": "system", 
             "content": get_system_prompt()
         }
-        self.chat_history: list[dict[str, Any]] = []
+        self.chat_history: list[dict[str, str | float]] = []
         self.history_file: str = history_file
         
         try:
@@ -80,7 +81,7 @@ class ChatSession:
             )
             return
 
-        message: dict[str, Any] = { 
+        message: dict[str, str | float] = { 
             "role": role, 
             "content": content, 
             "timestamp": time.time() 
@@ -91,7 +92,7 @@ class ChatSession:
         while len(self.chat_history) > self.max_history_length:
             _ = self.chat_history.pop(0)
 
-    def _write_message(self, message: dict[str, Any]):
+    def _write_message(self, message: dict[str, str | float]):
         """
         将单条消息异步写入磁盘文件。
 
@@ -110,21 +111,22 @@ class ChatSession:
 
     def Inject_Tool_Observation(self, content: str):
         """
-        架构方法：将工具观察结果作为 system 消息注入历史。
-        通常用于多轮对话中向 LLM 反馈动作执行结果。
+        架构方法：将工具观察结果作为消息注入历史。
+        为了增强感知度，修改为以 'user' (环境反馈) 角色注入。
 
         Args:
             content (str): 观察到的结果文本。
         """
-        message: dict[str, Any] = { 
-            "role": "system", 
+        # @Antigravity, 20260206, [REF]: 将角色从 system 改为 user 以提高感知度
+        message: dict[str, str | float] = { 
+            "role": "user", 
             "content": f"[Observation]: {content}", 
             "timestamp": time.time() 
         }
         self.chat_history.append(message)
         self._write_message(message)
 
-    def Update_Metadata_by_Key(self, key: str, value: Any):
+    def Update_Metadata_by_Key(self, key: str, value: str | int | float | bool | None):
         """
         架构方法：更新会话元数据（如状态灯、面包屑等）。
 
@@ -149,14 +151,21 @@ class ChatSession:
             
             for line in lines[start_index:]:
                 if line.strip():
-                    message: dict[str, Any] = json.loads(line)
-                    if message.get('role') in ['user', 'assistant']:
+                    # 显式转换解析结果，减少类型推导压力
+                    raw_msg = json.loads(line)
+                    message: dict[str, str | float] = {
+                        'role': str(raw_msg.get('role', '')),
+                        'content': str(raw_msg.get('content', '')),
+                        'timestamp': float(raw_msg.get('timestamp', 0))
+                    }
+                    # @Antigravity, 20260206, [FIX]: 允许加载 system 消息，以保留工具观察结果
+                    if message.get('role') in ['user', 'assistant', 'system']:
                         self.chat_history.append(message)
                         loaded_count += 1
             
             if loaded_count > 0:
                 # 注入历史隔离提示：引导 LLM 识别新会话窗口
-                separator: dict[str, Any] = {
+                separator: dict[str, str | float] = {
                     "role": "system",
                     "content": (
                         "[System] 以上为历史聊天记录。接下来的对话将在新窗口中进行。"
@@ -172,14 +181,18 @@ class ChatSession:
                 f"Failed to load history: {e}"
             )
 
-    def build_prompt(self) -> list[dict[str, Any]]:
+    def build_prompt(self) -> list[dict[str, str | float]]:
         """
         构建发送给 LLM 的完整消息列表。
 
         Returns:
-            list[dict[str, Any]]: 包含系统提示词和历史记录的消息列表。
+            list[dict[str, str | float]]: 包含系统提示词和历史记录的消息列表。
         """
-        return [self.system_prompt] + self.chat_history
+        # 合并系统提示词
+        full_history: list[dict[str, str | float]] = [
+            cast(dict[str, str | float], self.system_prompt)
+        ] + self.chat_history
+        return full_history
 
     def count_tokens(self, text: str) -> int:
         """
@@ -202,7 +215,7 @@ class ChatSession:
         Returns:
             tuple[Stream, int, float]: 包含 (stream, prompt_tokens, start_time) 的元组。
         """
-        prompt: list[dict[str, Any]] = self.build_prompt()
+        prompt = self.build_prompt()
         
         prompt_text: str = "\n".join(
             str(m.get('content', '')) 

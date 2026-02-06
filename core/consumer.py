@@ -25,7 +25,7 @@ async def consume_events(
     agent: Agent, 
     chat_session: ChatSession, 
     config: configparser.ConfigParser
-):
+) -> None:
     """
     运行 Agent 的主交互循环（CLI 界面）。
 
@@ -64,7 +64,7 @@ async def process_turns(
     agent: Agent, 
     session: ChatSession, 
     max_turns: int
-):
+) -> None:
     """
     管理多轮 Agent 思考 (Turn Loop) 及其动作的分发与反馈注入。
 

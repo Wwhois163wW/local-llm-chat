@@ -50,6 +50,18 @@ def get_logging_config(
                 'encoding': 'utf8',
             },
         },
+        'loggers': {
+            'httpx': {
+                'level': 'WARNING',
+                'handlers': ['fileHandler'], # 仅记录到文件，不干扰控制台
+                'propagate': False,
+            },
+            'openai': {
+                'level': 'WARNING',
+                'handlers': ['fileHandler'],
+                'propagate': False,
+            },
+        },
         'root': {
             'level': 'DEBUG',
             'handlers': ['consoleHandler', 'fileHandler'],

@@ -8,61 +8,156 @@
 
 import re
 import logging
-from core.events import TextChunk, FileReadRequest
+from collections.abc import Iterable, AsyncGenerator
+from typing import Any, Callable
+from dataclasses import dataclass
+from enum import Enum, auto
+
+from core.events import TextChunk, FileReadRequest, EchoRequest, Event
 
 logger = logging.getLogger(__name__)
 
-async def parse_stream(raw_stream): # Changed to async def, but iteration over raw_stream is sync
+class ParserState(Enum):
+    """解析器内部状态枚举。"""
+    TEXT = auto()       # 普通文本状态，即时输出
+    CALLING = auto()    # 捕获到 '<'，进入受控截流状态
+
+@dataclass
+class ParserRule:
+    """定义一个解析规则。"""
+    name: str
+    pattern: re.Pattern[str]
+    event_factory: Callable[[re.Match[str]], Event]
+
+class XmlStreamParser:
     """
-    Parses a raw stream of LLM chunks and yields structured Event objects.
+    贪心状态机解析类。
+    负责流式处理 LLM 输出，通过状态切换实现标签截流与回退逻辑。
     """
-    buffer = ""
-    
-    # raw_stream from the openai client is a synchronous iterator, even if the API call was async.
-    # So we use a synchronous for loop here.
-    for chunk in raw_stream: # Changed back to synchronous for
-        content = chunk.choices[0].delta.content or ""
-        if not content:
-            continue
-        buffer += content
+    rules: list[ParserRule]
+    buffer: str
+    state: ParserState
+    tag_start_idx: int
+
+    def __init__(self, rules: list[ParserRule]):
+        self.rules = rules
+        self.buffer = ""
+        self.state = ParserState.TEXT
+        # 记录标签起始位置在 buffer 中的相对索引
+        self.tag_start_idx = -1
+
+    def parse_chunk(self, content: str) -> Iterable[Event]:
+        """
+        处理一小段文本块，依据当前状态返回产生的事件。
+        """
+        self.buffer += content
         
         while True:
-            # ... (the rest of the parsing logic remains the same) ...
-            read_file_match = re.search(r'<read_file path="([^"]+)"\s*/>', buffer)
-            if read_file_match:
-                pre_tag_content = buffer[:read_file_match.start()]
-                if pre_tag_content:
-                    yield TextChunk(content=pre_tag_content)
-                tag_text = read_file_match.group(0)
-                yield FileReadRequest(
-                    path=read_file_match.group(1), 
-                    content=tag_text
-                )
+            if self.state == ParserState.TEXT:
+                # 寻找可能的标签起点
+                start_match = re.search(r'<', self.buffer)
+                if start_match:
+                    # 吐出标签前的普通文本
+                    pre_text = self.buffer[:start_match.start()]
+                    if pre_text:
+                        yield TextChunk(content=pre_text)
+                    
+                    # 切换状态，保留标签及其之后的内容在 buffer
+                    self.buffer = self.buffer[start_match.start():]
+                    self.state = ParserState.CALLING
+                    continue # 立即按新状态处理
+                else:
+                    # 全是普通文本，全吐
+                    yield TextChunk(content=self.buffer)
+                    self.buffer = ""
+                    break
+            
+            elif self.state == ParserState.CALLING:
+                # 尝试匹配所有规则
+                matched_rule: ParserRule | None = None
+                best_match: re.Match[str] | None = None
                 
-                buffer = buffer[read_file_match.end():]
-                continue
-
-            # Fallback for non-standard read_file format
-            alt_read_file_match = re.search(r'<\|channel\|>.*?read_file.*?<\|message\|>.*?{"path":\s*"([^"]+)"\}', buffer, re.DOTALL)
-            if alt_read_file_match:
-                pre_tag_content = alt_read_file_match.group(1)
-                if pre_tag_content:
-                    yield TextChunk(content=pre_tag_content)
+                for rule in self.rules:
+                    m = rule.pattern.search(self.buffer)
+                    if m:
+                        if best_match is None or m.start() < best_match.start():
+                            best_match = m
+                            matched_rule = rule
                 
-                tag_text = alt_read_file_match.group(0)
-                path_from_json = alt_read_file_match.group(3)
-                yield FileReadRequest(
-                    path=path_from_json, 
-                    content=tag_text
-                )
+                if matched_rule and best_match:
+                    # 命中标签！
+                    # 1. 产生事件
+                    yield matched_rule.event_factory(best_match)
+                    
+                    # 2. 消耗已匹配内容，切回 TEXT 状态
+                    self.buffer = self.buffer[best_match.end():]
+                    self.state = ParserState.TEXT
+                    continue
+                
+                # 安全检查：如果截流 buffer 过长，或者明显不再可能是合法标签，则回退方案
+                # 这里的“贪心”体现为：只要还没看到自闭合或结束符，就先 hold 住
+                # 但如果 buffer 中出现了第二个 '<' 且第一个没被吃掉，说明第一个 '<' 可能是误报
+                if self.buffer.count('<') > 1:
+                    # 将第一个 '<' 之后的内容重新作为一个 chunk 处理，回退当前截流
+                    yield TextChunk(content=self.buffer[0])
+                    self.buffer = self.buffer[1:]
+                    self.state = ParserState.TEXT # 尝试重新查找
+                    continue
+                
+                # 如果 buffer 中含有明显非法字符（针对 XML 标签），也可以提前回退
+                # 暂时保持简单：等待更多内容直到匹配或结束
+                break
 
-                buffer = buffer[alt_read_file_match.end():]
-                continue
+    def flush(self) -> Iterable[Event]:
+        """流结束时的清理，释放截流 buffer。"""
+        if self.buffer:
+            yield TextChunk(content=self.buffer)
+            self.buffer = ""
+        self.state = ParserState.TEXT
 
-                buffer = buffer[alt_read_file_match.end():]
-                continue
+# --- 规则定义容器 ---
+_PARSER_RULES: list[ParserRule] = [
+    ParserRule(
+        name="read_file",
+        pattern=re.compile(r'<read_file path="([^"]+)"\s*/>'),
+        event_factory=lambda m: FileReadRequest(path=m.group(1), content=m.group(0))
+    ),
+    ParserRule(
+        name="echo",
+        pattern=re.compile(r'<echo message="([^"]+)"\s*/>'),
+        event_factory=lambda m: EchoRequest(message=m.group(1), content=m.group(0))
+    ),
+    ParserRule(
+        name="alt_read_file",
+        pattern=re.compile(
+            r'<\|channel\|>.*?read_file.*?<\|message\|>.*?{"path":\s*"([^"]+)"\}', 
+            re.DOTALL
+        ),
+        event_factory=lambda m: FileReadRequest(path=m.group(1), content=m.group(0))
+    )
+]
 
-            break # Exit inner while loop to get more chunks
+def _extract_chunk_content(chunk: Any) -> str:
+    """辅助函数：从 LLM 流的 Chunk 中提取内容。"""
+    try:
+        return chunk.choices[0].delta.content or ""
+    except (AttributeError, IndexError):
+        return ""
+
+async def parse_stream(raw_stream: Iterable[Any]) -> AsyncGenerator[Event, None]:
+    """
+    解析来自 LLM 的原始流，并产生结构化的事件对象。
+    封装了 XmlStreamParser 的贪心状态机。
+    """
+    parser = XmlStreamParser(_PARSER_RULES)
     
-    if buffer:
-        yield TextChunk(content=buffer)
+    for chunk in raw_stream:
+        content = _extract_chunk_content(chunk)
+        if not content:
+            continue
+            
+        for event in parser.parse_chunk(content):
+            yield event
+            
+    for event in parser.flush():
+        yield event
