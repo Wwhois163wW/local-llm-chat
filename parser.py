@@ -4,7 +4,7 @@
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
 # Date: 20260206
-# Version: 1.1.0
+# Version: 1.1.1
 
 import re
 import logging
@@ -12,33 +12,89 @@ from events import TextChunk, FileWriteStart, FileContentChunk, FileWriteEnd, Fi
 
 logger = logging.getLogger(__name__)
 
-async def parse_stream(raw_stream): # Changed to async def
+async def parse_stream(raw_stream): # Changed to async def, but iteration over raw_stream is sync
     """
     Parses a raw stream of LLM chunks and yields structured Event objects.
     """
     buffer = ""
     in_file_write_block = False
     
-    # raw_stream from the openai client is also an async generator
-    async for chunk in raw_stream: # Changed to async for
+    # raw_stream from the openai client is a synchronous iterator, even if the API call was async.
+    # So we use a synchronous for loop here.
+    for chunk in raw_stream: # Changed back to synchronous for
         content = chunk.choices[0].delta.content or ""
         if not content:
             continue
         buffer += content
         
-        # This inner loop for parsing the buffer remains synchronous, which is correct
         while True:
             # ... (the rest of the parsing logic remains the same) ...
-            # For example:
             read_file_match = re.search(r'<read_file path="([^"]+)"\s*/>', buffer)
             if read_file_match:
-                # ... yield FileReadRequest ...
+                pre_tag_content = buffer[:read_file_match.start()]
+                if pre_tag_content:
+                    yield TextChunk(content=pre_tag_content)
+                
+                yield FileReadRequest(path=read_file_match.group(1))
+                
                 buffer = buffer[read_file_match.end():]
                 continue
-            
-            # If no tags are found and buffer can be flushed
-            break # Exit inner while loop to get more chunks from async for
 
-    # After the async for loop is exhausted, process any remaining content
+            # Fallback for non-standard read_file format
+            alt_read_file_match = re.search(r'<\|channel\|>.*?read_file.*?<\|message\|>.*?{"path":\s*"([^"]+)"\}', buffer, re.DOTALL)
+            if alt_read_file_match:
+                pre_tag_content = alt_read_file_match.group(1)
+                if pre_tag_content:
+                    yield TextChunk(content=pre_tag_content)
+                
+                path_from_json = alt_read_file_match.group(3)
+                yield FileReadRequest(path=path_from_json)
+
+                buffer = buffer[alt_read_file_match.end():]
+                continue
+
+            # Try to parse <write_file> tag
+            start_tag_match = re.search(r'<write_file path="([^"]+)">', buffer)
+            if start_tag_match:
+                pre_tag_content = buffer[:start_tag_match.start()]
+                if pre_tag_content:
+                    yield TextChunk(content=pre_tag_content)
+                
+                file_path = start_tag_match.group(1)
+                yield FileWriteStart(path=file_path)
+                
+                buffer = buffer[start_tag_match.end():]
+                in_file_write_block = True
+            else:
+                yield_boundary = buffer.rfind('\n')
+                if yield_boundary == -1 and len(buffer) > 100:
+                    yield_boundary = len(buffer) - 20
+
+                if yield_boundary != -1:
+                    content_to_yield = buffer[:yield_boundary]
+                    if content_to_yield:
+                        yield TextChunk(content=content_to_yield)
+                    buffer = buffer[yield_boundary:]
+                break # Exit inner while loop to get more chunks
+            
+            if in_file_write_block:
+                end_tag_match = re.search(r'(.*?)(</write_file>)', buffer, re.DOTALL)
+                if end_tag_match:
+                    file_content_chunk = end_tag_match.group(1)
+                    if file_content_chunk:
+                        yield FileContentChunk(content=file_content_chunk)
+                    
+                    yield FileWriteEnd()
+                    
+                    buffer = buffer[end_tag_match.end():]
+                    in_file_write_block = False
+                else:
+                    break
+    
     if buffer:
-        yield TextChunk(content=buffer)
+        if in_file_write_block:
+            logger.warning("Stream ended with an unclosed <write_file> tag.")
+            yield TextChunk(content=buffer)
+        else:
+            if buffer:
+                yield TextChunk(content=buffer)
