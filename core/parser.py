@@ -4,11 +4,11 @@
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
 # Date: 20260206
-# Version: 1.1.2
+# Version: 0.0.1
 
 import re
 import logging
-from core.events import TextChunk, FileWriteStart, FileContentChunk, FileWriteEnd, FileReadRequest
+from core.events import TextChunk, FileReadRequest
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +17,6 @@ async def parse_stream(raw_stream): # Changed to async def, but iteration over r
     Parses a raw stream of LLM chunks and yields structured Event objects.
     """
     buffer = ""
-    in_file_write_block = False
     
     # raw_stream from the openai client is a synchronous iterator, even if the API call was async.
     # So we use a synchronous for loop here.
@@ -34,8 +33,11 @@ async def parse_stream(raw_stream): # Changed to async def, but iteration over r
                 pre_tag_content = buffer[:read_file_match.start()]
                 if pre_tag_content:
                     yield TextChunk(content=pre_tag_content)
-                
-                yield FileReadRequest(path=read_file_match.group(1))
+                tag_text = read_file_match.group(0)
+                yield FileReadRequest(
+                    path=read_file_match.group(1), 
+                    content=tag_text
+                )
                 
                 buffer = buffer[read_file_match.end():]
                 continue
@@ -47,54 +49,20 @@ async def parse_stream(raw_stream): # Changed to async def, but iteration over r
                 if pre_tag_content:
                     yield TextChunk(content=pre_tag_content)
                 
+                tag_text = alt_read_file_match.group(0)
                 path_from_json = alt_read_file_match.group(3)
-                yield FileReadRequest(path=path_from_json)
+                yield FileReadRequest(
+                    path=path_from_json, 
+                    content=tag_text
+                )
 
                 buffer = buffer[alt_read_file_match.end():]
                 continue
 
-            # Try to parse <write_file> tag
-            start_tag_match = re.search(r'<write_file path="([^"]+)">', buffer)
-            if start_tag_match:
-                pre_tag_content = buffer[:start_tag_match.start()]
-                if pre_tag_content:
-                    yield TextChunk(content=pre_tag_content)
-                
-                file_path = start_tag_match.group(1)
-                yield FileWriteStart(path=file_path)
-                
-                buffer = buffer[start_tag_match.end():]
-                in_file_write_block = True
-            else:
-                yield_boundary = buffer.rfind('\n')
-                if yield_boundary == -1 and len(buffer) > 100:
-                    yield_boundary = len(buffer) - 20
+                buffer = buffer[alt_read_file_match.end():]
+                continue
 
-                if yield_boundary != -1:
-                    content_to_yield = buffer[:yield_boundary]
-                    if content_to_yield:
-                        yield TextChunk(content=content_to_yield)
-                    buffer = buffer[yield_boundary:]
-                break # Exit inner while loop to get more chunks
-            
-            if in_file_write_block:
-                end_tag_match = re.search(r'(.*?)(</write_file>)', buffer, re.DOTALL)
-                if end_tag_match:
-                    file_content_chunk = end_tag_match.group(1)
-                    if file_content_chunk:
-                        yield FileContentChunk(content=file_content_chunk)
-                    
-                    yield FileWriteEnd()
-                    
-                    buffer = buffer[end_tag_match.end():]
-                    in_file_write_block = False
-                else:
-                    break
+            break # Exit inner while loop to get more chunks
     
     if buffer:
-        if in_file_write_block:
-            logger.warning("Stream ended with an unclosed <write_file> tag.")
-            yield TextChunk(content=buffer)
-        else:
-            if buffer:
-                yield TextChunk(content=buffer)
+        yield TextChunk(content=buffer)

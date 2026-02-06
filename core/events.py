@@ -4,37 +4,42 @@
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
 # Date: 20260206
-# Version: 1.0.1
+# Version: 0.0.2
 
 from dataclasses import dataclass
 
 @dataclass
-class TextChunk:
+class Event:
+    """Base class for all events in the system.
+    
+    Attributes:
+        content (str): The raw text representation of the event to be 
+                      recorded in the conversation history.
+    """
+    content: str = ""
+
+@dataclass
+class TextChunk(Event):
     """Represents a chunk of plain text from the LLM's response."""
-    content: str
+    # content is inherited
 
 @dataclass
-class StatsUpdate:
-    """Represents the final statistics of an API call."""
-    latency: float
-    usage: dict
+class StatsUpdate(Event):
+    """Represents the final statistics of an API call.
+    
+    Attributes:
+        latency (float): Time taken for the LLM request in seconds.
+        usage (dict[str, int] | None): Token usage details:
+            - prompt_tokens (int)
+            - completion_tokens (int)
+            - total_tokens (int)
+    """
+    latency: float = 0.0
+    usage: dict[str, int] | None = None
+    # content is inherited and remains ""
 
 @dataclass
-class FileWriteStart:
-    """Signals the beginning of a file-writing block."""
-    path: str
-
-@dataclass
-class FileContentChunk:
-    """Represents a chunk of content to be written to a file."""
-    content: str
-
-@dataclass
-class FileWriteEnd:
-    """Signals the end of a file-writing block."""
-    pass
-
-@dataclass
-class FileReadRequest:
+class FileReadRequest(Event):
     """Signals a request from the LLM to read a file."""
-    path: str
+    path: str = ""
+    # trigger_text is renamed to content and inherited

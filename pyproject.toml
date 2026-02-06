@@ -1,0 +1,23 @@
+[tool.pyright]
+enableTypeIgnoreComments = true
+reportIgnoreCommentWithoutRule = false
+
+reportAny = false
+reportExplicitAny = false
+reportInvalidCast = false
+reportPrivateImportUsage = false
+reportMissingImports = false
+reportMissingModuleSource = false
+reportMissingParameterType = false
+reportMissingTypeArgument = false
+reportMissingTypeStubs = false
+reportUnknownMemberType = false
+reportUnknownArgumentType = false
+reportUnknownParameterType = false
+reportUnknownVariableType = false
+reportUnknownLambdaType = false
+reportUnusedCallResult = false
+reportRedeclaration = false
+reportUnannotatedClassAttribute =false
+reportImplicitStringConcatenation = false
+reportPossiblyUnboundVariable = false

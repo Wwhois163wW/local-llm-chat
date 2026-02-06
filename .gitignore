@@ -33,4 +33,4 @@ test_attachments/
 
 # @Antigravity, 20260206, [ADD]: 忽略 .agent 和 docs 目录
 .agent/
-docs/
+docs/dialog/
