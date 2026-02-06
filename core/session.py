@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# chat_module.py
+# core/session.py
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
-# Date: 20260205
-# Version: 2.0.2
+# Date: 20260206
+# Version: 2.0.3
 
 import time
 import json
@@ -14,7 +14,7 @@ import tiktoken
 from openai import OpenAI
 import os
 
-from prompts import get_system_prompt
+from core.prompts import get_system_prompt
 
 logger = logging.getLogger(__name__)
 

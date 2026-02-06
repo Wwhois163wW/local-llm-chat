@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# parser.py
+# core/parser.py
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
 # Date: 20260206
-# Version: 1.1.1
+# Version: 1.1.2
 
 import re
 import logging
-from events import TextChunk, FileWriteStart, FileContentChunk, FileWriteEnd, FileReadRequest
+from core.events import TextChunk, FileWriteStart, FileContentChunk, FileWriteEnd, FileReadRequest
 
 logger = logging.getLogger(__name__)
 

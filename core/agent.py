@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# agent.py
+# core/agent.py
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
-# Date: 20260205
-# Version: 1.1.1
+# Date: 20260206
+# Version: 1.1.2
 
 import logging
 import time
 import os
 
-from chat_module import ChatSession
-from parser import parse_stream
-from events import FileReadRequest, TextChunk, FileContentChunk, StatsUpdate
-from tools import read_file
+from core.session import ChatSession
+from core.parser import parse_stream
+from core.events import FileReadRequest, TextChunk, FileContentChunk, StatsUpdate
+from infra.tools import read_file
 
 logger = logging.getLogger(__name__)
 

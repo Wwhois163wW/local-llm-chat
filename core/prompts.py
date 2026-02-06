@@ -1,10 +1,8 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# prompts.py
+# core/prompts.py
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
-# Date: 20260130
-# Version: 1.0.0
+# Date: 20260206
+# Version: 1.0.1
 
 def get_file_injection_prompt(file_name: str, file_content: str) -> str:
     """Returns the default prompt for injecting file content into the context."""

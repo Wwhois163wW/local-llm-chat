@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# consumer.py
+# core/consumer.py
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
-# Date: 20260205
-# Version: 1.0.1
+# Date: 20260206
+# Version: 1.0.2
 
 import asyncio
 import logging
-from agent import Agent
-from chat_module import ChatSession
-from events import TextChunk, StatsUpdate
+from core.agent import Agent
+from core.session import ChatSession
+from core.events import TextChunk, StatsUpdate
 
 logger = logging.getLogger(__name__)
 

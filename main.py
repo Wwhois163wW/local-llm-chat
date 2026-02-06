@@ -3,8 +3,8 @@
 # main.py
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
-# Date: 20260205
-# Version: 2.2.0
+# Date: 20260206
+# Version: 2.2.1
 
 import configparser
 import logging.config
@@ -12,11 +12,11 @@ import logging
 import os
 import asyncio
 
-from logging_setup import get_logging_config
-from api_client import Get_LLM_Client_by_Config
-from chat_module import ChatSession
-from agent import Agent
-from consumer import consume_events # Import the main consumer
+from infra.logging_setup import get_logging_config
+from infra.llm_client import Get_LLM_Client_by_Config
+from core.session import ChatSession
+from core.agent import Agent
+from core.consumer import consume_events # Import the main consumer
 
 def check_history_file(base_dir: str) -> str:
     history_dir = os.path.join(base_dir, 'output')

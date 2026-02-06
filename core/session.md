@@ -1,4 +1,4 @@
-# chat_module.md
+# core/session.md
 
 ## 1. 技术设计要点/总结
 *   **核心组件**: `ChatSession` 类是此模块的核心, 封装了与LLM单次会话的所有状态和逻辑。
@@ -16,6 +16,7 @@
 *   **客户端 Token 统计**: 为了解决流式模式下 API 不返回 `usage` 字段的问题，本项目集成了 `tiktoken` 库。`send_message` 方法现在会在客户端手动计算 `prompt_tokens` 和 `completion_tokens`，从而提供准确的 Token 使用统计。
 
 ## 2. 变更记录流水
+*   **20260206, [REFACTOR]: 架构重构**: 从 `chat_module.py` 重命名为 `core/session.py`，移动至核心逻辑层。
 *   **20260130, [FEAT]: 实现客户端Token统计**: 集成 `tiktoken` 库，在 `send_message` 中分别计算输入和输出的 Token 数，解决了流式模式下的统计问题。
 *   **20260130, [REFACTOR]: 实现流式事件生成器**: 将 `send_message` 重构为基于 `yield` 的生成器，以支持流式处理架构，并定义了 `TextChunk` 等事件类。
 *   **20260130, [ADD]: 增加文件注入的错误处理**: 实现了对文件路径和大小的检查，并通过 `last_errors` 列表向 UI 层提供明确的错误反馈。
