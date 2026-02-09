@@ -18,6 +18,17 @@ def get_system_prompt() -> str:
 
 <tools>
   <tool>
+    <name>get_session_stats</name>
+    <description>Gets current session token usage and turn count.</description>
+    <usage><get_session_stats /></usage>
+  </tool>
+
+  <tool>
+    <name>echo</name>
+    <description>Sends a final message, confirmation, or summary. Use this to conclude a task or verify connectivity.</description>
+    <usage><echo message="Your message here." /></usage>
+  </tool>
+  <tool>
     <name>write_file</name>
     <description>
       Writes the given content to a file. The user will not see the content you write, only a confirmation that the file has been saved.
