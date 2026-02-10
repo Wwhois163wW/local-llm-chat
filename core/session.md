@@ -13,3 +13,12 @@
   - **[修复]**: 修正了 `_load_conversation_memory_from_file` 逻辑，确保 `system` 角色消息（包含工具反馈）能被正确反序列化，解决会话断点记忆丢失问题。
   - **[修复]**: 处理了文件写入返回值未使用的 lint 警告。
   - **[格式]**: 深度对齐长行折行、嵌套调用换行等排版规范。
+- **双层存储架构**: 实现了 `transient_meta` (内存) 与 `persistent_meta` (磁盘) 的物理分离。
+- **持久化驱动**: 在更新标记为 `persistent=True` 的键值时，会自动触发对 `{history_file}.meta.json` 的异步/同步写入。
+- **数据一致性**: 内存态数据在合并时始终覆盖持久态同名键（`{**persistent, **transient}`）。
+- **接口标准化**: 提供了语义化的 `Update_Metadata_by_Key` 和 `get_metadata` (合并字典) 接口。
+
+## (2) 变更记录流水
+- **2026-02-09 [v0.1.0]**: @Antigravity 引入基础元数据内核。
+- **2026-02-09 [v0.1.1]**: @Antigravity 补充 `get_metadata` 字典合并方法，优化提示词注入逻辑。
+- **2026-02-09 [v0.1.2]**: @Antigravity 移除重复的 `Get_Metadata_Snapshot` 描述逻辑，实现 core 层逻辑净化。

@@ -55,6 +55,8 @@ class ResourceManager:
         meta = res.get("metadata", {})
         
         if r_type == "file":
+            # @Antigravity, 20260210, [FIX]: 增加对 metadata 为空或缺失的防御性处理
+            meta = meta or {}
             lines = meta.get("line_count", "?")
             size = meta.get("size_kb", "?")
             return f"[File] {src} ({lines} lines, {size} KB) -> ID: {rid}"

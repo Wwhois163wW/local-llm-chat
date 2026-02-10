@@ -8,8 +8,7 @@
 
 import re
 import logging
-from collections.abc import Iterable, AsyncGenerator
-from typing import Any, Callable
+from typing import Any, Callable, AsyncIterator, AsyncGenerator, Iterable
 from dataclasses import dataclass
 from enum import Enum, auto
 
@@ -17,7 +16,9 @@ from core.events import (
     TextChunk, ReadResourceRequest, EchoRequest, Event,
     LoadResourceRequest, UpdateMetadataRequest,
     GetSystemInfoRequest, GetSessionStatsRequest, ListDirRequest,
-    GetMetadataRequest, GetCwdRequest
+    GetMetadataRequest, GetCwdRequest, Thought, FinalAnswer,
+    SearchTextRequest, FindFilesRequest, FileWriteRequest,
+    SpecialTokenDetected
 )
 
 logger = logging.getLogger(__name__)
@@ -131,6 +132,15 @@ _PARSER_RULES: list[ParserRule] = [
             content=m.group(0)
         )
     ),
+    # --- Special Token Interception ---
+    ParserRule(
+        name="special_token",
+        pattern=re.compile(r'(?:<\|(.*?)\|?|([\w\-\.]+?\|>))', re.DOTALL),
+        event_factory=lambda m: SpecialTokenDetected(
+            token=m.group(1) or m.group(2) or "unknown", 
+            content=m.group(0)
+        )
+    ),
     ParserRule(
         name="list_dir",
         pattern=re.compile(r'<list_dir\s+path="([^"]+)"\s*/>'),
@@ -183,6 +193,39 @@ _PARSER_RULES: list[ParserRule] = [
         name="get_cwd",
         pattern=re.compile(r'<get_cwd\s*/>'),
         event_factory=lambda m: GetCwdRequest(content=m.group(0))
+    ),
+    # --- ReAct Infrastructure ---
+    ParserRule(
+        name="thought",
+        pattern=re.compile(r'<thought>(.*?)</thought>', re.DOTALL),
+        event_factory=lambda m: Thought(content=m.group(1))
+    ),
+    ParserRule(
+        name="action",
+        pattern=re.compile(r'<action>(.*?)</action>', re.DOTALL),
+        event_factory=lambda m: TextChunk(content=m.group(1)) # Action 内层通常是具体的工具标签，这里作为文本透传给下一级解析或直接处理
+    ),
+    ParserRule(
+        name="final_answer",
+        pattern=re.compile(r'<final_answer>(.*?)</final_answer>', re.DOTALL),
+        event_factory=lambda m: FinalAnswer(content=m.group(1))
+    ),
+    # --- Extended Search Tools ---
+    ParserRule(
+        name="search_text",
+        pattern=re.compile(r'<search_text\s+path="([^"]+)"\s+query="([^"]+)"\s*/>'),
+        event_factory=lambda m: SearchTextRequest(path=m.group(1), query=m.group(2), content=m.group(0))
+    ),
+    ParserRule(
+        name="find_files",
+        pattern=re.compile(r'<find_files\s+path="([^"]+)"\s+pattern="([^"]+)"\s*/>'),
+        event_factory=lambda m: FindFilesRequest(path=m.group(1), pattern=m.group(2), content=m.group(0))
+    ),
+    # --- Refined Write File (Attr style) ---
+    ParserRule(
+        name="write_file",
+        pattern=re.compile(r'<write_file\s+path="([^"]+)"\s+content_to_write="([^"]+)"\s*/>'),
+        event_factory=lambda m: FileWriteRequest(path=m.group(1), content_to_write=m.group(2), content=m.group(0))
     )
 ]
 
@@ -193,14 +236,15 @@ def _extract_chunk_content(chunk: Any) -> str:
     except (AttributeError, IndexError):
         return ""
 
-async def parse_stream(raw_stream: Iterable[Any]) -> AsyncGenerator[Event, None]:
+async def parse_stream(raw_stream: AsyncIterator[Any]) -> AsyncGenerator[Event, None]:
     """
-    解析来自 LLM 的原始流，并产生结构化的事件对象。
+    解析来自 LLM 的原始异步流，并产生结构化的事件对象。
     封装了 XmlStreamParser 的贪心状态机。
     """
     parser = XmlStreamParser(_PARSER_RULES)
     
-    for chunk in raw_stream:
+    # [FIX]: 使用 async for 迭代异步流以解决 GeneratorExit 故障
+    async for chunk in raw_stream:
         content = _extract_chunk_content(chunk)
         if not content:
             continue

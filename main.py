@@ -13,7 +13,7 @@ import os
 import asyncio
 
 from infra.logging_setup import get_logging_config
-from infra.llm_client import Get_LLM_Client_by_Config
+from infra.llm_client import Get_Async_LLM_Client_by_Config
 from core.session import ChatSession
 from core.agent import Agent
 from core.consumer import consume_events # Import the main consumer
@@ -78,8 +78,8 @@ async def main():
 
     # 2. Assemble Dependencies
     try:
-        # @Antigravity, 20260206, [FIX]: 增加对 LLM 客户端初始化结果的判断
-        llm_client = Get_LLM_Client_by_Config(config)
+        # [FIX]: 切换至异步 LLM 客户端驱动
+        llm_client = Get_Async_LLM_Client_by_Config(config)
         if not llm_client:
             return
         history_file = check_history_file(base_dir)

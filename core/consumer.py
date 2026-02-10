@@ -11,16 +11,21 @@ import logging
 import configparser
 import json
 import os
-import time
 from typing import Any, cast
 from dataclasses import asdict
+from openai import AsyncOpenAI
+
 from core.agent import Agent
 from core.session import ChatSession
 from core.events import (
     TextChunk, 
     StatsUpdate, 
     UpdateMetadataRequest, 
-    GetMetadataRequest
+    GetMetadataRequest,
+    Thought,
+    FinalAnswer,
+    SpecialTokenDetected,
+    FileWriteRequest
 )
 from infra.background_api import Execute_Task_by_Name
 
@@ -100,9 +105,28 @@ async def process_turns(
         try:
             # 迭代流事件，基于极简 Agent 直接产出的事件流
             async for event in agent.run():
-                # [轨道 A] 即时渲染轨迹
-                if isinstance(event, TextChunk):
+                # [轨道 A.1] 思维链路轨道
+                if isinstance(event, Thought):
+                    print(f"\n[Thought] 🧠 {event.content}", flush=True)
+
+                # [轨道 A.2] 最终答案轨道
+                elif isinstance(event, FinalAnswer):
+                    print(f"\n[Final Answer] ✨ {event.content}", flush=True)
+                    keep_looping = False # 显式结束 Turn Loop
+
+                # [轨道 A.3] 即时渲染轨迹
+                elif isinstance(event, TextChunk):
                     print(event.content, end="", flush=True)
+                
+                # [NEW]: 特殊 Token 拦截处理
+                elif isinstance(event, SpecialTokenDetected):
+                    logger.warning(f"Detected special token: {event.token}")
+                    warning_msg = (
+                        f"[Observation]: 检测到非标准指令格式 '<|{event.token}|>'。 "
+                        "请注意：由于系统安全限制，此类指令已被拦截。请仅使用定义的 XML 标签执行操作。"
+                    )
+                    observations.append(warning_msg)
+                    action_triggered = True # 触发下一轮修正
                 
                 # [轨道 B] 架构动作轨道 (解析流产生的所有非文本、非统计事件)
                 elif not isinstance(event, StatsUpdate):
@@ -129,8 +153,38 @@ async def process_turns(
             keep_looping = action_triggered
                 
         except Exception as e:
+            # @Antigravity, 20260210, [NEW]: 引入超时反馈重试机制
+            original_error = str(e)
+            is_timeout = "timed out" in original_error.lower() or "timeout" in original_error.lower()
+            
+            if is_timeout and turn_count <= 2: # 仅在起始几轮且未超重试限额时补救
+                logger.warning(f"Turn {turn_count} timed out. Injecting feedback for retry...")
+                retry_msg = (
+                    "[Observation]: 上次推理由于响应时间过长而超时。建议如下：\n"
+                    "1. 如果任务过于复杂，请尝试将其拆分为多个简单的子任务执行。\n"
+                    "2. 如果之前的思考路径太长，请精简逻辑，直接调用最相关的工具。\n"
+                    "3. 请针对当前状态重新进行 <thought> 并执行下一步。"
+                )
+                session.Inject_Tool_Observation(retry_msg)
+                # @Antigravity, 20260210, [FIX]: 确保 continue 前步进计数器，防止死循环
+                turn_count += 1
+                continue
+            
             logger.error(f"Error during turn {turn_count}: {e}", exc_info=True)
             break
+
+    # @Antigravity, 20260210, [NEW]: 对话压缩触发点
+    if len(session.chat_history) >= session.compression_threshold * 2:
+        logger.info("[Consumer] History reached threshold. Triggering summarization...")
+        from core.summarizer import Summarize_Conversation_by_LLM
+        # [FIX]: 确保传递的是异步客户端
+        summary = await Summarize_Conversation_by_LLM(
+            session.client,
+            session.summary_model,
+            session.chat_history
+        )
+        if summary and not summary.startswith("Summary failed"):
+            session.Update_Metadata_by_Key("context_summary", summary, persistent=True)
 
 async def handle_generic_action(
     task_name: str, 
@@ -139,45 +193,65 @@ async def handle_generic_action(
 ) -> str | None:
     """
     通用动作分发器。
-    将架构层识别出的任务动态转发给 infra 层执行，并处理反馈。
-
-    Args:
-        task_name (str): 动态提取的任务/类名。
-        params (dict[str, Any]): 动作关联的参数集。
-        session (ChatSession): 用于更新状态或注入元数据的会话句柄。
-
-    Returns:
-        str | None: 执行结果描述文本（观察结果），如果失败则返回错误提示。
+    引入 CRUD 频率限制：不允许连续执行 Create 动作。
     """
     print(f"\n[System] ⚙️ Executing {task_name}...")
     
-    # --- 架构短路：Core 层元数据直连 ---
+    # 状态预检：频率限制 (Create vs Create)
+    last_type = session.meta_manager.state.last_action_type
+    
+    # --- 架构短路：Core 层元数据直连 (视为 Update 行为) ---
     if task_name == UpdateMetadataRequest.__name__:
-        return session.Update_Metadata_by_Key(
+        res_msg = session.Update_Metadata_by_Key(
             key=params.get("key", ""),
             value=params.get("value"),
             persistent=params.get("persistent", False)
         )
+        session.meta_manager.update_state("last_action_type", "Update", context="Internal Logic")
+        return res_msg
         
     if task_name == GetMetadataRequest.__name__:
+        session.meta_manager.update_state("last_action_type", "Read", context="Internal Logic")
+        # ... (省略 10 行提取逻辑) ...
         key = params.get("key")
         full_meta = session.get_metadata()
-        
         if key:
             val = full_meta.get(key)
-            if val is not None:
-                return f"Metadata '{key}' current value: {val}"
+            if val is not None: return f"Metadata '{key}' value: {val}"
             return f"Metadata '{key}' not found."
-            
-        if not full_meta:
-            return "Current metadata is empty."
-        return f"Current Session Metadata Snapshot:\n{json.dumps(full_meta, indent=2, ensure_ascii=False)}"
+        return f"Metadata Snapshot:\n{json.dumps(full_meta, indent=2, ensure_ascii=False)}"
     
-    # --- 转发至基础设施层的总调度函数 ---
+    # --- 转发至基础设施层 ---
+    # [Pre-check for Write]: 我们需要先探测是 C 还是 U (基于路径存在性)
+    if task_name == FileWriteRequest.__name__:
+        target_path = params.get("path", "")
+        base_dir = "." # 默认工作区
+        full_path = os.path.normpath(os.path.join(base_dir, target_path))
+        is_create = not os.path.exists(full_path)
+        
+        if is_create and last_type == "Create":
+            logger.warning("Blocked consecutive Create attempt.")
+            return (
+                "[Observation]: Create 被拦截。系统禁止连续执行创建动作。 "
+                "请先执行一次 Read 操作查看当前状态，或进行一段深入的 <thought> 后再尝试创建。"
+            )
+
     res: dict[str, Any] = await Execute_Task_by_Name(task_name, params, context={"session": session})
     
     if not res.get("success"):
+        # 即使失败也记录当前尝试的动作类型（如果是写操作）
         return f"[Error]: Execution of '{task_name}' failed: {res.get('error')}"
     
-    # 2. 返回结果以供 consumer 决策是否在下一轮注入历史
+    # 更新动作追踪
+    actual_type = res.get("action_type")
+    if not actual_type:
+        # 推断映射
+        if task_name in ["ReadResourceRequest", "ListDirRequest", "FindFilesRequest", "SearchTextRequest", "GetSystemInfoRequest"]:
+            actual_type = "Read"
+        elif task_name == "FileWriteRequest":
+            actual_type = "Update" # 兜底值
+            
+    if actual_type:
+        session.meta_manager.update_state("last_action_type", actual_type, context="Action Tracking")
+    
     return cast(str | None, res.get("result"))

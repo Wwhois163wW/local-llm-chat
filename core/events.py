@@ -25,6 +25,16 @@ class TextChunk(Event):
     # content is inherited
 
 @dataclass
+class Thought(Event):
+    """Represents the thinking process (CoT) of the agent."""
+    # content is inherited
+
+@dataclass
+class FinalAnswer(Event):
+    """Represents the final conclusion or summary for the user."""
+    # content is inherited
+
+@dataclass
 class StatsUpdate(Event):
     """Represents the final statistics of an API call.
     
@@ -98,3 +108,25 @@ class GetMetadataRequest(Event):
 class GetCwdRequest(Event):
     """Requests the current working directory path."""
     pass
+
+@dataclass
+class SearchTextRequest(Event):
+    """Requests recursive text search."""
+    path: str = "."
+    query: str = ""
+
+@dataclass
+class FindFilesRequest(Event):
+    """Requests glob file search."""
+    path: str = "."
+    pattern: str = "*"
+
+@dataclass
+class FileWriteRequest(Event):
+    """Requests file writing with content."""
+    path: str = ""
+    content_to_write: str = ""
+@dataclass
+class SpecialTokenDetected(Event):
+    """Represents the detection of non-standard model tokens (e.g., <|...|>)."""
+    token: str = ""

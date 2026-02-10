@@ -41,7 +41,8 @@ async def Execute_Task_by_Name(
             
             if res_type == "file":
                 res = get_file_metadata(".", source)
-                if res["success"]:
+                # @Antigravity, 20260210, [FIX]: 加固元数据提取逻辑，防止 KeyError
+                if res.get("success") and res.get("result"):
                     if session and hasattr(session, "resource_manager"):
                         # 核心：使用小写方法名对齐 URM 接口
                         rid = session.resource_manager.register_resource(
@@ -58,7 +59,7 @@ async def Execute_Task_by_Name(
                         return {"success": True, "result": f"Resource loaded as {rid}. Metadata updated in memory."}
                     else:
                         return {"success": False, "error": "Internal Error: Session/URM instance missing during load."}
-                return {"success": False, "error": res.get("error") or "Failed to probe file metadata."}
+                return {"success": False, "error": res.get("error") or "Failed to probe file metadata. Verification of path may be required."}
 
             return {"success": False, "error": f"Resource type '{res_type}' not yet implemented."}
 
@@ -78,8 +79,9 @@ async def Execute_Task_by_Name(
                 # 视为路径模式，尝试自动加载（挂载）
                 from infra.tools import get_file_metadata
                 probe_res = get_file_metadata(".", source)
-                if not probe_res["success"]:
-                    return {"success": False, "error": f"Failed to auto-load path '{source}': {probe_res.get('error')}"}
+                # @Antigravity, 20260210, [FIX]: 增强自动加载逻辑的防御性
+                if not probe_res.get("success") or not probe_res.get("result"):
+                    return {"success": False, "error": f"Failed to auto-load path '{source}': {probe_res.get('error', 'Unknown Error')}"}
                 
                 # 注册新资源
                 rid = session.resource_manager.register_resource(
@@ -107,17 +109,31 @@ async def Execute_Task_by_Name(
             )
             return res
 
+        if name == "SearchTextRequest":
+            from infra.tools import search_text
+            path = str(params.get("path", "."))
+            query = str(params.get("query", ""))
+            return search_text(".", path, query)
+
+        if name == "FindFilesRequest":
+            from infra.tools import find_files
+            path = str(params.get("path", "."))
+            pattern = str(params.get("pattern", "*"))
+            return find_files(".", path, pattern)
+
         if name == "ListDirRequest":
             from infra.tools import list_dir
             path = str(params.get("path", "."))
-            res = list_dir(".", path)
-            return res
+            return list_dir(".", path)
 
         if name == "FileWriteRequest":
             from infra.tools import write_file
             path = str(params.get("path", ""))
             content_to_save = str(params.get("content_to_write", ""))
+            # @Antigravity, 20260210, [FIX]: 调用工具并在失败时细化错误信息反馈给 LLM
             res = write_file(".", path, content_to_save)
+            if not res["success"] and "Access denied" in str(res.get("error")):
+                res["error"] = "Access denied: Path out of bounds. Please write files within the project workspace."
             return res
 
         if name == "GetSystemInfoRequest":
@@ -135,7 +151,6 @@ async def Execute_Task_by_Name(
 
         if name == "EchoRequest":
             message = params.get("message", "No message provided")
-            # @Antigravity, 20260206, [FIX]: 恢复安全词注入，作为架构回环的固定验证点
             secret_word = "3+7=21"
             return {
                 "success": True, 

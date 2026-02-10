@@ -7,42 +7,43 @@
 # Version: 1.2.1
 
 import configparser
-from openai import OpenAI
+from openai import OpenAI, AsyncOpenAI
 import os
-import logging # @Antigravity, 20260128, [ADD]: Add logging import
+import logging
 
-logger = logging.getLogger(__name__) # @Antigravity, 20260128, [ADD]: Get logger instance
+logger = logging.getLogger(__name__)
 
-def Get_LLM_Client_by_Config(config): # @Antigravity, 20260128, [FIX]: Accept config object directly
-    """
-    根据配置文件获取LLM客户端实例。
-
-    Args:
-        config (configparser.ConfigParser): 已经加载的配置对象。
-
-    Returns:
-        openai.OpenAI: 配置好的OpenAI客户端实例。
-    """
-    # @Antigravity, 20260128, [DEL]: Removed redundant configparser.ConfigParser
+def Get_LLM_Client_by_Config(config):
+    """同步客户端 (Legacy)"""
     try:
         ip = config['LLM']['ip']
         port = config['LLM']['port']
         api_key = config['LLM']['api_key']
-        
+        base_url = f"http://{ip}:{port}/v1"
+        return OpenAI(base_url=base_url, api_key=api_key, timeout=120.0)
+    except Exception as e:
+        logger.error(f"Failed to init sync client: {e}")
+        return None
+
+def Get_Async_LLM_Client_by_Config(config):
+    """
+    获取异步 LLM 客户端实例。
+    """
+    try:
+        ip = config['LLM']['ip']
+        port = config['LLM']['port']
+        api_key = config['LLM']['api_key']
         base_url = f"http://{ip}:{port}/v1"
         
-        client = OpenAI(
+        client = AsyncOpenAI(
             base_url=base_url,
             api_key=api_key,
-            timeout=20.0, # @Antigravity, 20260202, [ADD]: Increase timeout to handle slow model loading
+            timeout=120.0,
         )
-        logger.info(f"Querying EVO-X2 ({ip}) via uv...") # @Antigravity, 20260128, [FIX]: Use logger.info instead of print
+        logger.info(f"Async LLM client initialized for {ip}:{port}")
         return client
-    except KeyError as e:
-        logger.error(f"Error: Missing LLM configuration item in config file: {e}") # @Antigravity, 20260128, [FIX]: Use logger.error instead of print
-        return None
     except Exception as e:
-        logger.error(f"Unknown error occurred while initializing LLM client: {e}") # @Antigravity, 20260128, [FIX]: Use logger.error instead of print
+        logger.error(f"Failed to initialize async LLM client: {e}")
         return None
 
 if __name__ == '__main__':

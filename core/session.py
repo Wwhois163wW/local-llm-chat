@@ -11,19 +11,21 @@ import json
 import logging
 import configparser
 import tiktoken
-from openai import OpenAI, Stream
-from typing import cast, Any
+from openai import AsyncOpenAI
+from openai.types.chat import ChatCompletionChunk
+from typing import cast, Any, AsyncIterator
 import os
 
-from core.prompts import get_system_prompt
+from core.prompts import AssembledPrompt
 from core.resource_manager import ResourceManager
+from core.session_meta import SessionMetaManager
 
 logger = logging.getLogger(__name__)
 
 class ChatSession:
     def __init__(
         self,
-        client: OpenAI,
+        client: AsyncOpenAI,
         config: configparser.ConfigParser,
         history_file: str,
     ):
@@ -31,34 +33,37 @@ class ChatSession:
         管理对话会话，包括历史记录、Token 统计和 LLM 交互。
 
         Args:
-            client (OpenAI): OpenAI 客户端实例。
+            client (AsyncOpenAI): 异步 OpenAI 客户端实例。
             config (configparser.ConfigParser): 应用程序配置对象。
             history_file (str): 历史记录文件的绝对路径。
         """
         # @Antigravity, 20260206, [CLEANUP]: 移除冗余注释并优化历史隔离逻辑
-        self.client: OpenAI = client
+        self.client: AsyncOpenAI = client
         self.model: str = config['LLM'].get(
             'model', 
             'local-model'
+        )
+        self.summary_model: str = config['LLM'].get(
+            'summary_model',
+            self.model
         )
         self.max_history_length: int = config.getint(
             'LLM', 
             'max_history_length', 
             fallback=10
         )
+        # @Antigravity, 20260210, [ADD]: 压缩阈值配置
+        self.compression_threshold: int = config.getint(
+            'LLM',
+            'compression_threshold',
+            fallback=8
+        )
         
-        self.system_prompt: dict[str, Any] = {
-            "role": "system", 
-            "content": get_system_prompt()
-        }
         self.chat_history: list[dict[str, Any]] = []
         self.history_file: str = history_file
         
-        # --- 核心元数据系统 (Session Metadata) ---
-        # transient_meta: 随进程销毁 (缓存/临时状态)
-        self.transient_meta: dict[str, Any] = {}
-        # persistent_meta: 同步至磁盘 (长期记忆/环境参数)
-        self.persistent_meta: dict[str, Any] = {}
+        # --- 核心元数据系统 (Pydantic Meta Manager) ---
+        self.meta_manager = SessionMetaManager(history_file)
 
         try:
             self.tokenizer: tiktoken.Encoding | None = (
@@ -71,35 +76,29 @@ class ChatSession:
             )
         
         self._load_conversation_memory_from_file()
-        self._load_persistent_meta()
         
         # --- 统一资源管理器 (URM) 初始化 ---
         self.resource_manager = ResourceManager(base_dir=".")
         
         logger.info("ChatSession initialized with Metadata and URM support.")
 
-    def _load_persistent_meta(self):
-        """从关联的 .meta.json 文件加载持久化元数据。"""
-        meta_file = self.history_file.replace('.jsonl', '.meta.json')
-        if os.path.exists(meta_file):
-            try:
-                with open(meta_file, 'r', encoding='utf-8') as f:
-                    self.persistent_meta = json.load(f)
-                logger.debug(f"Persistent meta loaded from {meta_file}")
-            except Exception as e:
-                logger.error(f"Failed to load persistent meta: {e}")
-                self.persistent_meta = {}
-        else:
-            self.persistent_meta = {}
-
-    def _save_persistent_meta(self):
-        """将持久化元数据同步到磁盘。"""
-        meta_file = self.history_file.replace('.jsonl', '.meta.json')
+    def _load_conversation_memory_from_file(self):
+        """从磁盘加载历史记录到内存。"""
+        if not os.path.exists(self.history_file):
+            return
         try:
-            with open(meta_file, 'w', encoding='utf-8') as f:
-                json.dump(self.persistent_meta, f, ensure_ascii=False, indent=4)
+            with open(self.history_file, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+            # 保证加载时不破坏当前会话的物理容量限制
+            start_index = max(0, len(lines) - self.max_history_length)
+            for line in lines[start_index:]:
+                if line.strip():
+                    msg = json.loads(line)
+                    if msg.get('role') in ['user', 'assistant', 'system']:
+                        self.chat_history.append(msg)
         except Exception as e:
-            logger.error(f"Failed to save persistent meta: {e}")
+            logger.error(f"Failed to load history: {e}")
+
 
     def add_conversation_message(self, role: str, content: str):
         """
@@ -123,6 +122,8 @@ class ChatSession:
         self._write_message(message)
         self.chat_history.append(message)
         
+        # @Antigravity, 20260210, [PLAN]: 触发压缩逻辑。由于 process_turns 是异步的，
+        # 这里仅作长度维护，实际摘要触发建议在 Consumer 结束一轮任务后异步执行。
         while len(self.chat_history) > self.max_history_length:
             _ = self.chat_history.pop(0)
 
@@ -166,92 +167,25 @@ class ChatSession:
         value: Any, 
         persistent: bool = False
     ) -> str:
-        """
-        更新会话元数据（如状态灯、任务进度等）。
-        
-        Args:
-            key (str): 元数据键。
-            value (Any): 元数据值。
-            persistent (bool): 是否持久化到磁盘。
-        """
-        if persistent:
-            self.persistent_meta[key] = value
-            self._save_persistent_meta()
-            status = "persistently"
-        else:
-            self.transient_meta[key] = value
-            status = "temporarily"
-            
-        logger.info(f"[Metadata Update] {key} = {value} ({status})")
-        # @zhu, 20260209, [MARK] 返回字符串
-        return f"Metadata '{key}' updated {status}."
+        """更新会话元数据并记录审计记录。"""
+        # @Antigravity, 2026/2/10, [FIX]: 路由至 Pydantic 审计系统，并透传 persistent
+        self.meta_manager.update_state(
+            key, 
+            value, 
+            context="Interaction", 
+            persistent=persistent
+        )
+        return f"Metadata '{key}' updated and audited (persistent={persistent})."
 
     def get_metadata(self) -> dict[str, Any]:
-        """
-        获取合并后的持久化与内存元数据字典。内存态具有更高优先级。
-        """
-        return {**self.persistent_meta, **self.transient_meta}
-
-    def _load_conversation_memory_from_file(self):
-        """从磁盘加载历史记录到内存。"""
-        if not os.path.exists(self.history_file):
-            return
-            
-        try:
-            with open(self.history_file, 'r', encoding='utf-8') as f:
-                lines: list[str] = f.readlines()
-            
-            start_index = max(0, len(lines) - self.max_history_length)
-            loaded_count: int = 0
-            
-            for line in lines[start_index:]:
-                if line.strip():
-                    # 显式转换解析结果，减少类型推导压力
-                    raw_msg = json.loads(line)
-                    message: dict[str, str | float] = {
-                        'role': str(raw_msg.get('role', '')),
-                        'content': str(raw_msg.get('content', '')),
-                        'timestamp': float(raw_msg.get('timestamp', 0))
-                    }
-                    # @Antigravity, 20260206, [FIX]: 允许加载 system 消息，以保留工具观察结果
-                    if message.get('role') in ['user', 'assistant', 'system']:
-                        self.chat_history.append(message)
-                        loaded_count += 1
-            
-            if loaded_count > 0:
-                # 注入历史隔离提示：引导 LLM 识别新会话窗口
-                separator: dict[str, str | float] = {
-                    "role": "system",
-                    "content": (
-                        "[System] 以上为历史聊天记录。接下来的对话将在新窗口中进行。"
-                        "请不要先入为主地假设用户要继续旧话题，除非用户在后续输入中明确提到。"
-                    ),
-                    "timestamp": time.time()
-                }
-                self.chat_history.append(separator)
-                logger.debug("History separator injected.")
-                
-        except Exception as e:
-            logger.error(
-                f"Failed to load history: {e}"
-            )
+        """获取元数据模型快照。"""
+        return self.meta_manager.get_snapshot()
 
     def build_prompt(self) -> list[dict[str, Any]]:
-        """
-        构建发送给 LLM 的完整消息列表。
-
-        Returns:
-            list[dict[str, Any]]: 包含系统提示词和历史记录的消息列表。
-        """
-        # 合并当前元数据快照
+        """构建发送给 LLM 的完整消息列表。"""
+        # @Antigravity, 20260210, [NEW]: 动态组装思维链路与元数据
         active_meta = self.get_metadata()
-        meta_context = ""
-        if active_meta:
-            meta_json = json.dumps(active_meta, ensure_ascii=False, indent=2)
-            meta_context = f"\n\n[Current Session Metadata Status]:\n{meta_json}"
-
-        # 动态组装系统提示词
-        sys_content = self.system_prompt["content"] + meta_context
+        sys_content = AssembledPrompt.build(active_meta)
         
         full_history: list[dict[str, Any]] = [
             {"role": "system", "content": sys_content}
@@ -260,38 +194,20 @@ class ChatSession:
         return full_history
 
     def count_tokens(self, text: str) -> int:
-        """
-        使用 Tiktoken 计算文本中的 Token 数量。
-
-        Args:
-            text (str): 目标文本。
-
-        Returns:
-            int: Token 数量。
-        """
+        """计算文本 Token。"""
         if not self.tokenizer:
             return 0
         return len(self.tokenizer.encode(text))
 
-    async def call_llm(self) -> tuple[Stream, int, float]:
-        """
-        异步调用 LLM API。
-
-        Returns:
-            tuple[Stream, int, float]: 包含 (stream, prompt_tokens, start_time) 的元组。
-        """
+    async def call_llm(self) -> tuple[AsyncIterator[ChatCompletionChunk], int, float]:
+        """异步调用 LLM API，返回异步流。"""
         prompt = self.build_prompt()
+        prompt_text = "\n".join(str(m.get('content', '')) for m in prompt)
+        prompt_tokens = self.count_tokens(prompt_text)
         
-        prompt_text: str = "\n".join(
-            str(m.get('content', '')) 
-            for m in prompt
-        )
-        prompt_tokens: int = self.count_tokens(prompt_text)
-        
-        start_time: float = time.time()
-        
-        # 使用 cast 适配 OpenAI 的类型协变检查
-        stream = self.client.chat.completions.create(
+        start_time = time.time()
+        # [FIX]: 使用 await 调用异步客户端的 completions.create
+        stream = await self.client.chat.completions.create(
             model=self.model,
             messages=cast(Any, prompt), 
             stream=True,
