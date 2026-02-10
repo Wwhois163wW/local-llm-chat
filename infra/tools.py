@@ -4,12 +4,11 @@
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
 # Date: 20260206
-# Version: 1.2.1
+# Version: 1.2.4
 
 import os
 import logging
 import time
-import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +27,7 @@ def get_file_metadata(base_dir: str, path: str) -> dict:
     """
     获取文件详细元数据而不读取全量内容。
     """
-    result = {"success": False, "error": "", "metadata": {}}
+    result = {"success": False, "error": "", "result": {}}
     try:
         target_path = os.path.normpath(os.path.join(base_dir, path))
         
@@ -44,7 +43,7 @@ def get_file_metadata(base_dir: str, path: str) -> dict:
         with open(target_path, 'r', encoding='utf-8', errors='ignore') as f:
             line_count = sum(1 for _ in f)
             
-        result["metadata"] = {
+        result["result"] = {
             "path": path,
             "size_kb": round(file_stats.st_size / 1024, 2),
             "line_count": line_count,
@@ -69,8 +68,7 @@ def read_file(
     """
     读取文件内容，支持行号切片。
     """
-    supported_extensions = ['.txt', '.md', '.py', '.json', '.csv', '.xml', '.html']
-    result = {"success": False, "error": "", "content": None}
+    result = {"success": False, "error": "", "result": None}
 
     try:
         target_path = os.path.normpath(os.path.join(base_dir, path))
@@ -79,9 +77,7 @@ def read_file(
             result["error"] = "Access denied: Path out of bounds."
             return result
 
-        _, ext = os.path.splitext(target_path)
-        # if ext not in supported_extensions:
-        #    logger.warning(f"Reading file with unsupported extension: {ext}")
+        pass
         
         if not os.path.exists(target_path):
             result["error"] = f"File not found: {path}"
@@ -96,14 +92,20 @@ def read_file(
             lines = f.readlines()
 
         total_lines = len(lines)
-        s = (start_line - 1) if start_line and start_line > 0 else 0
-        e = end_line if end_line and end_line <= total_lines else total_lines
+        s_idx = (start_line - 1) if start_line and start_line > 0 else 0
         
-        s = max(0, min(s, total_lines))
-        e = max(s, min(e, total_lines))
+        # 处理 -1 语义：实现安全预览 (Start + 100)
+        effective_end = end_line
+        if effective_end == -1:
+            effective_end = (start_line if start_line else 1) + 100
+            
+        e_idx = effective_end if (effective_end is not None and effective_end <= total_lines) else total_lines
         
-        content = "".join(lines[s:e])
-        slice_info = f" (Lines {s+1}-{e} of {total_lines})"
+        s_idx = max(0, min(s_idx, total_lines))
+        e_idx = max(s_idx, min(e_idx, total_lines))
+        
+        content = "".join(lines[s_idx:e_idx])
+        slice_info = f" (Lines {s_idx+1}-{e_idx} of {total_lines})"
         
         display_content = content
         if tokenizer and max_output_tokens > 0:
@@ -111,7 +113,7 @@ def read_file(
             if len(encoded_content) > max_output_tokens:
                 display_content = tokenizer.decode(encoded_content[:max_output_tokens]) + "\n... (truncated)"
 
-        result["content"] = f"File content{slice_info}:\n```\n{display_content}\n```"
+        result["result"] = f"File content{slice_info}:\n```\n{display_content}\n```"
         result["success"] = True
         return result
     except Exception as e:

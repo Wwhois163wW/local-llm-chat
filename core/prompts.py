@@ -40,17 +40,47 @@ def get_system_prompt() -> str:
     </usage>
   </tool>
   <tool>
-    <name>read_file</name>
+    <name>update_metadata</name>
+    <description>Updates or creates a session metadata entry. Use 'persistent="true"' to save across restarts.</description>
+    <usage><update_metadata key="key_name" value="value_content" persistent="true/false" /></usage>
+  </tool>
+  <tool>
+    <name>get_metadata</name>
+    <description>Retrieves a snapshot of metadata. Optionally specify a 'key' for a specific value.</description>
+    <usage><get_metadata key="optional_key" /></usage>
+  </tool>
+  <tool>
+    <name>get_cwd</name>
+    <description>Gets the current working directory path of the agent.</description>
+    <usage><get_cwd /></usage>
+  </tool>
+  <tool>
+    <name>get_system_info</name>
+    <description>Gets information about the operating system and environment.</description>
+    <usage><get_system_info /></usage>
+  </tool>
+  <tool>
+    <name>load_resource</name>
+    <description>Probes a resource (e.g., a file) to get metadata (like line counts) without reading the whole content. This is useful for large files.</description>
+    <usage><load_resource type="file" source="path/to/file.py" /></usage>
+  </tool>
+  <tool>
+    <name>read_resource</name>
     <description>
-      Reads the content of a local text file. Supported extensions: .txt, .md, .py, .json, .csv, .xml, .html.
-      Upon successful read, the file content will be provided to you as a system message. You should then integrate this content into your response to the user. Do not call read_file multiple times for the same file in a row unless explicitly requested.
+      Reads a specific slice of a resource. 
+      The 'source' attribute can be either a physical file path or a Resource ID (RID) like 'res_1'.
+      If a path is provided, the system will automatically load it as a managed resource first.
+      TIP: Use end="-1" to safely preview the next 100 lines from the start position.
     </description>
-    <usage>
-      <read_file path="path/to/filename.ext" />
-    </usage>
+    <usage><read_resource source="res_1" start="1" end="100" /></usage>
   </tool>
 </tools>
 
 When you need to use a tool, you MUST enclose your entire response in its usage tags. Do not add any text outside of the tags.
+
+### CRITICAL FORMATTING RULES:
+1. **NO EXTERNAL FORMATS**: Do NOT use OpenAI-style formats like `<|channel|>` or `<|message|>`.
+2. **XML ONLY**: You MUST use the `<tool_name> ... </tool_name>` or `<tool_name />` format provided in the toolkit description.
+3. **NO WRAPPERS**: Do not wrap your tool calls in JSON or any other structure unless specified by the usage example.
 """
 

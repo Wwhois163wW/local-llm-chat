@@ -9,11 +9,19 @@
 import asyncio
 import logging
 import configparser
+import json
+import os
+import time
 from typing import Any, cast
 from dataclasses import asdict
 from core.agent import Agent
 from core.session import ChatSession
-from core.events import TextChunk, StatsUpdate
+from core.events import (
+    TextChunk, 
+    StatsUpdate, 
+    UpdateMetadataRequest, 
+    GetMetadataRequest
+)
 from infra.background_api import Execute_Task_by_Name
 
 logger = logging.getLogger(__name__)
@@ -143,17 +151,33 @@ async def handle_generic_action(
     """
     print(f"\n[System] ⚙️ Executing {task_name}...")
     
-    # 转发至基础设施层的总调度函数
-    res: dict[str, Any] = await Execute_Task_by_Name(task_name, params)
+    # --- 架构短路：Core 层元数据直连 ---
+    if task_name == UpdateMetadataRequest.__name__:
+        return session.Update_Metadata_by_Key(
+            key=params.get("key", ""),
+            value=params.get("value"),
+            persistent=params.get("persistent", False)
+        )
+        
+    if task_name == GetMetadataRequest.__name__:
+        key = params.get("key")
+        full_meta = session.get_metadata()
+        
+        if key:
+            val = full_meta.get(key)
+            if val is not None:
+                return f"Metadata '{key}' current value: {val}"
+            return f"Metadata '{key}' not found."
+            
+        if not full_meta:
+            return "Current metadata is empty."
+        return f"Current Session Metadata Snapshot:\n{json.dumps(full_meta, indent=2, ensure_ascii=False)}"
+    
+    # --- 转发至基础设施层的总调度函数 ---
+    res: dict[str, Any] = await Execute_Task_by_Name(task_name, params, context={"session": session})
     
     if not res.get("success"):
         return f"[Error]: Execution of '{task_name}' failed: {res.get('error')}"
-    
-    # 调度反馈逻辑：
-    # 1. 如果 infra 指示需要更新元数据则执行
-    metadata_key: str | None = res.get("metadata_key")
-    if metadata_key:
-        session.Update_Metadata_by_Key(metadata_key, res.get("result"))
     
     # 2. 返回结果以供 consumer 决策是否在下一轮注入历史
     return cast(str | None, res.get("result"))

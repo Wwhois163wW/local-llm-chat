@@ -42,6 +42,25 @@ class ResourceManager:
         """
         return self.resources.get(rid)
 
+    def get_resource_description(self, rid: str) -> str:
+        """
+        获取资源的语义化描述文本，用于注入 AI 观察结果。
+        """
+        res = self.get_resource(rid)
+        if not res:
+            return f"Resource {rid} not found."
+        
+        r_type = res.get("type", "unknown")
+        src = res.get("source", "unknown")
+        meta = res.get("metadata", {})
+        
+        if r_type == "file":
+            lines = meta.get("line_count", "?")
+            size = meta.get("size_kb", "?")
+            return f"[File] {src} ({lines} lines, {size} KB) -> ID: {rid}"
+            
+        return f"[{r_type.capitalize()}] {src} -> ID: {rid}"
+
     def clear(self):
         """清空所有已加载的资源。"""
         self.resources.clear()

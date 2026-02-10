@@ -4,7 +4,7 @@
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
 # Date: 20260206
-# Version: 0.0.1
+# Version: 0.1.1
 
 import re
 import logging
@@ -13,7 +13,12 @@ from typing import Any, Callable
 from dataclasses import dataclass
 from enum import Enum, auto
 
-from core.events import TextChunk, FileReadRequest, EchoRequest, Event
+from core.events import (
+    TextChunk, ReadResourceRequest, EchoRequest, Event,
+    LoadResourceRequest, UpdateMetadataRequest,
+    GetSystemInfoRequest, GetSessionStatsRequest, ListDirRequest,
+    GetMetadataRequest, GetCwdRequest
+)
 
 logger = logging.getLogger(__name__)
 
@@ -118,9 +123,38 @@ class XmlStreamParser:
 # --- 规则定义容器 ---
 _PARSER_RULES: list[ParserRule] = [
     ParserRule(
-        name="read_file",
-        pattern=re.compile(r'<read_file path="([^"]+)"\s*/>'),
-        event_factory=lambda m: FileReadRequest(path=m.group(1), content=m.group(0))
+        name="load_resource",
+        pattern=re.compile(r'<load_resource\s+type="([^"]+)"\s+source="([^"]+)"\s*/>'),
+        event_factory=lambda m: LoadResourceRequest(
+            res_type=m.group(1), 
+            source=m.group(2), 
+            content=m.group(0)
+        )
+    ),
+    ParserRule(
+        name="list_dir",
+        pattern=re.compile(r'<list_dir\s+path="([^"]+)"\s*/>'),
+        event_factory=lambda m: ListDirRequest(path=m.group(1), content=m.group(0))
+    ),
+    ParserRule(
+        name="update_metadata",
+        pattern=re.compile(r'<update_metadata\s+key="([^"]+)"\s+value="([^"]+)"(?:\s+persistent="(true|false)")?\s*/>'),
+        event_factory=lambda m: UpdateMetadataRequest(
+            key=m.group(1), 
+            value=m.group(2), 
+            persistent=m.group(3) == "true",
+            content=m.group(0)
+        )
+    ),
+    ParserRule(
+        name="get_system_info",
+        pattern=re.compile(r'<get_system_info\s*/>'),
+        event_factory=lambda m: GetSystemInfoRequest(content=m.group(0))
+    ),
+    ParserRule(
+        name="get_session_stats",
+        pattern=re.compile(r'<get_session_stats\s*/>'),
+        event_factory=lambda m: GetSessionStatsRequest(content=m.group(0))
     ),
     ParserRule(
         name="echo",
@@ -128,12 +162,27 @@ _PARSER_RULES: list[ParserRule] = [
         event_factory=lambda m: EchoRequest(message=m.group(1), content=m.group(0))
     ),
     ParserRule(
-        name="alt_read_file",
-        pattern=re.compile(
-            r'<\|channel\|>.*?read_file.*?<\|message\|>.*?{"path":\s*"([^"]+)"\}', 
-            re.DOTALL
-        ),
-        event_factory=lambda m: FileReadRequest(path=m.group(1), content=m.group(0))
+        name="get_metadata",
+        pattern=re.compile(r'<get_metadata(?:\s+key="([^"]+)")?\s*/>'),
+        event_factory=lambda m: GetMetadataRequest(
+            key=m.group(1) if m.group(1) else None, 
+            content=m.group(0)
+        )
+    ),
+    ParserRule(
+        name="read_resource",
+        pattern=re.compile(r'<read_resource\s+source="([^"]+)"\s+start="(-?\d+)"\s+end="(-?\d+)"\s*/>'),
+        event_factory=lambda m: ReadResourceRequest(
+            source=m.group(1), 
+            start=int(m.group(2)), 
+            end=int(m.group(3)), 
+            content=m.group(0)
+        )
+    ),
+    ParserRule(
+        name="get_cwd",
+        pattern=re.compile(r'<get_cwd\s*/>'),
+        event_factory=lambda m: GetCwdRequest(content=m.group(0))
     )
 ]
 

@@ -4,7 +4,7 @@
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
 # Date: 20260206
-# Version: 0.0.3
+# Version: 0.0.4
 
 import time
 import json
@@ -13,10 +13,10 @@ import configparser
 import tiktoken
 from openai import OpenAI, Stream
 from typing import cast, Any
-from collections.abc import Iterable
 import os
 
 from core.prompts import get_system_prompt
+from core.resource_manager import ResourceManager
 
 logger = logging.getLogger(__name__)
 
@@ -47,13 +47,19 @@ class ChatSession:
             fallback=10
         )
         
-        self.system_prompt: dict[str, str] = {
+        self.system_prompt: dict[str, Any] = {
             "role": "system", 
             "content": get_system_prompt()
         }
-        self.chat_history: list[dict[str, str | float]] = []
+        self.chat_history: list[dict[str, Any]] = []
         self.history_file: str = history_file
         
+        # --- 核心元数据系统 (Session Metadata) ---
+        # transient_meta: 随进程销毁 (缓存/临时状态)
+        self.transient_meta: dict[str, Any] = {}
+        # persistent_meta: 同步至磁盘 (长期记忆/环境参数)
+        self.persistent_meta: dict[str, Any] = {}
+
         try:
             self.tokenizer: tiktoken.Encoding | None = (
                 tiktoken.get_encoding("cl100k_base")
@@ -65,7 +71,35 @@ class ChatSession:
             )
         
         self._load_conversation_memory_from_file()
-        logger.info("ChatSession initialized.")
+        self._load_persistent_meta()
+        
+        # --- 统一资源管理器 (URM) 初始化 ---
+        self.resource_manager = ResourceManager(base_dir=".")
+        
+        logger.info("ChatSession initialized with Metadata and URM support.")
+
+    def _load_persistent_meta(self):
+        """从关联的 .meta.json 文件加载持久化元数据。"""
+        meta_file = self.history_file.replace('.jsonl', '.meta.json')
+        if os.path.exists(meta_file):
+            try:
+                with open(meta_file, 'r', encoding='utf-8') as f:
+                    self.persistent_meta = json.load(f)
+                logger.debug(f"Persistent meta loaded from {meta_file}")
+            except Exception as e:
+                logger.error(f"Failed to load persistent meta: {e}")
+                self.persistent_meta = {}
+        else:
+            self.persistent_meta = {}
+
+    def _save_persistent_meta(self):
+        """将持久化元数据同步到磁盘。"""
+        meta_file = self.history_file.replace('.jsonl', '.meta.json')
+        try:
+            with open(meta_file, 'w', encoding='utf-8') as f:
+                json.dump(self.persistent_meta, f, ensure_ascii=False, indent=4)
+        except Exception as e:
+            logger.error(f"Failed to save persistent meta: {e}")
 
     def add_conversation_message(self, role: str, content: str):
         """
@@ -92,7 +126,7 @@ class ChatSession:
         while len(self.chat_history) > self.max_history_length:
             _ = self.chat_history.pop(0)
 
-    def _write_message(self, message: dict[str, str | float]):
+    def _write_message(self, message: dict[str, Any]):
         """
         将单条消息异步写入磁盘文件。
 
@@ -126,16 +160,37 @@ class ChatSession:
         self.chat_history.append(message)
         self._write_message(message)
 
-    def Update_Metadata_by_Key(self, key: str, value: str | int | float | bool | None):
+    def Update_Metadata_by_Key(
+        self, 
+        key: str, 
+        value: Any, 
+        persistent: bool = False
+    ) -> str:
         """
-        架构方法：更新会话元数据（如状态灯、面包屑等）。
-
+        更新会话元数据（如状态灯、任务进度等）。
+        
         Args:
             key (str): 元数据键。
             value (Any): 元数据值。
+            persistent (bool): 是否持久化到磁盘。
         """
-        # 目前简单记录到日志，实际可对接数据库或 UI 状态机
-        logger.info(f"[Metadata Update] {key} = {value}")
+        if persistent:
+            self.persistent_meta[key] = value
+            self._save_persistent_meta()
+            status = "persistently"
+        else:
+            self.transient_meta[key] = value
+            status = "temporarily"
+            
+        logger.info(f"[Metadata Update] {key} = {value} ({status})")
+        # @zhu, 20260209, [MARK] 返回字符串
+        return f"Metadata '{key}' updated {status}."
+
+    def get_metadata(self) -> dict[str, Any]:
+        """
+        获取合并后的持久化与内存元数据字典。内存态具有更高优先级。
+        """
+        return {**self.persistent_meta, **self.transient_meta}
 
     def _load_conversation_memory_from_file(self):
         """从磁盘加载历史记录到内存。"""
@@ -181,17 +236,27 @@ class ChatSession:
                 f"Failed to load history: {e}"
             )
 
-    def build_prompt(self) -> list[dict[str, str | float]]:
+    def build_prompt(self) -> list[dict[str, Any]]:
         """
         构建发送给 LLM 的完整消息列表。
 
         Returns:
-            list[dict[str, str | float]]: 包含系统提示词和历史记录的消息列表。
+            list[dict[str, Any]]: 包含系统提示词和历史记录的消息列表。
         """
-        # 合并系统提示词
-        full_history: list[dict[str, str | float]] = [
-            cast(dict[str, str | float], self.system_prompt)
+        # 合并当前元数据快照
+        active_meta = self.get_metadata()
+        meta_context = ""
+        if active_meta:
+            meta_json = json.dumps(active_meta, ensure_ascii=False, indent=2)
+            meta_context = f"\n\n[Current Session Metadata Status]:\n{meta_json}"
+
+        # 动态组装系统提示词
+        sys_content = self.system_prompt["content"] + meta_context
+        
+        full_history: list[dict[str, Any]] = [
+            {"role": "system", "content": sys_content}
         ] + self.chat_history
+        
         return full_history
 
     def count_tokens(self, text: str) -> int:

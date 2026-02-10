@@ -35,3 +35,7 @@ test_attachments/
 .agent/
 docs/dialog/
 pyproject.toml
+
+# @Antigravity, 20260210, [ADD]: 忽略临时 git 日志文件
+git_log.txt
+git_status.txt

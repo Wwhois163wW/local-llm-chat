@@ -6,6 +6,7 @@
 # Date: 20260206
 # Version: 0.0.2
 
+from typing import Any
 from dataclasses import dataclass
 
 @dataclass
@@ -38,11 +39,7 @@ class StatsUpdate(Event):
     usage: dict[str, int] | None = None
     # content is inherited and remains ""
 
-@dataclass
-class FileReadRequest(Event):
-    """Signals a request from the LLM to read a file."""
-    path: str = ""
-    # @Antigravity, 20260206, [NEW]: 添加 EchoRequest 事件用于循环验证
+
 @dataclass
 class EchoRequest(Event):
     """Represents a request to echo a message back for loop validation.
@@ -53,3 +50,51 @@ class EchoRequest(Event):
     message: str = ""
     # content is inherited
 
+@dataclass
+class LoadResourceRequest(Event):
+    """Requests basic metadata for a resource (file/web)."""
+    res_type: str = ""
+    source: str = ""
+
+@dataclass
+class ReadResourceRequest(Event):
+    """Requests content slice of a resource. 
+    Source can be a physical path or a Resource ID (RID).
+    """
+    source: str = ""
+    start: int = 1
+    end: int = 100
+
+@dataclass
+class GetSystemInfoRequest(Event):
+    """Requests current system status."""
+    pass
+
+@dataclass
+class GetSessionStatsRequest(Event):
+    """Requests current session token and turn statistics."""
+    pass
+
+@dataclass
+class ListDirRequest(Event):
+    """Requests contents of a directory."""
+    path: str = ""
+
+@dataclass
+class UpdateMetadataRequest(Event):
+    """Requests to update session or persistent metadata."""
+    key: str = ""
+    value: Any = None
+    persistent: bool = False
+
+@dataclass
+class GetMetadataRequest(Event):
+    """Requests a current snapshot of all session and persistent metadata, 
+    optionally filtered by key.
+    """
+    key: str | None = None
+
+@dataclass
+class GetCwdRequest(Event):
+    """Requests the current working directory path."""
+    pass
