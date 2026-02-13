@@ -4,11 +4,12 @@
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
 # Date: 20260206
-# Version: 0.1.1
+# Version: 0.1.2
 
 import re
 import logging
-from typing import Any, Callable, AsyncIterator, AsyncGenerator, Iterable
+from typing import Any, Callable
+from collections.abc import AsyncIterator, AsyncGenerator, Iterable
 from dataclasses import dataclass
 from enum import Enum, auto
 
@@ -18,7 +19,7 @@ from core.events import (
     GetSystemInfoRequest, GetSessionStatsRequest, ListDirRequest,
     GetMetadataRequest, GetCwdRequest, Thought, FinalAnswer,
     SearchTextRequest, FindFilesRequest, FileWriteRequest,
-    SpecialTokenDetected
+    SpecialTokenDetected, ExecuteCommandRequest, MalformedAction
 )
 
 logger = logging.getLogger(__name__)
@@ -73,8 +74,9 @@ class XmlStreamParser:
                     self.state = ParserState.CALLING
                     continue # 立即按新状态处理
                 else:
-                    # 全是普通文本，全吐
-                    yield TextChunk(content=self.buffer)
+                    # 全是普通文本，非空则吐
+                    if self.buffer:
+                        yield TextChunk(content=self.buffer)
                     self.buffer = ""
                     break
             
@@ -100,18 +102,31 @@ class XmlStreamParser:
                     self.state = ParserState.TEXT
                     continue
                 
-                # 安全检查：如果截流 buffer 过长，或者明显不再可能是合法标签，则回退方案
-                # 这里的“贪心”体现为：只要还没看到自闭合或结束符，就先 hold 住
-                # 但如果 buffer 中出现了第二个 '<' 且第一个没被吃掉，说明第一个 '<' 可能是误报
-                if self.buffer.count('<') > 1:
-                    # 将第一个 '<' 之后的内容重新作为一个 chunk 处理，回退当前截流
-                    yield TextChunk(content=self.buffer[0])
+                # @Antigravity, 2026/02/12, [REFINE]: 深度简化。用户明确要求标签内不再支持嵌套 <。
+                # 如果在等待标签闭合时发现了新的 '<'，说明前一个 '<' 并非合法标签起始或发生了严重的格式违规。
+                # 我们不再尝试复杂的引号探测，而是直接将前一个 '<' 判定为“非法/未定义的特殊标记”。
+                
+                # 检查 buffer 中是否出现了第二个 '<'
+                all_indices = [i for i, char in enumerate(self.buffer) if char == '<']
+                if len(all_indices) > 1:
+                    # 将第一个 '<' 转化为 SpecialTokenDetected 事件，以便系统感知到违规
+                    # 这有助于 LLM 在后续交互中被引导回正确格式
+                    yield SpecialTokenDetected(
+                        token="unexpected_lt_inside_tag", 
+                        content=self.buffer[0]
+                    )
+                    # 消耗第一个字符，将状态回退，让第二个 '<' 成为新的起始探测点
                     self.buffer = self.buffer[1:]
-                    self.state = ParserState.TEXT # 尝试重新查找
+                    self.state = ParserState.TEXT
                     continue
                 
-                # 如果 buffer 中含有明显非法字符（针对 XML 标签），也可以提前回退
-                # 暂时保持简单：等待更多内容直到匹配或结束
+                # 安全阈值：如果截流超过 4000 字符还没匹配到标签，强制回退 1 字符防止内存溢出
+                if len(self.buffer) > 4000:
+                    yield TextChunk(content=self.buffer[0])
+                    self.buffer = self.buffer[1:]
+                    self.state = ParserState.TEXT
+                    continue
+
                 break
 
     def flush(self) -> Iterable[Event]:
@@ -121,11 +136,46 @@ class XmlStreamParser:
             self.buffer = ""
         self.state = ParserState.TEXT
 
+# --- 辅助函数：解码与处理 ---
+
+def _strip_markdown_code_delimiters(text: str) -> str:
+    """
+    剥离文本两端的 markdown 代码块语法 (```lang ... ```).
+    """
+    text = text.strip()
+    # 匹配 ```lang\n内容\n``` 或 ```内容```
+    m = re.match(r'^```(?:\w+\n)?(.*?)\n?```$', text, re.DOTALL)
+    if m:
+        return m.group(1)
+    return text
+
+def _create_write_file_event(m: re.Match[str]) -> Any:
+    """
+    处理 write_file 标签。支持属性模式 (group 2) 与主体模式 (group 3).
+    """
+    path = m.group(1)
+    attr_content = m.group(2)
+    body_content = m.group(3)
+    
+    # 优先取主体内容 (Body-style)
+    final_content = ""
+    if body_content is not None:
+        final_content = _strip_markdown_code_delimiters(body_content)
+    elif attr_content is not None:
+        final_content = attr_content
+        
+    return FileWriteRequest(
+        path=path, 
+        content_to_write=final_content, 
+        content=m.group(0)
+    )
+
 # --- 规则定义容器 ---
 _PARSER_RULES: list[ParserRule] = [
     ParserRule(
         name="load_resource",
-        pattern=re.compile(r'<load_resource\s+type="([^"]+)"\s+source="([^"]+)"\s*/>'),
+        # @Antigravity, 2026/02/13, [STRICT]: 回归严格属性顺序，拒绝容错。
+        pattern=re.compile(r'<load_resource\s+type="([^"<]+)"\s+source="([^"<]+)"\s*/>'),
         event_factory=lambda m: LoadResourceRequest(
             res_type=m.group(1), 
             source=m.group(2), 
@@ -135,24 +185,26 @@ _PARSER_RULES: list[ParserRule] = [
     # --- Special Token Interception ---
     ParserRule(
         name="special_token",
-        pattern=re.compile(r'(?:<\|(.*?)\|?|([\w\-\.]+?\|>))', re.DOTALL),
+        # @Antigravity, 2026/02/12, [REF]: 细化特殊 Token 匹配，防止对普通文本（如 |>）过度敏感
+        # 仅匹配格式严格为 <|TOKEN|> 的结构
+        pattern=re.compile(r'<\|(.*?)\|>', re.DOTALL),
         event_factory=lambda m: SpecialTokenDetected(
-            token=m.group(1) or m.group(2) or "unknown", 
+            token=m.group(1), 
             content=m.group(0)
         )
     ),
     ParserRule(
         name="list_dir",
-        pattern=re.compile(r'<list_dir\s+path="([^"]+)"\s*/>'),
+        pattern=re.compile(r'<list_dir\s+path="([^"<]+)"\s*/>'),
         event_factory=lambda m: ListDirRequest(path=m.group(1), content=m.group(0))
     ),
     ParserRule(
         name="update_metadata",
-        pattern=re.compile(r'<update_metadata\s+key="([^"]+)"\s+value="([^"]+)"(?:\s+persistent="(true|false)")?\s*/>'),
+        pattern=re.compile(r'<update_metadata\s+([^>]*?)/>'),
         event_factory=lambda m: UpdateMetadataRequest(
-            key=m.group(1), 
-            value=m.group(2), 
-            persistent=m.group(3) == "true",
+            key=next((x.group(1) for x in [re.search(r'key="([^"<]+)"', m.group(1))] if x), "unknown"), 
+            value=next((x.group(1) for x in [re.search(r'value="([^"<]+)"', m.group(1))] if x), ""), 
+            persistent=re.search(r'persistent="true"', m.group(1)) is not None,
             content=m.group(0)
         )
     ),
@@ -168,12 +220,12 @@ _PARSER_RULES: list[ParserRule] = [
     ),
     ParserRule(
         name="echo",
-        pattern=re.compile(r'<echo message="([^"]+)"\s*/>'),
+        pattern=re.compile(r'<echo message="([^"<]+)"\s*/>'),
         event_factory=lambda m: EchoRequest(message=m.group(1), content=m.group(0))
     ),
     ParserRule(
         name="get_metadata",
-        pattern=re.compile(r'<get_metadata(?:\s+key="([^"]+)")?\s*/>'),
+        pattern=re.compile(r'<get_metadata(?:\s+key="([^"<]+)")?\s*/>'),
         event_factory=lambda m: GetMetadataRequest(
             key=m.group(1) if m.group(1) else None, 
             content=m.group(0)
@@ -181,7 +233,7 @@ _PARSER_RULES: list[ParserRule] = [
     ),
     ParserRule(
         name="read_resource",
-        pattern=re.compile(r'<read_resource\s+source="([^"]+)"\s+start="(-?\d+)"\s+end="(-?\d+)"\s*/>'),
+        pattern=re.compile(r'<read_resource\s+source="([^"<]+)"\s+start="(\d+)"\s+end="(\d+)"\s*/>'),
         event_factory=lambda m: ReadResourceRequest(
             source=m.group(1), 
             start=int(m.group(2)), 
@@ -201,11 +253,6 @@ _PARSER_RULES: list[ParserRule] = [
         event_factory=lambda m: Thought(content=m.group(1))
     ),
     ParserRule(
-        name="action",
-        pattern=re.compile(r'<action>(.*?)</action>', re.DOTALL),
-        event_factory=lambda m: TextChunk(content=m.group(1)) # Action 内层通常是具体的工具标签，这里作为文本透传给下一级解析或直接处理
-    ),
-    ParserRule(
         name="final_answer",
         pattern=re.compile(r'<final_answer>(.*?)</final_answer>', re.DOTALL),
         event_factory=lambda m: FinalAnswer(content=m.group(1))
@@ -218,14 +265,35 @@ _PARSER_RULES: list[ParserRule] = [
     ),
     ParserRule(
         name="find_files",
-        pattern=re.compile(r'<find_files\s+path="([^"]+)"\s+pattern="([^"]+)"\s*/>'),
+        pattern=re.compile(r'<find_files\s+path="([^"<]+)"\s+pattern="([^"<]+)"\s*/>'),
         event_factory=lambda m: FindFilesRequest(path=m.group(1), pattern=m.group(2), content=m.group(0))
     ),
-    # --- Refined Write File (Attr style) ---
+    # --- Refined Write File (Supports Attr and Body style) ---
     ParserRule(
         name="write_file",
-        pattern=re.compile(r'<write_file\s+path="([^"]+)"\s+content_to_write="([^"]+)"\s*/>'),
-        event_factory=lambda m: FileWriteRequest(path=m.group(1), content_to_write=m.group(2), content=m.group(0))
+        # @Antigravity, 2026/02/12, [REF]: 属性模式禁用 < 以触发违规检测逻辑。
+        pattern=re.compile(
+            r'<write_file\s+path="([^"<]+)"(?:(?:\s+content_to_write="([^"<]+)"\s*/>)|(?:\s*>(.*?)</write_file>))', 
+            re.DOTALL
+        ),
+        event_factory=_create_write_file_event
+    ),
+    ParserRule(
+        name="execute_command",
+        pattern=re.compile(r'<execute_command\s+command="([^"<]+)"\s+cwd="([^"<]+)"\s+timeout="(\d+)"\s*/>'),
+        event_factory=lambda m: ExecuteCommandRequest(
+            command=m.group(1), 
+            cwd=m.group(2), 
+            timeout=int(m.group(3)), 
+            content=m.group(0)
+        )
+    ),
+    # @Antigravity, 2026/02/13, [CATCH-ALL]: 拦截任何 XML 风格的非法构造，将其转化为报错事件。
+    # 置于列表最末，确保不干扰合法捕获。
+    ParserRule(
+        name="unrecognized_tag",
+        pattern=re.compile(r'<([a-z_]+)\s+[^>]*?/?>'),
+        event_factory=lambda m: MalformedAction(raw_tag=m.group(0), content=m.group(0))
     )
 ]
 

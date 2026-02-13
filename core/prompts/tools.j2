@@ -1,0 +1,9 @@
+<tools>
+{% for tool in tools %}
+  <tool>
+    <name>{{ tool.name }}</name>
+    <description>{{ tool.description }}</description>
+    <usage>{{ tool.usage }}</usage>
+  </tool>
+{% endfor %}
+</tools>

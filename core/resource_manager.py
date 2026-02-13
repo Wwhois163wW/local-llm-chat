@@ -19,19 +19,28 @@ class ResourceManager:
     def __init__(self, base_dir: str = "."):
         self.base_dir = base_dir
         self.resources: dict[str, dict[str, Any]] = {}
+        # @Antigravity, 2026/02/12, [ADD]: 路径到 RID 的反向映射，用于去重
+        self.source_to_rid: dict[str, str] = {}
         self._counter = 1
         logger.info(f"ResourceManager initialized with base_dir: {base_dir}")
 
     def register_resource(self, resource_type: str, source: str, metadata: dict[str, Any]) -> str:
         """
-        注册一个新资源并生成唯一的 RID。
+        注册一个新资源并生成唯一的 RID。若源已注册，则直接返回已有 RID。
         """
+        # @Antigravity, 2026/02/12, [DEDUPE]: 检查是否已存在
+        if source in self.source_to_rid:
+            rid = self.source_to_rid[source]
+            logger.debug(f"Source '{source}' already registered as {rid}. Skipping.")
+            return rid
+
         rid = f"res_{self._counter}"
         self.resources[rid] = {
             "type": resource_type,
             "source": source,
             "metadata": metadata
         }
+        self.source_to_rid[source] = rid
         self._counter += 1
         logger.info(f"Registered resource {rid}: {resource_type} -> {source}")
         return rid
@@ -66,5 +75,6 @@ class ResourceManager:
     def clear(self):
         """清空所有已加载的资源。"""
         self.resources.clear()
+        self.source_to_rid.clear()
         self._counter = 1
         logger.debug("ResourceManager cache cleared.")

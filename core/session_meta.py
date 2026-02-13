@@ -4,17 +4,31 @@
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
 # Date: 20260210
-# Version: 1.0.0
+# Version: 1.1.0
 
 import time
 import json
 import logging
 import os
+from enum import Enum
 from datetime import datetime
 from typing import Any
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
+
+class SessionMode(str, Enum):
+    """会话运行模式枚举。"""
+    FLUSH = "Flush"
+    REACT = "ReAct"
+    DEBUG = "Debug"
+
+class SessionTask(str, Enum):
+    """会话任务类型枚举。"""
+    GENERAL = "General"
+    RESEARCH = "Research"
+    IMPLEMENTATION = "Implementation"
+    VERIFICATION = "Verification"
 
 class AuditEntry(BaseModel):
     """审计日志条目模型。"""
@@ -27,10 +41,11 @@ class AuditEntry(BaseModel):
 
 class SessionState(BaseModel):
     """会话核心状态模型。"""
-    current_mode: str = "Flush"
-    current_task: str = "General"
+    current_mode: SessionMode = SessionMode.FLUSH # @Antigravity, 20260211, [FIX]: 已根据忠告改为枚举
+    current_task: SessionTask = SessionTask.GENERAL # @Antigravity, 20260211, [FIX]: 已根据忠告改为枚举
     context_summary: str | None = None # @Antigravity, 20260210, [ADD]: 存储对话摘要
     last_action_type: str | None = None # 用于 CRUD 频率限制 (C/U/R)
+    read_whitelist: list[str] = Field(default_factory=list) # @Antigravity, 20260210, [ADD]: 增量授权白名单
     custom: dict[str, Any] = Field(default_factory=dict)
 
 class SessionMetaManager:
@@ -45,12 +60,9 @@ class SessionMetaManager:
         self._initialize_audit_file()
 
     def _initialize_audit_file(self):
-        """确保审计文件存在。"""
-        # @zhu, 20260210, [MARK] jsnol文件似乎不需要预创建,但需要确保目录存在
+        """确保审计文件所在目录存在。"""
+        # @Antigravity, 20260212, [REF]: 仅确保目录存在。jsonl 追加写入时会自动创建文件。
         os.makedirs(os.path.dirname(self.audit_file), exist_ok=True)
-        if not os.path.exists(self.audit_file):
-            with open(self.audit_file, 'w', encoding='utf-8') as f:
-                pass
 
     def _load_state(self) -> SessionState:
         """从磁盘加载持久化状态快照。"""

@@ -3,8 +3,8 @@
 # core/session.py
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
-# Date: 20260206
-# Version: 0.0.4
+# Date: 20260213
+# Version: 0.0.6
 
 import time
 import json
@@ -13,7 +13,8 @@ import configparser
 import tiktoken
 from openai import AsyncOpenAI
 from openai.types.chat import ChatCompletionChunk
-from typing import cast, Any, AsyncIterator
+from typing import cast, Any
+from collections.abc import AsyncIterator
 import os
 
 from core.prompts import AssembledPrompt
@@ -52,11 +53,20 @@ class ChatSession:
             'max_history_length', 
             fallback=10
         )
-        # @Antigravity, 20260210, [ADD]: 压缩阈值配置
-        self.compression_threshold: int = config.getint(
+        # @Antigravity, 2026/02/10, [ADD]: 物理 Context 上限 (n_ctx)
+        self.max_context_tokens: int = config.getint(
             'LLM',
-            'compression_threshold',
-            fallback=8
+            'max_context_tokens',
+            fallback=4096
+        )
+        
+        # @Antigravity, 2026/02/12, [REFINE]: 压缩阈值逻辑重构。
+        # 废弃旧的消息数计数逻辑，改为基于 Token 密度的自检。
+        # 允许从 config 读取静态阈值，如果不提供，则动态设置为窗口的 60%。
+        self.token_compression_threshold: int = config.getint(
+            'LLM',
+            'token_compression_threshold',
+            fallback=int(self.max_context_tokens * 0.6)
         )
         
         self.chat_history: list[dict[str, Any]] = []
@@ -75,6 +85,7 @@ class ChatSession:
                 f"Failed to load tokenizer: {e}"
             )
         
+        self._start_time = time.time()
         self._load_conversation_memory_from_file()
         
         # --- 统一资源管理器 (URM) 初始化 ---
@@ -181,23 +192,88 @@ class ChatSession:
         """获取元数据模型快照。"""
         return self.meta_manager.get_snapshot()
 
+    def should_compress(self) -> bool:
+        """
+        核心判定逻辑：检查当前对话历史（不含 Meta/System）的 Token 密度。
+        返回 True 表示需要触发异步压缩（Summarization）。
+        """
+        history_text = "\n".join([str(m.get('content', '')) for m in self.chat_history])
+        current_tokens = self.count_tokens(history_text)
+        
+        if current_tokens >= self.token_compression_threshold:
+            logger.info(
+                f"[Session] Token density ({current_tokens}) reached "
+                f"threshold ({self.token_compression_threshold}). Requesting summary."
+            )
+            return True
+        return False
+
     def build_prompt(self) -> list[dict[str, Any]]:
-        """构建发送给 LLM 的完整消息列表。"""
-        # @Antigravity, 20260210, [NEW]: 动态组装思维链路与元数据
+        """
+        构建发送给 LLM 的完整消息列表，并执行 Token 级别的滑动窗口保底。
+        """
+        # 1. 组装系统提示词并预留安全空间
         active_meta = self.get_metadata()
         sys_content = AssembledPrompt.build(active_meta)
+        sys_tokens = self.count_tokens(sys_content)
         
-        full_history: list[dict[str, Any]] = [
+        # 保护区：System Prompt 必须存在
+        final_prompt: list[dict[str, Any]] = [
             {"role": "system", "content": sys_content}
-        ] + self.chat_history
+        ]
         
-        return full_history
+        # 2. 动态计算可用历史空间 (给 Assistant 留出 1000 Token 生成余量)
+        available_history_space = self.max_context_tokens - sys_tokens - 1000
+        
+        # 如果 System Prompt 太大（异常），强制压缩历史
+        if available_history_space < 500:
+            logger.warning("System prompt is dangerously large. Truncating history aggressively.")
+            available_history_space = 500
 
-    def count_tokens(self, text: str) -> int:
-        """计算文本 Token。"""
+        # 3. 反向遍历历史记录，填充滑动窗口
+        current_history_tokens = 0
+        valid_history: list[dict[str, Any]] = []
+        
+        for msg in reversed(self.chat_history):
+            msg_tokens = self.count_tokens(msg.get('content', ''))
+            if current_history_tokens + msg_tokens > available_history_space:
+                logger.info(f"[Session] Context limit reached. Truncating older messages.")
+                break
+            valid_history.insert(0, msg)
+            current_history_tokens += msg_tokens
+            
+        final_prompt.extend(valid_history)
+        return final_prompt
+
+    def count_tokens(self, text_or_list: str | list[dict[str, Any]]) -> int:
+        """计算文本或消息列表的 Token 总数。"""
         if not self.tokenizer:
-            return 0
-        return len(self.tokenizer.encode(text))
+            # 降级：估算法
+            if isinstance(text_or_list, str):
+                return len(text_or_list) // 4
+            return sum(len(m.get("content", "")) // 4 for m in text_or_list)
+        
+        if isinstance(text_or_list, str):
+            return len(self.tokenizer.encode(text_or_list))
+        
+        num_tokens = 0
+        for message in text_or_list:
+            num_tokens += 3  # 每条消息的固定开销
+            for value in message.values():
+                num_tokens += len(self.tokenizer.encode(str(value)))
+        num_tokens += 3  # 响应起始开销
+        return num_tokens
+
+    def get_stats(self) -> dict[str, Any]:
+        """获取当前会话的实时统计数据。"""
+        return {
+            "message_count": len(self.chat_history),
+            "max_history_length": self.max_history_length,
+            "total_estimated_tokens": self.count_tokens(self.chat_history),
+            "token_compression_threshold": self.token_compression_threshold,
+            "registered_resources_count": len(self.resource_manager.resources) if hasattr(self, "resource_manager") else 0,
+            "uptime_seconds": int(time.time() - getattr(self, "_start_time", time.time()))
+        }
 
     async def call_llm(self) -> tuple[AsyncIterator[ChatCompletionChunk], int, float]:
         """异步调用 LLM API，返回异步流。"""

@@ -4,17 +4,14 @@
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
 # Date: 20260206
-# Version: 0.0.2
+# Version: 1.2.0
 
 import asyncio
 import logging
 import configparser
 import json
-import os
 from typing import Any, cast
 from dataclasses import asdict
-from openai import AsyncOpenAI
-
 from core.agent import Agent
 from core.session import ChatSession
 from core.events import (
@@ -25,7 +22,10 @@ from core.events import (
     Thought,
     FinalAnswer,
     SpecialTokenDetected,
-    FileWriteRequest
+    FileWriteRequest,
+    Event,
+    ExecuteCommandRequest,
+    MalformedAction
 )
 from infra.background_api import Execute_Task_by_Name
 
@@ -47,7 +47,6 @@ async def consume_events(
         chat_session (ChatSession): 当前对话会话对象。
         config (configparser.ConfigParser): 应用程序配置。
     """
-    # @Antigravity, 20260206, [CLEANUP]: 移除冗余标注，应用架构收官标准
     print(_SECTION_TITLE)
     print(_SECTION_WELCOME)
     
@@ -118,35 +117,51 @@ async def process_turns(
                 elif isinstance(event, TextChunk):
                     print(event.content, end="", flush=True)
                 
-                # [NEW]: 特殊 Token 拦截处理
+                # [NEW]: 特殊 Token 拦截处理 (降噪处理)
                 elif isinstance(event, SpecialTokenDetected):
-                    logger.warning(f"Detected special token: {event.token}")
-                    warning_msg = (
-                        f"[Observation]: 检测到非标准指令格式 '<|{event.token}|>'。 "
-                        "请注意：由于系统安全限制，此类指令已被拦截。请仅使用定义的 XML 标签执行操作。"
-                    )
-                    observations.append(warning_msg)
-                    action_triggered = True # 触发下一轮修正
+                    logger.debug(f"Detected special token: {event.token}")
                 
                 # [轨道 B] 架构动作轨道 (解析流产生的所有非文本、非统计事件)
                 elif not isinstance(event, StatsUpdate):
                     action_triggered = True
-                    # 动态映射：任务名=类名，参数=asdict
-                    task_name: str = type(event).__name__
-                    params: dict[str, Any] = asdict(event)
                     
-                    obs_result = await handle_generic_action(
-                        task_name, 
-                        params, 
-                        session
-                    )
+                    if isinstance(event, MalformedAction):
+                        obs_result = (
+                            f"[Error]: Detected malformed or unrecognized tool call: {event.raw_tag}. "
+                            "Please strictly follow the tool definitions and parameters provided in the prompt."
+                        )
+                    else:
+                        obs_result = await handle_generic_action(
+                            event, 
+                            session
+                        )
+                    
                     if obs_result:
                         observations.append(obs_result)
+                        # @Antigravity, 2026/02/11, [ADD]: Debug 模式下的实时反馈增强
+                        if getattr(agent, "debug_mode", False):
+                            print(f"\n[Debug Observation] 👁️ {obs_result}", flush=True)
             
             print() # 视觉换行
             
-            # 【时序保证】：在 Assistant 消息记录完成后，统一注入观察结果
+            # @Antigravity, 2026/02/12, [SMART]: 语义密度管理。如果 Observation 过长，执行主动信息提取
+            # 以防止注入 ChatSession 后导致物理 Context 崩溃。
+            optimized_observations: list[str] = []
             for obs in observations:
+                if len(obs) > 1000: # 粗略字符预估，超过 1000 字符尝试提取
+                    logger.info(f"[Consumer] Large observation (len={len(obs)}) detected. Extracting key info...")
+                    from core.summarizer import Extract_Key_Info_by_LLM
+                    sem_obs = await Extract_Key_Info_by_LLM(
+                        session.client,
+                        session.summary_model,
+                        obs
+                    )
+                    optimized_observations.append(sem_obs)
+                else:
+                    optimized_observations.append(obs)
+
+            # 【时序保证】：在 Assistant 消息记录完成后，统一注入观察结果
+            for obs in optimized_observations:
                 session.Inject_Tool_Observation(obs)
             
             # 只有当触发了动作且有反馈时，才考虑进入下一轮继续思考
@@ -157,27 +172,26 @@ async def process_turns(
             original_error = str(e)
             is_timeout = "timed out" in original_error.lower() or "timeout" in original_error.lower()
             
-            if is_timeout and turn_count <= 2: # 仅在起始几轮且未超重试限额时补救
+            if is_timeout and turn_count <= 2: # Compensate for transient timeouts
                 logger.warning(f"Turn {turn_count} timed out. Injecting feedback for retry...")
                 retry_msg = (
-                    "[Observation]: 上次推理由于响应时间过长而超时。建议如下：\n"
-                    "1. 如果任务过于复杂，请尝试将其拆分为多个简单的子任务执行。\n"
-                    "2. 如果之前的思考路径太长，请精简逻辑，直接调用最相关的工具。\n"
-                    "3. 请针对当前状态重新进行 <thought> 并执行下一步。"
+                    "[Observation]: The last inference timed out due to long response time. Suggestions:\n"
+                    "1. If the task is too complex, try breaking it into simpler sub-tasks.\n"
+                    "2. If the previous CoT was too long, be more concise and call relevant tools directly.\n"
+                    "3. Please re-evaluate the current state and perform the next step."
                 )
                 session.Inject_Tool_Observation(retry_msg)
-                # @Antigravity, 20260210, [FIX]: 确保 continue 前步进计数器，防止死循环
                 turn_count += 1
                 continue
             
             logger.error(f"Error during turn {turn_count}: {e}", exc_info=True)
             break
 
-    # @Antigravity, 20260210, [NEW]: 对话压缩触发点
-    if len(session.chat_history) >= session.compression_threshold * 2:
-        logger.info("[Consumer] History reached threshold. Triggering summarization...")
+    # @Antigravity, 2026/02/12, [DECOUPLE]: 将阈值计算下沉至 Session 层
+    # 判别逻辑现在完全由 session.should_compress() 负责，不再依赖外部 config
+    if session.should_compress():
+        logger.info("[Consumer] Context density reached threshold. Summarizing...")
         from core.summarizer import Summarize_Conversation_by_LLM
-        # [FIX]: 确保传递的是异步客户端
         summary = await Summarize_Conversation_by_LLM(
             session.client,
             session.summary_model,
@@ -185,23 +199,45 @@ async def process_turns(
         )
         if summary and not summary.startswith("Summary failed"):
             session.Update_Metadata_by_Key("context_summary", summary, persistent=True)
+            # 压缩后清除非持久化的旧历史以释放物理空间
+            # 保留最后 2 条消息以维持交互连贯性
+            if len(session.chat_history) > 2:
+                session.chat_history = session.chat_history[-2:]
+                logger.info("[Consumer] Memory flushed. Kept last 2 messages.")
+
+def Is_Command_Safe_for_AutoRun(command: str) -> bool:
+    """
+    基于用户全局安全规则，识别无需确认即可执行的只读指令。
+    """
+    safe_prefixes = [
+        "ls", "dir", "pwd", "date", "whoami", "hostname",
+        "git status", "git branch", "git log", "git rev-parse",
+        "netsh wlan show", "python --version", "pip --version",
+        "Get-ChildItem", "Get-Item", "Test-Path", "type ", "cat "
+    ]
+    cmd_clean = command.strip().lower()
+    return any(cmd_clean.startswith(p) for p in safe_prefixes)
 
 async def handle_generic_action(
-    task_name: str, 
-    params: dict[str, Any], 
+    event: Event, 
     session: ChatSession
 ) -> str | None:
     """
-    通用动作分发器。
-    引入 CRUD 频率限制：不允许连续执行 Create 动作。
+    语义动作分发器。
+    基于 event.act_type 执行安全决策、审计追踪与任务驱动。
     """
-    print(f"\n[System] ⚙️ Executing {task_name}...")
+    task_name = type(event).__name__
+    params = asdict(event)
+    act_type = getattr(event, "act_type", "Unknown")
+    
+    # @Antigravity, 2026/02/13, [UI]: 降噪重构。在终端使用更紧凑的单行输出，弱化审计噪音。
+    print(f"[System] ⚙️ {task_name} ({act_type})...", end="\r", flush=True)
     
     # 状态预检：频率限制 (Create vs Create)
     last_type = session.meta_manager.state.last_action_type
     
     # --- 架构短路：Core 层元数据直连 (视为 Update 行为) ---
-    if task_name == UpdateMetadataRequest.__name__:
+    if isinstance(event, UpdateMetadataRequest):
         res_msg = session.Update_Metadata_by_Key(
             key=params.get("key", ""),
             value=params.get("value"),
@@ -210,48 +246,88 @@ async def handle_generic_action(
         session.meta_manager.update_state("last_action_type", "Update", context="Internal Logic")
         return res_msg
         
-    if task_name == GetMetadataRequest.__name__:
+    if isinstance(event, GetMetadataRequest):
         session.meta_manager.update_state("last_action_type", "Read", context="Internal Logic")
-        # ... (省略 10 行提取逻辑) ...
-        key = params.get("key")
+        key_path = params.get("key")
         full_meta = session.get_metadata()
-        if key:
-            val = full_meta.get(key)
-            if val is not None: return f"Metadata '{key}' value: {val}"
-            return f"Metadata '{key}' not found."
-        return f"Metadata Snapshot:\n{json.dumps(full_meta, indent=2, ensure_ascii=False)}"
+        
+        if not key_path:
+            return f"Metadata Snapshot:\n{json.dumps(full_meta, indent=2, ensure_ascii=False)}"
+            
+        parts = key_path.replace(":", ".").split(".")
+        current = full_meta
+        for p in parts:
+            if isinstance(current, dict) and p in current:
+                current = current[p]
+            else:
+                return f"[Observation]: Metadata key '{key_path}' not found (missing at segment '{p}')."
+        
+        return f"[Observation]: Metadata '{key_path}' value: {current}"
     
     # --- 转发至基础设施层 ---
-    # [Pre-check for Write]: 我们需要先探测是 C 还是 U (基于路径存在性)
-    if task_name == FileWriteRequest.__name__:
+    # [Pre-check for Command Execution]: 遵循用户全局安全规则，非白名单指令必须手动确认
+    if isinstance(event, ExecuteCommandRequest):
+        cmd_str = params.get("command", "")
+        # @Antigravity, 2026/02/12, [SAFE]: 引入白名单加速
+        if not Is_Command_Safe_for_AutoRun(cmd_str):
+            print(f"\n[Security Alert] AI is requesting to execute a potentially sensitive command:")
+            print(f"Command: {cmd_str}")
+            print(f"CWD: {params.get('cwd', '.')}")
+            
+            user_choice = await asyncio.to_thread(input, "Allow execution? (y/n) > ")
+            if user_choice.lower() != 'y':
+                logger.info(f"User rejected command: {cmd_str}")
+                return f"[Observation]: User rejected the command: {cmd_str}"
+        else:
+            logger.info(f"Auto-running safe command: {cmd_str}")
+
+    # [Cognitive Write Check]: Intent is based on URM cognition
+    if isinstance(event, FileWriteRequest):
         target_path = params.get("path", "")
-        base_dir = "." # 默认工作区
-        full_path = os.path.normpath(os.path.join(base_dir, target_path))
-        is_create = not os.path.exists(full_path)
-        
-        if is_create and last_type == "Create":
+        # @Antigravity, 2026/02/12, [REF]: Use URM to determine C/U
+        resource_record = session.resource_manager.get_resource(target_path)
+        # 修正事件意图：未加载的写一律视为 Create
+        if resource_record is None:
+            event.act_type = "Create"
+            act_type = "Create"
+
+        if act_type == "Create" and last_type == "Create":
             logger.warning("Blocked consecutive Create attempt.")
             return (
-                "[Observation]: Create 被拦截。系统禁止连续执行创建动作。 "
-                "请先执行一次 Read 操作查看当前状态，或进行一段深入的 <thought> 后再尝试创建。"
+                "[Observation]: Create blocked. Consecutive creation is prohibited. "
+                "Please perform a 'Read' (or Load) to verify state or provide deeper <thought> before creating."
             )
-
-    res: dict[str, Any] = await Execute_Task_by_Name(task_name, params, context={"session": session})
+    # @zhu, 20260211, [MARK] 交给后台
+    res: dict[str, Any] = await Execute_Task_by_Name(
+        task_name, 
+        params, 
+        context={"session": session}
+    )
     
+    if not res.get("success") and res.get("error") == "UNCERTAIN_PERMISSION":
+        uncertain_path = res.get("uncertain_path", "Unknown Path")
+        print(f"\n[Permission Request] AI is requesting access to a path outside the workspace:")
+        print(f"Path: {uncertain_path}")
+        
+        user_choice = await asyncio.to_thread(input, "Allow access and add to whitelist? (y/n) > ")
+        if user_choice.lower() == 'y':
+            current_list = list(session.meta_manager.state.read_whitelist)
+            if uncertain_path not in current_list:
+                current_list.append(uncertain_path)
+                session.Update_Metadata_by_Key("read_whitelist", current_list, persistent=True)
+                logger.info(f"Path whitelisted: {uncertain_path}")
+            
+            print(f"[System] Permission granted. Retrying {task_name}...")
+            res = await Execute_Task_by_Name(task_name, params, context={"session": session})
+        else:
+            logger.info(f"User denied access to: {uncertain_path}")
+            return f"[Observation]: Access denied by user for path: {uncertain_path}"
+
     if not res.get("success"):
-        # 即使失败也记录当前尝试的动作类型（如果是写操作）
         return f"[Error]: Execution of '{task_name}' failed: {res.get('error')}"
     
-    # 更新动作追踪
-    actual_type = res.get("action_type")
-    if not actual_type:
-        # 推断映射
-        if task_name in ["ReadResourceRequest", "ListDirRequest", "FindFilesRequest", "SearchTextRequest", "GetSystemInfoRequest"]:
-            actual_type = "Read"
-        elif task_name == "FileWriteRequest":
-            actual_type = "Update" # 兜底值
-            
-    if actual_type:
-        session.meta_manager.update_state("last_action_type", actual_type, context="Action Tracking")
+    # 动作追踪：同步物理操作的真实意图
+    actual_type = res.get("action_type") or act_type
+    session.meta_manager.update_state("last_action_type", actual_type, context="Action Tracking")
     
     return cast(str | None, res.get("result"))

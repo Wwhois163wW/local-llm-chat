@@ -23,7 +23,7 @@ async def run_smoke_test():
     config.add_section('LLM')
     config_path = os.path.join(base_dir, 'config.ini')
     if os.path.exists(config_path):
-        config.read(config_path)
+        config.read(config_path, encoding='utf-8')
 
     # 1. 初始化 Mock 环境
     mock_client = Get_Mock_LLM_Client()

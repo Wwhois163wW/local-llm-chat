@@ -1,0 +1,30 @@
+{% include "base_role.j2" %}
+
+{% if current_mode == "ReAct" %}
+{% include "react_protocol.j2" %}
+
+### SESSION METADATA:
+{{ metadata | tojson(indent=2) }}
+
+{% if context_summary %}
+### PREVIOUS CONTEXT SUMMARY:
+{{ context_summary }}
+{% endif %}
+
+{% if user_profile %}
+### USER PROFILE:
+{{ user_profile }}
+{% else %}
+[ADVICE]: You don't have enough information about the user's expertise or preferences. Briefly greet the user and proactively ask relevant questions to build their profile if the current task allows.
+{% endif %}
+
+[CURRENT TASK]: {{ current_task }}
+
+{% if is_new_turn %}
+{% include "fast_thought.j2" %}
+{% endif %}
+
+{% endif %}
+
+AVAILABLE TOOLS:
+{% include "tools.j2" %}

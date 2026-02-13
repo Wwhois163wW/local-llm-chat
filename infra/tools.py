@@ -4,61 +4,78 @@
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
 # Date: 20260206
-# Version: 1.2.4
+# Version: 1.5.0
 
 import os
 import logging
 import time
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-def _is_path_safe(base_dir: str, target_path: str, level: str = "W") -> bool:
+def _is_path_safe(base_dir: str, target_path: str, level: str = "W", white_list: list[str] | None = None) -> str:
     """
     内部辅助：路径安全决策中心。
-    - level="W" (Write): 强制锁死在 base_dir 及其影子目录。
-    - level="R" (Read): 开放模式，仅拦截系统敏感黑名单。
+    返回值:
+        - "ALLOWED": 允许执行。
+        - "DENIED": 明确禁止。
+        - "UNCERTAIN": 需要动态授权。
     """
     try:
-        abs_base = os.path.abspath(base_dir)
-        abs_target = os.path.abspath(target_path)
+        # 归一化路径
+        abs_base = os.path.normcase(os.path.abspath(base_dir))
+        abs_target = os.path.normcase(os.path.abspath(target_path))
         
-        # 定义敏感黑名单 (针对 Read 级别)
-        # @Antigravity, 2026/02/10, [RULE]: 遵循最小阻碍原则，仅拦截核心系统路径
-        blacklist = [
-            'C:\\Windows', 'C:\\System32', '/etc', '/var', '/root', '/bin', 
-            '/.ssh', '/.gnupg', os.path.expanduser('~/.ssh')
-        ]
+        p_base = Path(abs_base)
+        p_target = Path(abs_target)
         
-        # Write 级别维持严苛校验
-        if level == "W":
-            # 允许工作区或影子路径
-            is_in_workspace = os.path.commonpath([abs_base, abs_target]) == abs_base
-            is_in_staging = ".staging" in abs_target
-            return is_in_workspace or is_in_staging
+        # 只要在工作区根目录下，即视为安全
+        if p_target.is_relative_to(p_base) or p_target == p_base:
+            return "ALLOWED"
             
-        # Read 级别：防君子不防小人，仅拦截黑名单
-        for blocked in blacklist:
-            if abs_target.lower().startswith(blocked.lower()):
-                return False
-        return True # 其他路径均视为可读
-    except Exception:
-        return False
+        # Write 级别：如果不属于工作区，直接禁止（会被重定向到 staging）
+        if level == "W":
+            return "DENIED"
+
+        # Read 级别：检查动态授权白名单
+        if white_list:
+            for item in white_list:
+                try:
+                    p_white = Path(os.path.normcase(os.path.abspath(item)))
+                    if p_target.is_relative_to(p_white) or p_target == p_white:
+                        return "ALLOWED"
+                except Exception:
+                    continue
+        
+        return "UNCERTAIN"
+
+    except Exception as e:
+        logger.error(f"Path safety check error: {e}")
+        return "DENIED"
 
 # @Antigravity, 20260209, [FIX]: 强化路径安全校验，使用 commonpath 避免 Windows 边界匹配 Bug
-def get_file_metadata(base_dir: str, path: str) -> dict:
+# @Antigravity, 2026/02/10, [FIX]: 增强类型提示与 Windows 对齐
+def get_file_metadata(base_dir: str, path: str, white_list: list[str] | None = None) -> dict:
     """
     获取文件详细元数据而不读取全量内容。
     """
-    result = {"success": False, "error": "", "result": {}}
+    result = {"success": False, "error": "", "result": {}, "uncertain_path": None}
     try:
-        target_path = os.path.normpath(os.path.join(base_dir, path))
+        # 统一归一化：abspath + normcase
+        abs_target = os.path.normcase(os.path.abspath(os.path.join(base_dir, path)))
+        target_path = Path(abs_target)
         
-        if not _is_path_safe(base_dir, target_path, level="R"):
-            result["error"] = "Access denied: Path out of bounds or sensitive."
+        check = _is_path_safe(base_dir, abs_target, level="R", white_list=white_list)
+        if check == "DENIED":
+            result["error"] = "Access denied: Path out of bounds."
+            return result
+        elif check == "UNCERTAIN":
+            result["uncertain_path"] = abs_target
+            result["error"] = "UNCERTAIN_PERMISSION"
             return result
             
-        if not os.path.exists(target_path):
-            result["error"] = "File not found."
+        if not target_path.exists():
+            result["error"] = f"File not found: {path}"
             return result
             
         file_stats = os.stat(target_path)
@@ -85,18 +102,24 @@ def read_file(
     max_output_tokens: int, 
     tokenizer,
     start_line: int | None = None,
-    end_line: int | None = None
+    end_line: int | None = None,
+    white_list: list[str] | None = None
 ) -> dict:
     """
     读取文件内容，支持行号切片。
     """
-    result = {"success": False, "error": "", "result": None}
+    result = {"success": False, "error": "", "result": None, "uncertain_path": None}
 
     try:
-        target_path = os.path.normpath(os.path.join(base_dir, path))
+        target_path = Path(base_dir) / path
         
-        if not _is_path_safe(base_dir, target_path, level="R"):
-            result["error"] = "Access denied: Path out of bounds or sensitive."
+        check = _is_path_safe(base_dir, str(target_path), level="R", white_list=white_list)
+        if check == "DENIED":
+            result["error"] = "Access denied: Path out of bounds."
+            return result
+        elif check == "UNCERTAIN":
+            result["uncertain_path"] = str(target_path.resolve())
+            result["error"] = "UNCERTAIN_PERMISSION"
             return result
 
         pass
@@ -143,14 +166,20 @@ def read_file(
         result["error"] = str(e)
         return result
 
-def list_dir(base_dir: str, path: str) -> dict:
-    """列出目录内容。无权限限制。"""
+def list_dir(base_dir: str, path: str, white_list: list[str] | None = None) -> dict:
+    """列出目录内容。"""
     try:
-        # 直接解析路径，不进行 workspace 校验
-        target_path = os.path.normpath(os.path.join(base_dir, path))
+        target_path = Path(base_dir) / path
         
-        if not os.path.exists(target_path):
-             return {"success": False, "error": f"Path not found: {path}"}
+        check = _is_path_safe(base_dir, str(target_path), level="R", white_list=white_list)
+        if check == "DENIED":
+             return {"success": False, "error": "Access denied."}
+        elif check == "UNCERTAIN":
+             return {
+                 "success": False, 
+                 "error": "UNCERTAIN_PERMISSION", 
+                 "uncertain_path": str(target_path.resolve())
+             }
              
         if not os.path.isdir(target_path):
             return {"success": False, "error": f"Not a directory: {path}"}
@@ -167,98 +196,92 @@ def list_dir(base_dir: str, path: str) -> dict:
 
 def write_file(base_dir: str, path: str, content: str) -> dict:
     """
-    分级写入控制 (Tiered CRUD):
-    1. Update (U): 既有文件修改，允许在工作区执行并存底备份。
-    2. Create (C): 新文件创建，强制重定向至 .staging/new/ 且禁止重名覆盖。
+    三段式安全写流程 (Tiered Secure Write):
+    1. 备份 (Backup): 针对已存在于工作区的文件并在修改前存底。
+    2. 写入 (Write): 写入新内容。
+    3. 覆盖/隔离 (Overlay/Isolation): 
+       - 工作区内相对路径 -> 自动覆盖。
+       - 其他路径 -> 重定向至 staging/new 隔离。
     """
     try:
         import html
         import shutil
         decoded_content = html.unescape(content)
         
-        target_path = os.path.normpath(os.path.join(base_dir, path))
-        file_exists = os.path.exists(target_path)
+        base = Path(base_dir).resolve()
+        abs_target = os.path.normcase(os.path.abspath(os.path.join(base_dir, path)))
+        target_path = Path(abs_target)
         
-        # @Antigravity, 20260210, [FIX]: 路径重定向与创建/更新识别
-        is_create = not file_exists
-        action_type = "Create" if is_create else "Update"
-        final_path = target_path # 初始默认值
+        # 判定是否属于工作区 (基于相对路径)
+        is_in_workspace = False
+        try:
+            target_path.relative_to(base)
+            is_in_workspace = True
+        except ValueError:
+            is_in_workspace = False
+
+        action_type = "Update" if target_path.exists() else "Create"
+        final_path: Path
         feedback = ""
 
-        if is_create:
-            # [RULE]: 新文件强制进入影子目录
-            staging_root = os.path.join(base_dir, ".staging", "new")
-            os.makedirs(staging_root, exist_ok=True)
-            
-            # 防止双重嵌套：如果 Agent 已经显式写了 .staging/new/，则提取其实际子路径
-            # 统一使用 normpath 处理，增强鲁棒性
-            norm_path = os.path.normpath(path)
-            if norm_path.startswith(".staging" + os.sep + "new"):
-                # 剥离前缀
-                relative_sub = os.path.relpath(norm_path, ".staging" + os.sep + "new")
-            elif norm_path.startswith(".staging/new"): # 兼容 posix 风格
-                relative_sub = os.path.relpath(norm_path, ".staging/new")
-            else:
-                relative_sub = norm_path
-                
-            # 安全处理子路径（处理冒号与跨目录尝试）
-            safe_subpath = relative_sub.replace(":", "_").replace("..", "__")
-            final_path = os.path.normpath(os.path.join(staging_root, safe_subpath))
-            
-            target_dir = os.path.dirname(final_path)
-            if target_dir:
-                os.makedirs(target_dir, exist_ok=True)
-            
-            # [RULE]: 禁止同名覆盖 (C 级别冲突)
-            if os.path.exists(final_path):
-                return {
-                    "success": False, 
-                    "error": f"Create conflict: File '{path}' already exists in staging. Overwrite via Create is forbidden."
-                }
-            feedback = f"New file created in staging buffer: '{os.path.relpath(final_path, base_dir)}'."
-            logger.info(f"Create redirected: {path} -> {final_path}")
-
-        else: # Update 逻辑
+        # Step 1: 权限与意图分流
+        if action_type == "Update" and is_in_workspace:
+            # 【Update】工作区内：备份 + 原地覆盖
             final_path = target_path
-            feedback = f"Successfully updated '{path}'."
-            is_safe = _is_path_safe(base_dir, target_path)
-            if not is_safe:
-                staging_root = os.path.join(base_dir, ".staging", "external")
-                safe_subpath = path.replace(":", "_").replace("..", "__").lstrip("\\/")
-                final_path = os.path.join(staging_root, safe_subpath)
-                feedback = f"External file update redirected to staging: '.staging/external/{safe_subpath}'."
+            backup_dir = base / "staging" / "backups"
+            backup_dir.mkdir(parents=True, exist_ok=True)
+            ts = int(time.time())
+            shutil.copy2(target_path, backup_dir / f"{target_path.name}.{ts}.write.bak")
+            feedback = f"File updated in workspace. Backup created in staging/backups/."
+        else:
+            # 【Create】或【外部 Update】：强制隔离至 staging/new
+            staging_new = base / "staging" / "new"
+            
+            # 安全清洗：剥离前导斜杠并处理各平台路径部件
+            # 自定义清洗：移除 staging, new, backups 等系统保留字以防止递归
+            p_parts = Path(path.replace("\\", "/")).parts
+            clean_parts = [p for p in p_parts if p.lower() not in ["staging", "new", "backups", "external"]]
+            clean_subpath = Path(*clean_parts)
+            
+            # 处理 Windows 盘符与非法路径
+            final_path = staging_new / str(clean_subpath).replace(":", "_").lstrip("\\/")
+            
+            if action_type == "Create":
+                feedback = f"New file created in staging buffer: 'staging/new/{final_path.relative_to(staging_new)}'."
             else:
-                # [RULE]: 工作区内更新需“存底” (Backup)
-                backup_dir = os.path.join(base_dir, ".staging", "backups")
-                os.makedirs(backup_dir, exist_ok=True)
-                timestamp = int(time.time())
-                backup_name = f"{os.path.basename(path)}.{timestamp}.bak"
-                shutil.copy2(target_path, os.path.join(backup_dir, backup_name))
-                feedback = f"File updated in workspace. Backup saved to '.staging/backups/{backup_name}'."
+                feedback = f"External file update redirected to staging: 'staging/new/{final_path.relative_to(staging_new)}'."
+            
+            # 强化：隔离模式下一律视作 Create
+            action_type = "Create" 
+            logger.info(f"Write redirection (Isolation): {path} -> {final_path}")
 
-        # 执行写入
-        os.makedirs(os.path.dirname(final_path), exist_ok=True)
+        # Step 2: 执行物理写入
+        final_path.parent.mkdir(parents=True, exist_ok=True)
         with open(final_path, 'w', encoding='utf-8') as f:
             f.write(decoded_content)
             
         return {
             "success": True, 
-            "result": feedback or f"Successfully {action_type.lower()}ed {path}",
-            "action_type": action_type # 透传给业务层进行频率限制判定
+            "result": feedback,
+            "action_type": action_type
         }
-        
     except Exception as e:
-        logger.error(f"Write failed: {e}")
+        logger.error(f"Secure write failed: {e}")
         return {"success": False, "error": str(e)}
 
-def search_text(base_dir: str, path: str, query: str) -> dict:
+def search_text(base_dir: str, path: str, query: str, white_list: list[str] | None = None) -> dict:
     """在指定目录下递归搜索文本 (Grep)。"""
     try:
-        target_path = os.path.normpath(os.path.join(base_dir, path))
-        if not _is_path_safe(base_dir, target_path, level="R"):
+        target_path = Path(base_dir) / path
+        
+        check = _is_path_safe(base_dir, str(target_path), level="R", white_list=white_list)
+        if check == "DENIED":
+            return {"success": False, "error": "Access denied."}
+        elif check == "UNCERTAIN":
             return {
                 "success": False, 
-                "error": f"Access denied: Path '{path}' is sensitive or blocked."
+                "error": "UNCERTAIN_PERMISSION", 
+                "uncertain_path": str(target_path.resolve())
             }
 
         # 使用 PowerShell 的 Select-String 或简单的 git grep 逻辑 (如果可用)
@@ -287,15 +310,20 @@ def search_text(base_dir: str, path: str, query: str) -> dict:
     except Exception as e:
         return {"success": False, "error": str(e)}
 
-def find_files(base_dir: str, path: str, pattern: str) -> dict:
+def find_files(base_dir: str, path: str, pattern: str, white_list: list[str] | None = None) -> dict:
     """根据模式搜索文件 (Glob)。"""
     try:
         import fnmatch
-        target_path = os.path.normpath(os.path.join(base_dir, path))
-        if not _is_path_safe(base_dir, target_path, level="R"):
+        target_path = Path(base_dir) / path
+        
+        check = _is_path_safe(base_dir, str(target_path), level="R", white_list=white_list)
+        if check == "DENIED":
+            return {"success": False, "error": "Access denied."}
+        elif check == "UNCERTAIN":
             return {
                 "success": False, 
-                "error": f"Access denied: Path '{path}' is sensitive or blocked."
+                "error": "UNCERTAIN_PERMISSION", 
+                "uncertain_path": str(target_path.resolve())
             }
 
         matches = []
@@ -314,6 +342,50 @@ def find_files(base_dir: str, path: str, pattern: str) -> dict:
             return {"success": True, "result": f"No files matching '{pattern}' found."}
         return {"success": True, "result": "\n".join(matches)}
     except Exception as e:
+        return {"success": False, "error": str(e)}
+
+def execute_command(base_dir: str, command: str, cwd: str = ".", timeout: int = 30) -> dict:
+    """
+    执行系统命令并捕获输出。
+    """
+    import subprocess
+    try:
+        # 确保 cwd 位于工作区内（基本安全检查）
+        target_cwd = os.path.normpath(os.path.join(base_dir, cwd))
+        if not os.path.exists(target_cwd):
+            return {"success": False, "error": f"CWD not found: {cwd}"}
+
+        # 执行指令
+        # @Antigravity, 2026/02/10, [RULE]: 捕获并合并输出流
+        process = subprocess.run(
+            command,
+            cwd=target_cwd,
+            shell=True,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            encoding='utf-8',
+            errors='replace'
+        )
+        
+        stdout = process.stdout or ""
+        stderr = process.stderr or ""
+        
+        result_msg = f"Command executed with exit code {process.returncode}."
+        if stdout:
+            result_msg += f"\nSTDOUT:\n{stdout}"
+        if stderr:
+            result_msg += f"\nSTDERR:\n{stderr}"
+            
+        return {
+            "success": True, 
+            "result": result_msg,
+            "exit_code": process.returncode
+        }
+    except subprocess.TimeoutExpired:
+        return {"success": False, "error": f"Command timed out after {timeout}s."}
+    except Exception as e:
+        logger.error(f"Command execution failed: {e}")
         return {"success": False, "error": str(e)}
 
 def get_system_info() -> str:

@@ -7,9 +7,10 @@ __pycache__/
 *.pyo
 *.pyd
 
-# 日志与输出文件
-logs/
-output/
+# 日志、监控与持久化
+monitoring/
+persistence/
+staging/
 
 # 配置文件 (建议不提交, 除非确定没有敏感信息)
 config.ini
@@ -22,13 +23,9 @@ config.ini
 implementation_plan.md
 
 # 备份文件
-
 *.bak
 
-
-
 # 测试附件
-
 test_attachments/
 
 # @Antigravity, 20260206, [ADD]: 忽略 .agent 和 docs 目录
@@ -39,6 +36,3 @@ pyproject.toml
 # @Antigravity, 20260210, [ADD]: 忽略临时 git 日志文件
 git_log.txt
 git_status.txt
-
-# @Antigravity, 20260210, [ADD]: 忽略影子 Staging 目录
-.staging/

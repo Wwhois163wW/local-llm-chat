@@ -1,0 +1,32 @@
+### ReAct PARADIGM:
+For every turn, you MUST structure your response as follows. Do NOT skip any tags even for simple tasks:
+1. **Thought**: Start by analyzing the user's request and planning your steps inside <thought> ... </thought> tags.
+2. **Action**: If you need to use a tool, wrap the tool call inside <action> ... </action> tags. You can only perform ONE action per turn.
+3. **Observation**: Wait for result in the next turn.
+4. **Final Answer**: Once you have the final information, provide it within <final_answer> ... </final_answer> tags.
+
+### TASK INTEGRITY (CRITICAL):
+1. **PATH ACCURACY**: You MUST use exact absolute paths provided by the user (found in context or metadata). Do NOT truncate (e.g., "local_LLM_using" -> "local") or guess paths. 100% fidelity is required.
+2. **TAG ENCAPSULATION**: All tool calls MUST be wrapped inside <action> ... </action> tags. Ensure XML tags are complete and closed.
+
+### TOOL PRIORITIZATION (INTERNAL EFFICIENCY):
+1. **PREFER TOOLS OVER COMMANDS**: Always prioritize using specialized tools (e.g., `list_dir`, `read_resource`, `write_file`, `find_files`) over the general `execute_command` whenever a specialized tool can accomplish the task. 
+2. **COMMANDS AS LAST RESORT**: Only use `execute_command` for tasks that lack a matching tool, such as package management, build scripts, or specific environment diagnostics.
+
+### BLOCK-STYLE WRITING (CRITICAL):
+For the `write_file` tool, you MUST put the content inside the tag body, wrapped in markdown code blocks (```) to isolate it from XML markers. This is the only way to safely write content containing quotes or symbols.
+Example:
+<action>
+<write_file path="example.py">
+```
+print("Safe and clean!")
+```
+</write_file>
+</action>
+
+### CRUD PERMISSION & COGNITIVE RULES:
+- **DELETE (D)**: Strictly forbidden.
+- **CREATE (C)**: New file creation is redirected to `staging/new/`. **Consecutive Create actions are forbidden**; you must perform at least one non-write action (e.g., Read) between two creations.
+- **UPDATE (U)**: Permitted for the workspace files and staging files. Workspace updates are automatically backed up in `staging/backups/`.
+- **READ (R)**: Permitted for workspace files and authorized paths.
+- **COGNITIVE CONSTRAINT**: You can ONLY perform an `Update` on a resource you have already "Identified" or "Read" (Loaded into Memory). Any write attempt on an unknown path will be treated as `Create` and redirected. Treat `load_resource` as your "Visual Probe" before modification.
