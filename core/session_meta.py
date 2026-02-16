@@ -44,6 +44,7 @@ class SessionState(BaseModel):
     current_mode: SessionMode = SessionMode.FLUSH # @Antigravity, 20260211, [FIX]: 已根据忠告改为枚举
     current_task: SessionTask = SessionTask.GENERAL # @Antigravity, 20260211, [FIX]: 已根据忠告改为枚举
     context_summary: str | None = None # @Antigravity, 20260210, [ADD]: 存储对话摘要
+    active_elements_info: str | None = None # @Antigravity, 20260216, [REF]: 活跃对话要素描述 (Path/URL/Block)
     last_action_type: str | None = None # 用于 CRUD 频率限制 (C/U/R)
     read_whitelist: list[str] = Field(default_factory=list) # @Antigravity, 20260210, [ADD]: 增量授权白名单
     custom: dict[str, Any] = Field(default_factory=dict)

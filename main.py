@@ -3,8 +3,8 @@
 # main.py
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
-# Date: 20260206
-# Version: 1.1.0
+# Date: 20260216
+# Version: 1.3.0
 
 import configparser
 import logging.config
@@ -13,6 +13,7 @@ import os
 import asyncio
 import shutil
 import argparse
+import sys
 
 from infra.logging_setup import get_logging_config
 from infra.llm_client import Get_LLM_Client_by_Config
@@ -82,6 +83,11 @@ async def main():
         help="Path to the configuration file (default: config.ini)"
     )
     parser.add_argument(
+        "-s", "--select",
+        action="store_true",
+        help="Launch Smart Model Selector and quit."
+    )
+    parser.add_argument(
         "-d", "--debug", 
         action="store_true", 
         help="Enable debug mode (overrides config.ini)"
@@ -122,11 +128,17 @@ async def main():
         else os.path.join(base_dir, args.config)
     )
     # @Antigravity, 20260206, [FIX]: 增加对配置读取结果的类型判断与容错
-    # @Antigravity, 2026/02/12, [FIX]: 强制使用 UTF-8 编码以支持中文注释，防止 Windows GBK 冲突
+    # @Antigravity, 2026/02/16, [AUTO-LOAD]: 强制使用 UTF-8 编码以支持中文注释
     config_result = config.read(config_path, encoding='utf-8')
     if not config_result:
         logger.error(f"Failed to read config file from: {config_path}")
         return
+        
+    # [NEW] 路由分发：模型选择模式
+    if args.select:
+        from model_selector import Select_Model_by_CLI
+        await Select_Model_by_CLI(config)
+        sys.exit(0)
     
     logger.info("Application starting up...")
 

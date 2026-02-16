@@ -3,8 +3,8 @@
 # infra/tools.py
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
-# Date: 20260206
-# Version: 1.5.0
+# Date: 2026/02/16
+# Version: 1.6.0
 
 import os
 import logging
@@ -204,61 +204,45 @@ def write_file(base_dir: str, path: str, content: str) -> dict:
        - 其他路径 -> 重定向至 staging/new 隔离。
     """
     try:
-        import html
         import shutil
-        decoded_content = html.unescape(content)
+        # @Antigravity, 2026/02/16, [REF]: 废除 html.unescape，执行原样写入协议
         
         base = Path(base_dir).resolve()
         abs_target = os.path.normcase(os.path.abspath(os.path.join(base_dir, path)))
         target_path = Path(abs_target)
         
-        # 判定是否属于工作区 (基于相对路径)
-        is_in_workspace = False
-        try:
-            target_path.relative_to(base)
-            is_in_workspace = True
-        except ValueError:
-            is_in_workspace = False
-
-        action_type = "Update" if target_path.exists() else "Create"
-        final_path: Path
+        # Step 1: 路径预处理与优先级判定
+        staging_new = base / "staging" / "new"
+        p_parts = Path(path.replace("\\", "/")).parts
+        clean_parts = [p for p in p_parts if p.lower() not in ["staging", "new", "backups", "external"]]
+        clean_subpath = Path(*clean_parts)
+        overlay_path = staging_new / str(clean_subpath).replace(":", "_").lstrip("\\/")
+        
+        action_type: str
         feedback = ""
 
-        # Step 1: 权限与意图分流
-        if action_type == "Update" and is_in_workspace:
-            # 【Update】工作区内：备份 + 原地覆盖
-            final_path = target_path
-            backup_dir = base / "staging" / "backups"
-            backup_dir.mkdir(parents=True, exist_ok=True)
-            ts = int(time.time())
-            shutil.copy2(target_path, backup_dir / f"{target_path.name}.{ts}.write.bak")
-            feedback = f"File updated in workspace. Backup created in staging/backups/."
+        # 优先级规则：
+        # 1. 如果 staging/new 已存在 -> Update
+        # 2. 如果工作区源文件已存在 -> 从源复制到 staging/new -> Update
+        # 3. 否则 -> Create (直接在 staging/new 创建)
+        
+        if overlay_path.exists():
+            action_type = "Update"
+            feedback = f"Updated existing staged file: 'staging/new/{clean_subpath}'."
+        elif target_path.exists():
+            # 自动流转：从物理原件拉取到 Staging 以供修改
+            overlay_path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(target_path, overlay_path)
+            action_type = "Update"
+            feedback = f"Inherited from workspace and updated: 'staging/new/{clean_subpath}'."
         else:
-            # 【Create】或【外部 Update】：强制隔离至 staging/new
-            staging_new = base / "staging" / "new"
-            
-            # 安全清洗：剥离前导斜杠并处理各平台路径部件
-            # 自定义清洗：移除 staging, new, backups 等系统保留字以防止递归
-            p_parts = Path(path.replace("\\", "/")).parts
-            clean_parts = [p for p in p_parts if p.lower() not in ["staging", "new", "backups", "external"]]
-            clean_subpath = Path(*clean_parts)
-            
-            # 处理 Windows 盘符与非法路径
-            final_path = staging_new / str(clean_subpath).replace(":", "_").lstrip("\\/")
-            
-            if action_type == "Create":
-                feedback = f"New file created in staging buffer: 'staging/new/{final_path.relative_to(staging_new)}'."
-            else:
-                feedback = f"External file update redirected to staging: 'staging/new/{final_path.relative_to(staging_new)}'."
-            
-            # 强化：隔离模式下一律视作 Create
-            action_type = "Create" 
-            logger.info(f"Write redirection (Isolation): {path} -> {final_path}")
+            action_type = "Create"
+            feedback = f"Created new file in staging: 'staging/new/{clean_subpath}'."
 
         # Step 2: 执行物理写入
-        final_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(final_path, 'w', encoding='utf-8') as f:
-            f.write(decoded_content)
+        overlay_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(overlay_path, 'w', encoding='utf-8') as f:
+            f.write(content)
             
         return {
             "success": True, 

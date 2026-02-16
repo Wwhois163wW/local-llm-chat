@@ -3,13 +3,16 @@
 # core/consumer.py
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
-# Date: 20260206
-# Version: 1.2.0
+# Date: 20260216
+# Version: 1.3.1
 
 import asyncio
 import logging
 import configparser
 import json
+import os
+import time
+from pathlib import Path
 from typing import Any, cast
 from dataclasses import asdict
 from core.agent import Agent
@@ -87,6 +90,8 @@ async def process_turns(
     """
     turn_count: int = 0
     keep_looping: bool = True
+    # 路径锁定追踪器: {abs_path: last_success_timestamp}
+    cooldown_tracker: dict[str, float] = {}
     
     while keep_looping and turn_count < max_turns:
         turn_count += 1
@@ -133,7 +138,8 @@ async def process_turns(
                     else:
                         obs_result = await handle_generic_action(
                             event, 
-                            session
+                            session,
+                            cooldown_tracker
                         )
                     
                     if obs_result:
@@ -220,7 +226,8 @@ def Is_Command_Safe_for_AutoRun(command: str) -> bool:
 
 async def handle_generic_action(
     event: Event, 
-    session: ChatSession
+    session: ChatSession,
+    cooldown_tracker: dict[str, float]
 ) -> str | None:
     """
     语义动作分发器。
@@ -233,10 +240,8 @@ async def handle_generic_action(
     # @Antigravity, 2026/02/13, [UI]: 降噪重构。在终端使用更紧凑的单行输出，弱化审计噪音。
     print(f"[System] ⚙️ {task_name} ({act_type})...", end="\r", flush=True)
     
-    # 状态预检：频率限制 (Create vs Create)
-    last_type = session.meta_manager.state.last_action_type
+    # @Antigravity, 2026/02/16, [CLEANUP]: 移除已失效的简单动作探测逻辑
     
-    # --- 架构短路：Core 层元数据直连 (视为 Update 行为) ---
     if isinstance(event, UpdateMetadataRequest):
         res_msg = session.Update_Metadata_by_Key(
             key=params.get("key", ""),
@@ -281,28 +286,61 @@ async def handle_generic_action(
         else:
             logger.info(f"Auto-running safe command: {cmd_str}")
 
-    # [Cognitive Write Check]: Intent is based on URM cognition
+    # [Cognitive Write Check]: Intent is based on URM and Staging state
     if isinstance(event, FileWriteRequest):
         target_path = params.get("path", "")
-        # @Antigravity, 2026/02/12, [REF]: Use URM to determine C/U
-        resource_record = session.resource_manager.get_resource(target_path)
-        # 修正事件意图：未加载的写一律视为 Create
-        if resource_record is None:
+        # @Antigravity, 2026/02/16, [REF]: 实现三级核载判定 (Tiered State Resolution)
+        # 1. 检查 Staging 覆盖区 (模拟 tools.py 的清洗逻辑推导 staging 路径)
+        base_dir = session.resource_manager.base_dir
+        abs_path = os.path.normcase(os.path.abspath(os.path.join(base_dir, target_path)))
+        
+        p_parts = Path(target_path.replace("\\", "/")).parts
+        clean_parts = [p for p in p_parts if p.lower() not in ["staging", "new", "backups", "external"]]
+        staging_path = os.path.normcase(os.path.abspath(os.path.join(base_dir, "staging", "new", *clean_parts)))
+        
+        is_update = (
+            os.path.exists(staging_path) or 
+            session.resource_manager.get_resource(target_path) is not None or
+            os.path.exists(abs_path)
+        )
+        
+        if is_update:
+            event.act_type = "Update"
+            act_type = "Update"
+            logger.debug(f"Interception: '{target_path}' resolved as Update (Tiered Match).")
+        else:
             event.act_type = "Create"
             act_type = "Create"
+            logger.debug(f"Interception: '{target_path}' resolved as Create.")
 
-        if act_type == "Create" and last_type == "Create":
-            logger.warning("Blocked consecutive Create attempt.")
-            return (
-                "[Observation]: Create blocked. Consecutive creation is prohibited. "
-                "Please perform a 'Read' (or Load) to verify state or provide deeper <thought> before creating."
-            )
+        if act_type == "Create":
+            abs_path_norm = os.path.normcase(os.path.abspath(target_path))
+            last_time = cooldown_tracker.get(abs_path_norm, 0)
+            if time.time() - last_time < 60:
+                logger.warning(f"Blocked consecutive Create attempt for {abs_path_norm}.")
+                return (
+                    f"[Observation]: Create blocked for '{target_path}'. "
+                    "Consecutive creation of the same file within 60s is prohibited to prevent logic loops. "
+                    "If you intended to UPDATE an existing file, please verify the file exists first."
+                )
+
     # @zhu, 20260211, [MARK] 交给后台
     res: dict[str, Any] = await Execute_Task_by_Name(
         task_name, 
         params, 
         context={"session": session}
     )
+    
+    # 动作追踪：同步物理操作的真实意图与成功状态
+    if res.get("success"):
+        actual_type = res.get("action_type") or act_type
+        session.meta_manager.update_state("last_action_type", actual_type, context="Action Tracking")
+        
+        # 如果是 Create 成功，记录冷却时间
+        if actual_type == "Create" and isinstance(event, FileWriteRequest):
+            abs_path = os.path.normcase(os.path.abspath(params.get("path", "")))
+            cooldown_tracker[abs_path] = time.time()
+            logger.debug(f"Cooldown started for {abs_path}")
     
     if not res.get("success") and res.get("error") == "UNCERTAIN_PERMISSION":
         uncertain_path = res.get("uncertain_path", "Unknown Path")

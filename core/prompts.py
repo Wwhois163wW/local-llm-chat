@@ -6,8 +6,8 @@ from jinja2 import Environment, FileSystemLoader
 # core/prompts.py
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
-# Date: 20260213
-# Version: 2.1.1
+# Date: 20260216
+# Version: 2.2.0
 
 # --- 动态工具注册表 (TOOL_REGISTRY) ---
 # 每个工具包含核心定义与适用角色标签
@@ -15,19 +15,23 @@ from jinja2 import Environment, FileSystemLoader
 TOOL_REGISTRY = [
     {
         "name": "load_resource",
-        "description": "Probes file metadata and creates a proactive backup in staging/backups/. Effectively 'Loads' the file into your cognitive scope for future updates.",
+        "description": "System level tool to probe metadata and create backups. [DEPRECATED for Coder]: Use read_resource for automatic detection and loading.",
         "usage": '<load_resource type="file" source="path/to/file.ext" />',
-        "tags": ["coder", "researcher"]
+        "tags": ["manager"]
     },
     {
         "name": "read_resource",
-        "description": "Reads a slice of a resource. Tip: end='-1' for 100-line preview. Automatically Loads the resource if not already known.",
-        "usage": '<read_resource source="res_1_or_path" start="1" end="100" />',
+        "description": "ULTIMATE ENTRY point for file interaction. Reads a slice of a resource. Tip: end='-1' for bulk preview. Automatically resolves IDs (path_1) and Loads path if unknown.",
+        "usage": '<read_resource source="path_1_or_any_path" start="1" end="100" />',
         "tags": ["coder", "researcher"]
     },
     {
         "name": "write_file",
-        "description": "Writes text to a file. Redirects to staging/new/ if NOT already Loaded/Known. Backs up if updating known workspace files. Put content inside the tag body wrapped in ```.",
+        "description": (
+            "Writes text to a file. Intelligent workflow: Redirects new files to staging/, "
+            "Backs up known files before update. protocol: RAW UNICODE. DO NOT use HTML entities. "
+            "Symbols like <, >, & should be written directly inside the block."
+        ),
         "usage": '<write_file path="filename.ext">\n```\nContent here...\n```\n</write_file>',
         "tags": ["coder"]
     },

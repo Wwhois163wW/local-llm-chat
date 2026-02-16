@@ -52,12 +52,13 @@ def test_prompt_rendering():
         "current_role": "coder",
         "current_task": "Write binary search"
     }
-    print("--- Test Case 5: Dynamic Tooling - Coder ---")
+    print("--- Test Case 5: Dynamic Tooling - Coder (Streamlined) ---")
     prompt_5 = AssembledPrompt.build(meta_coder)
     assert "<name>write_file</name>" in prompt_5
     assert "<name>execute_command</name>" in prompt_5
     assert "<name>get_metadata</name>" not in prompt_5 
-    print("\n[PASS] Case 5 Success (Tools for Coder)\n")
+    assert "<name>load_resource</name>" not in prompt_5 # [NEW]: 确保 load_resource 已对 Coder 隐藏
+    print("\n[PASS] Case 5 Success (Streamlined Tools for Coder)\n")
 
 if __name__ == "__main__":
     try:

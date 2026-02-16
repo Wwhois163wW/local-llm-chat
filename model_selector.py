@@ -64,21 +64,23 @@ async def Benchmark_Model(
             "error": str(e)
         }
 
-async def Main_Process() -> None:
-    """工具主逻辑。"""
+async def Select_Model_by_CLI(config_obj: configparser.ConfigParser | None = None) -> None:
+    """工具主逻辑：智能模型选择。"""
     print("=== Smart Model Switcher for LM Studio ===")
     
-    config = configparser.ConfigParser()
+    config = config_obj
     script_dir = os.path.dirname(
         os.path.abspath(__file__)
     )
     config_path = os.path.join(script_dir, "config.ini")
     
-    if not os.path.exists(config_path):
-        print(f"Error: {config_path} not found.")
-        return
-
-    config.read(config_path, encoding='utf-8')
+    if not config:
+        config = configparser.ConfigParser()
+        if not os.path.exists(config_path):
+            print(f"Error: {config_path} not found.")
+            return
+        config.read(config_path, encoding='utf-8')
+    
     ip = config.get("LLM", "ip", fallback="127.0.0.1")
     port = config.get("LLM", "port", fallback="1234")
     api_key = config.get("LLM", "api_key", fallback="lm-studio")

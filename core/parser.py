@@ -3,8 +3,8 @@
 # core/parser.py
 # Author: ZHU, W. phD
 # License: https://csrs.riken.jp/en/labs/emart/index.html
-# Date: 20260206
-# Version: 0.1.2
+# Date: 20260216
+# Version: 0.2.1
 
 import re
 import logging
@@ -28,6 +28,7 @@ class ParserState(Enum):
     """解析器内部状态枚举。"""
     TEXT = auto()       # 普通文本状态，即时输出
     CALLING = auto()    # 捕获到 '<'，进入受控截流状态
+    OPAQUE = auto()     # 处理大段内容标签（如 write_file），忽略内部特殊符号直至闭合
 
 @dataclass
 class ParserRule:
@@ -45,6 +46,7 @@ class XmlStreamParser:
     buffer: str
     state: ParserState
     tag_start_idx: int
+    opaque_end_tag: str | None
 
     def __init__(self, rules: list[ParserRule]):
         self.rules = rules
@@ -52,6 +54,7 @@ class XmlStreamParser:
         self.state = ParserState.TEXT
         # 记录标签起始位置在 buffer 中的相对索引
         self.tag_start_idx = -1
+        self.opaque_end_tag = None
 
     def parse_chunk(self, content: str) -> Iterable[Event]:
         """
@@ -94,33 +97,39 @@ class XmlStreamParser:
                 
                 if matched_rule and best_match:
                     # 命中标签！
-                    # 1. 产生事件
                     yield matched_rule.event_factory(best_match)
-                    
-                    # 2. 消耗已匹配内容，切回 TEXT 状态
                     self.buffer = self.buffer[best_match.end():]
                     self.state = ParserState.TEXT
                     continue
                 
-                # @Antigravity, 2026/02/12, [REFINE]: 深度简化。用户明确要求标签内不再支持嵌套 <。
-                # 如果在等待标签闭合时发现了新的 '<'，说明前一个 '<' 并非合法标签起始或发生了严重的格式违规。
-                # 我们不再尝试复杂的引号探测，而是直接将前一个 '<' 判定为“非法/未定义的特殊标记”。
-                
-                # 检查 buffer 中是否出现了第二个 '<'
+                # Check for "opaque" tags entry (e.g., <write_file)
+                # ONLY write_file needs isolation to ensure raw writing
+                if self.buffer.startswith("<write_file"):
+                    self.state = ParserState.OPAQUE
+                    self.opaque_end_tag = "</write_file>"
+                    break
+
+                # Original safety for short tags: detect double '<'
                 all_indices = [i for i, char in enumerate(self.buffer) if char == '<']
                 if len(all_indices) > 1:
-                    # 将第一个 '<' 转化为 SpecialTokenDetected 事件，以便系统感知到违规
-                    # 这有助于 LLM 在后续交互中被引导回正确格式
-                    yield SpecialTokenDetected(
-                        token="unexpected_lt_inside_tag", 
-                        content=self.buffer[0]
-                    )
-                    # 消耗第一个字符，将状态回退，让第二个 '<' 成为新的起始探测点
-                    self.buffer = self.buffer[1:]
+                    # Heuristic: If it looks like a comparison (e.g. '< ' or '<数字'), 
+                    # flush the first '<' as text to avoid silent interception.
+                    first_lt_pos = all_indices[0]
+                    next_char = self.buffer[first_lt_pos + 1] if first_lt_pos + 1 < len(self.buffer) else ""
+                    
+                    if next_char.isspace() or next_char.isdigit():
+                        yield TextChunk(content=self.buffer[0:first_lt_pos+1])
+                        self.buffer = self.buffer[first_lt_pos+1:]
+                    else:
+                        yield SpecialTokenDetected(
+                            token="unexpected_lt_inside_tag", 
+                            content=self.buffer[0]
+                        )
+                        self.buffer = self.buffer[1:]
+                    
                     self.state = ParserState.TEXT
                     continue
                 
-                # 安全阈值：如果截流超过 4000 字符还没匹配到标签，强制回退 1 字符防止内存溢出
                 if len(self.buffer) > 4000:
                     yield TextChunk(content=self.buffer[0])
                     self.buffer = self.buffer[1:]
@@ -128,6 +137,43 @@ class XmlStreamParser:
                     continue
 
                 break
+
+            elif self.state == ParserState.OPAQUE:
+                # In OPAQUE mode, we ONLY scan for the explicit end_tag.
+                # Internal '<' are ignored.
+                assert self.opaque_end_tag is not None
+                match = re.search(re.escape(self.opaque_end_tag), self.buffer)
+                if match:
+                    # Once end_tag found, the buffer now contains the full tag.
+                    full_content = self.buffer[:match.end()]
+                    
+                    # Pass the full content back to the rules for standard processing
+                    # We reuse the existing patterns by applying them to this "sealed" buffer section
+                    matched = False
+                    for rule in self.rules:
+                        m = rule.pattern.fullmatch(full_content)
+                        if m:
+                            yield rule.event_factory(m)
+                            matched = True
+                            break
+                    
+                    if not matched:
+                        # Fallback for corrupted opaque tags
+                        yield MalformedAction(raw_tag=full_content, content=full_content)
+
+                    self.buffer = self.buffer[match.end():]
+                    self.state = ParserState.TEXT
+                    self.opaque_end_tag = None
+                    continue
+                else:
+                    # Not found yet, keep buffering.
+                    # Safety limit for huge opaque blocks
+                    if len(self.buffer) > 200000: # 200k chars ~ 150k tokens safety
+                        logger.warning("Opaque buffer exceeded 200k limit. Forcing flush.")
+                        yield TextChunk(content=self.buffer)
+                        self.buffer = ""
+                        self.state = ParserState.TEXT
+                    break
 
     def flush(self) -> Iterable[Event]:
         """流结束时的清理，释放截流 buffer。"""

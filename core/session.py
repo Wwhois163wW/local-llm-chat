@@ -114,10 +114,7 @@ class ChatSession:
     def add_conversation_message(self, role: str, content: str):
         """
         将消息添加到会话历史并持久化。
-
-        Args:
-            role (str): 角色（'user' 或 'assistant'）。
-            content (str): 消息内容。
+        [MIDDLEWARE]: 对话要素拦截器，实现双路（User/Assistant）自动捕获。
         """
         if role not in ['user', 'assistant']:
             logger.warning(
@@ -125,16 +122,33 @@ class ChatSession:
             )
             return
 
-        message: dict[str, str | float] = { 
-            "role": role, 
-            "content": content, 
-            "timestamp": time.time() 
+        message: dict[str, str | float] = {
+            "role": role,
+            "content": content,
+            "timestamp": time.time()
         }
         self._write_message(message)
         self.chat_history.append(message)
-        
-        # @Antigravity, 20260210, [PLAN]: 触发压缩逻辑。由于 process_turns 是异步的，
-        # 这里仅作长度维护，实际摘要触发建议在 Consumer 结束一轮任务后异步执行。
+
+        # @Antigravity, 20260216, [ELEMENT-CAPTURE]: 只要有内容，就尝试捕获并管理别名
+        try:
+            detected_rids = self.resource_manager.probe_elements(content)
+            if detected_rids:
+                descriptions = [
+                    self.resource_manager.get_resource_description(rid)
+                    for rid in detected_rids
+                ]
+                # 记录到元数据：当前活跃要素表
+                self.Update_Metadata_by_Key(
+                    "active_elements_info",
+                    "\n".join(descriptions),
+                    persistent=False
+                )
+                logger.info(f"[Middleware] Captured {len(detected_rids)} elements from {role}.")
+        except Exception as e:
+            logger.error(f"Element capture loop failed: {e}")
+
+        # 维护历史长度
         while len(self.chat_history) > self.max_history_length:
             _ = self.chat_history.pop(0)
 
@@ -179,7 +193,8 @@ class ChatSession:
         persistent: bool = False
     ) -> str:
         """更新会话元数据并记录审计记录。"""
-        # @Antigravity, 2026/2/10, [FIX]: 路由至 Pydantic 审计系统，并透传 persistent
+        print(f"[DEBUG Session] Updating Meta Key: {key} | Value: {value[:30]}...")
+        # @Antigravity, 2026/2/10, [FIX]: 路由至 Pydantic 审计系统
         self.meta_manager.update_state(
             key, 
             value, 

@@ -1,30 +1,30 @@
 {% include "base_role.j2" %}
-
 {% if current_mode == "ReAct" %}
-{% include "react_protocol.j2" %}
-
-### SESSION METADATA:
-{{ metadata | tojson(indent=2) }}
-
-{% if context_summary %}
-### PREVIOUS CONTEXT SUMMARY:
-{{ context_summary }}
+    {% include "react_protocol.j2" %}
+    ### SESSION METADATA:
+    {{ metadata | tojson(indent=2) }}
+    {% if metadata.active_elements_info %}
+        ### CURRENT DIALOGUE ELEMENTS (MIDDLEWARE CAPTURED):
+        The session middleware has automatically captured and assigned aliases to key elements in the current dialogue:
+        {{ metadata.active_elements_info }}
+        [SILENT ELEMENT MANAGEMENT PROTOCOL]:
+        1. **Automatic Capture**: The system has already probed, validated, and loaded the above elements into your context.
+        2. **No Manual Loading**: You do NOT need to call `load_resource` or verify existence for these elements.
+        3. **Direct Interaction**: Use `read_resource` or `write_file` directly using the provided "ID" (e.g., path_1, block_1).
+        4. **Hallucination Recovery**: If you accidentally use a fuzzy ID (e.g., p_1), the system's Resolver will attempt to fix it automatically.
+    {% endif %}
+    ### PREVIOUS CONTEXT SUMMARY:
+    {{ context_summary }}
 {% endif %}
-
 {% if user_profile %}
-### USER PROFILE:
-{{ user_profile }}
+    ### USER PROFILE:
+    {{ user_profile }}
 {% else %}
-[ADVICE]: You don't have enough information about the user's expertise or preferences. Briefly greet the user and proactively ask relevant questions to build their profile if the current task allows.
+    [ADVICE]: You don't have enough information about the user's expertise or preferences. Briefly greet the user and proactively ask relevant questions to build their profile if the current task allows.
 {% endif %}
-
 [CURRENT TASK]: {{ current_task }}
-
 {% if is_new_turn %}
-{% include "fast_thought.j2" %}
+    {% include "fast_thought.j2" %}
 {% endif %}
-
-{% endif %}
-
 AVAILABLE TOOLS:
 {% include "tools.j2" %}

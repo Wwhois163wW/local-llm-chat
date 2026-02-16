@@ -3,9 +3,9 @@
 from __future__ import annotations
 # infra/background_api.py
 # Author: ZHU, W. phD
-# License: https://csrs.riken.jp/en/labs/emart/index.html
-# Date: 20260213
-# Version: 1.4.1
+# License: https://csrs.riken.go.jp/en/labs/emart/index.html
+# Date: 20260216
+# Version: 1.5.1
 
 import logging
 import os
@@ -13,6 +13,7 @@ import shutil
 import time
 import platform
 import sys
+import re
 from pathlib import Path
 from typing import Any, TYPE_CHECKING
 
@@ -32,28 +33,74 @@ def _get_base_anchor(session: ChatSession | None) -> str:
             pass
     return getattr(session.resource_manager, "base_dir", ".") if hasattr(session, "resource_manager") else "."
 
+def _resolve_element_alias(source: str, session: ChatSession | None) -> str:
+    """
+    [FUZZY-RESOLVER]: 解析别名或模糊路径。
+    支持 path_n, url_n, block_n 等分类别名。
+    """
+    if not session or not hasattr(session, "resource_manager"):
+        return source
+        
+    # 1. 尝试直接获取别名
+    res_info = session.resource_manager.get_resource(source)
+    if res_info:
+        logger.info(f"[Resolver] Exact alias match: {source} -> {res_info['content'][:30]}...")
+        return str(res_info["content"])
+        
+    # 2. 尝试纠正 LLM 的幻觉（如将 path_1 写成了 p_1 或简写的 1）
+    s_lower = source.lower()
+    mapping = {
+        'p': 'path_', 'path': 'path_',
+        'b': 'block_', 'block': 'block_',
+        'u': 'url_', 'url': 'url_'
+    }
+    
+    # 提取数字部分
+    numeric_part = re.search(r'\d+', source)
+    if not numeric_part: return source
+    idx = numeric_part.group()
+
+    # 意图引导匹配
+    for prefix, target_cat in mapping.items():
+        if s_lower.startswith(f"{prefix}_") or (s_lower.startswith(prefix) and len(s_lower) > len(prefix) and s_lower[len(prefix)].isdigit()):
+            fuzzy_rid = f"{target_cat}{idx}"
+            fuzzy_res = session.resource_manager.get_resource(fuzzy_rid)
+            if fuzzy_res:
+                logger.warning(f"[Resolver] Intention-based match: {source} -> {fuzzy_rid}")
+                return str(fuzzy_res["content"])
+
+    # 兜底：纯数字或未匹配到明确意图，尝试按默认顺序打捞
+    if source.isdigit():
+        for cat_prefix in ['path_', 'block_', 'url_']:
+            fuzzy_rid = f"{cat_prefix}{idx}"
+            fuzzy_res = session.resource_manager.get_resource(fuzzy_rid)
+            if fuzzy_res:
+                logger.warning(f"[Resolver] Default sequence recovery: {source} -> {fuzzy_rid}")
+                return str(fuzzy_res["content"])
+
+    return source
+
 async def probe_and_load_resource(
     source_path: str, 
-    session_obj: ChatSession | None
+    session_obj: ChatSession | None,
+    category: str = "path"
 ) -> dict[str, Any]:
     """
-    # @Antigravity, 20260213, [REF]: 外部化资源加载逻辑，精简 Execute_Task_by_Name 体积并统一调用入口。
     执行资源探测、主动备份与 URM 注册。
+    [RESOLVER-AWARE]: 深度支持全量要素别名解析。
     """
     if not session_obj or not hasattr(session_obj, "resource_manager"):
-        return {
-            "success": False, 
-            "error": "Internal Error: Session/URM instance missing."
-        }
+        return {"success": False, "error": "Session instance missing."}
         
-    # @Antigravity, 2026/02/12, [CACHE]: 预检查逻辑。如果物理源已存在于 URM，直接复用。
-    if source_path in session_obj.resource_manager.source_to_rid:
-        rid = session_obj.resource_manager.source_to_rid[source_path]
-        logger.info(f"Source '{source_path}' hit existing RID: {rid}. Skipping re-load.")
+    # 优先解析别名
+    source_path = _resolve_element_alias(source_path, session_obj)
+
+    # @Antigravity, 2026/02/12, [CACHE]: 检查现有映射...
+    if source_path in session_obj.resource_manager.content_to_rid:
+        rid = session_obj.resource_manager.content_to_rid[source_path]
         return {
             "success": True, 
             "rid": rid, 
-            "result": f"Resource hit existing ID: {rid}. Re-used metadata."
         }
 
     # @Antigravity, 20260213, [STABLE]: 取消硬编码 ".", 优先基于 history_file 推导绝对锚点
@@ -71,7 +118,7 @@ async def probe_and_load_resource(
             "error": res.get("error") or f"Failed to probe metadata for '{source_path}'."
         }
         
-    # 2. [Safe Probe]: 探测即备份逻辑 (响应用户建议)
+    # 2. [Safe Probe]: 探测即备份逻辑
     try:
         backup_dir = os.path.join(base_anchor, "staging", "backups")
         os.makedirs(backup_dir, exist_ok=True)
@@ -83,17 +130,20 @@ async def probe_and_load_resource(
     except Exception as be:
         logger.warning(f"Proactive backup failed for '{source_path}': {be}")
 
-    # 3. 执行资源管理器注册
+    # 3. 执行资源管理器注册 (使用新参数 category)
     rid = session_obj.resource_manager.register_resource(
-        resource_type="file",
-        source=source_path,
+        category=category,
+        content=source_path,
         metadata=res["result"]
     )
     
     # 4. 认知同步：更新元数据
-    meta_key = f"resource:{rid}"
     meta_val = session_obj.resource_manager.get_resource_description(rid)
-    session_obj.Update_Metadata_by_Key(meta_key, meta_val, persistent=False)
+    # 我们不再使用 detected_resources_info，而是统一累加到 active_elements_info
+    current_elements = session_obj.meta_manager.state.active_elements_info or ""
+    if rid not in current_elements:
+        new_elements = (current_elements + "\n" + meta_val).strip()
+        session_obj.Update_Metadata_by_Key("active_elements_info", new_elements, persistent=False)
     
     return {
         "success": True, 
@@ -124,7 +174,11 @@ async def _handle_read_resource(params: dict, session: ChatSession | None) -> di
     if not resolved_path:
         load_res = await probe_and_load_resource(source, session)
         if not load_res.get("success"):
-            return load_res
+            error_msg = load_res.get("error", "Unknown error")
+            return {
+                "success": False, 
+                "error": f"Auto-load failed for '{source}': {error_msg}. Please check if the path exists or list the directory first."
+            }
         resolved_path = source
 
     from infra.tools import read_file
