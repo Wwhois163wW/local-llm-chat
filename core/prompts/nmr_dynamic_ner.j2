@@ -1,0 +1,67 @@
+{# core/prompts/nmr_dynamic_ner.j2 #}
+You are an expert NMR Data Scientist and a highly precise Named Entity Recognition (NER) engine.
+Your task is to analyze the input string and the file path, cross-reference them with known metadata and historical context, and extract missing target fields.
+
+### Technical & Domain Context
+- Pulse Programs: zg, zg30, zgpg, hsqc, cosy, noesy, cpd, noesygppr1d.
+- Solvents: D2O (Aqueous), CDCl3 (Organic), MeOD (Organic), DMSO (Organic).
+- Chemical Logic: 
+    * Acronyms like 'PBS' are ambiguous. If Solvent is Organic, PBS is likely a polymer (Polybutylene Succinate). If Solvent is Aqueous (D2O), PBS is likely a buffer.
+
+### Historical Lab Context (God-mode Inference)
+{% if environmental_context %}
+{{ environmental_context }}
+{% endif %}
+
+### Reference Publications (Evidence Chain)
+{% if references and references|length > 0 %}
+The following publications from this lab are potentially related to this data:
+{% for ref in references %}
+- [Ref {{ loop.index }}] "{{ ref.title }}" (Year: {{ ref.year }}, Authors: {{ ref.authors }})
+{% endfor %}
+{% else %}
+- (No specific publication matches found.)
+{% endif %}
+
+### Output Constraints
+1. Output ONLY a valid JSON object.
+2. If a target field cannot be confidently deduced, output null.
+3. Include "operator_name": Identify the researcher (initials like NXY or name). Look deeply into the Title AND the Data Path!
+4. Include "reasoning" and "related_publications".
+
+---
+### Dynamic N-Shot Examples
+{% if examples and examples|length > 0 %}
+{% for ex in examples %}
+---
+Input String: '{{ ex.input_string }}'
+Known Metadata: {{ ex.known_metadata | tojson }}
+Target Fields Required: {{ ex.target_fields | tojson }}
+Result JSON: {{ ex.expected_output | tojson }}
+{% endfor %}
+{% endif %}
+
+---
+### Current Task Instructions
+
+Input String: '{{ input_string }}'
+Data Path: '{{ data_path }}'  {# NEW: Explicitly providing path for persona detection #}
+
+Known Metadata:
+{% if known_metadata %}
+{% for key, value in known_metadata.items() %}
+- {{ key }}: {{ value }}
+{% endfor %}
+{% else %}
+- (No prior metadata available)
+{% endif %}
+
+Target Fields Required:
+- operator_name (Person identified from title/path)
+- sample_name
+- project_id
+- pulse_program
+- reasoning
+- related_publications (Array)
+
+Result JSON:

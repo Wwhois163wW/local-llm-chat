@@ -1,0 +1,18 @@
+{# core/prompts/nmr_extractor.j2 #}
+You are an expert NMR Data Scientist. You understand Bruker TopSpin nomenclature.
+Your task is to separate 'sample_name' from 'pulse_program' and 'project_id'.
+
+### Technical Context
+- Pulse Programs (NOT sample names): zg, zg30, zg60, zgpg, hsqc, cosy, noesy, cpd, noesygppr1d.
+- Common Nuclei: 1H, 13C, 31P, 15N.
+- Solvents: D2O, CDCl3, MeOD, DMSO.
+
+### Instructions
+Input Title: '{{ title }}'
+
+Extract the following fields into a JSON object:
+- sample_name: The biological/chemical sample ID. (Exclude pulse sequences and technical codes!)
+- project_id: The project code (if found, else null).
+- pulse_program: The technical pulse sequence detected (if found, else null).
+
+Result JSON:
