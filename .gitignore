@@ -1,4 +1,4 @@
-# Python 虚拟环境
+﻿# Python 虚拟环境
 venv/
 
 # Python 缓存文件
@@ -36,3 +36,9 @@ pyproject.toml
 # @Antigravity, 20260210, [ADD]: 忽略临时 git 日志文件
 git_log.txt
 git_status.txt
+
+# Test and Benchmark outputs
+tests/output/
+*.jsonl
+*.log
+

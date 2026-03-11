@@ -1,0 +1,92 @@
+[
+    {
+        "case_id": "REAL_AUDIT_457",
+        "truth": {
+            "data_path": "\\\\10.64.180.130\\emar-doc\\Work\\Zhu\\database\\01+SolutionNMR\\data\\nmr\\NXY\\457\\pdata",
+            "title": "20240801 PBS M001 10.6mg/0.8ml CDCl3 \\\\10.64.180.130\\emar-doc\\Work\\Zhu\\database\\01+SolutionNMR\\data\\nmr\\NXY\\457",
+            "operator_name": "NXY",
+            "sample_name": "PBS M001",
+            "sample_mass": "10.6mg",
+            "filler": null,
+            "project_id": null,
+            "pulse_program": "jresgpprqf",
+            "solvent": "CDCl3",
+            "acquisition_date": "2024-08-01T16:59:34.637000+09:00",
+            "frequency": 700.1528235,
+            "nucleus_1": "1H"
+        },
+        "ai_reasoning": "'NXY' should be the most close person because '\\\\10.64.180.130\\emar-doc\\Work\\Zhu\\database\\01+SolutionNMR\\data\\nmr\\NXY\\457\\pdata' logic. Batch pattern shows 'PBS M001' as consistent sample base name across all entries. Solvent is CDCl3 (organic), so PBS = Polybutylene Succinate. Sample mass '10.6mg' extracted per knowledge rule."
+    },
+    {
+        "case_id": "REAL_AUDIT_pdata",
+        "truth": {
+            "data_path": "\\\\10.64.180.130\\emar-doc\\Work\\Zhu\\database\\01+SolutionNMR\\data\\nmr\\NXY\\457\\pdata\\1",
+            "title": "20240801 PBS M001 10.6mg/0.8ml CDCl3 \\\\10.64.180.130\\emar-doc\\Work\\Zhu\\database\\01+SolutionNMR\\data\\nmr\\NXY\\457",
+            "operator_name": "NXY",
+            "sample_name": "PBS M001",
+            "sample_mass": "10.6mg",
+            "filler": null,
+            "project_id": null,
+            "pulse_program": "jresgpprqf",
+            "solvent": "CDCl3",
+            "acquisition_date": "2024-08-01T16:59:34.637000+09:00",
+            "frequency": 700.1528235,
+            "nucleus_1": "1H"
+        },
+        "ai_reasoning": "'NXY' should be the most close person because '\\\\10.64.180.130\\emar-doc\\Work\\Zhu\\database\\01+SolutionNMR\\data\\nmr\\NXY\\457\\pdata\\1' logic. Identical to first entry; batch pattern confirms 'PBS M001' as sample base name. Mass and solvent consistent with prior knowledge."
+    },
+    {
+        "case_id": "REAL_AUDIT_456",
+        "truth": {
+            "data_path": "\\\\10.64.180.130\\emar-doc\\Work\\Zhu\\database\\01+SolutionNMR\\data\\nmr\\NXY\\456\\pdata",
+            "title": "20240801 PBS M001 10.6mg/0.8ml CDCl3 \\\\10.64.180.130\\emar-doc\\Work\\Zhu\\database\\01+SolutionNMR\\data\\nmr\\NXY\\456",
+            "operator_name": "NXY",
+            "sample_name": "PBS M001",
+            "sample_mass": "10.6mg",
+            "filler": null,
+            "project_id": null,
+            "pulse_program": "hsqcetgpsisp2.2",
+            "solvent": "CDCl3",
+            "acquisition_date": "2024-08-01T16:23:20.685000+09:00",
+            "frequency": 700.1528235,
+            "nucleus_1": "1H"
+        },
+        "ai_reasoning": "'NXY' should be the most close person because '\\\\10.64.180.130\\emar-doc\\Work\\Zhu\\database\\01+SolutionNMR\\data\\nmr\\NXY\\456\\pdata' logic. Batch pattern confirms 'PBS M001' as sample base name. Solvent CDCl3 implies polymer PBS. Mass '10.6mg' extracted per rule."
+    },
+    {
+        "case_id": "REAL_AUDIT_pdata",
+        "truth": {
+            "data_path": "\\\\10.64.180.130\\emar-doc\\Work\\Zhu\\database\\01+SolutionNMR\\data\\nmr\\NXY\\456\\pdata\\1",
+            "title": "20240801 PBS M001 10.6mg/0.8ml CDCl3 \\\\10.64.180.130\\emar-doc\\Work\\Zhu\\database\\01+SolutionNMR\\data\\nmr\\NXY\\456",
+            "operator_name": "NXY",
+            "sample_name": "PBS M001",
+            "sample_mass": "10.6mg",
+            "filler": null,
+            "project_id": null,
+            "pulse_program": "hsqcetgpsisp2.2",
+            "solvent": "CDCl3",
+            "acquisition_date": "2024-08-01T16:23:20.685000+09:00",
+            "frequency": 700.1528235,
+            "nucleus_1": "1H"
+        },
+        "ai_reasoning": "'NXY' should be the most close person because '\\\\10.64.180.130\\emar-doc\\Work\\Zhu\\database\\01+SolutionNMR\\data\\nmr\\NXY\\456\\pdata\\1' logic. Identical to third entry; batch pattern confirms sample base name. Mass and solvent consistent with prior knowledge."
+    },
+    {
+        "case_id": "REAL_AUDIT_455",
+        "truth": {
+            "data_path": "\\\\10.64.180.130\\emar-doc\\Work\\Zhu\\database\\01+SolutionNMR\\data\\nmr\\NXY\\455\\pdata",
+            "title": "20240801 PBS M001 10.6mg/0.8ml CDCl3 \\\\10.64.180.130\\emar-doc\\Work\\Zhu\\database\\01+SolutionNMR\\data\\nmr\\NXY\\455",
+            "operator_name": "NXY",
+            "sample_name": "PBS M001",
+            "sample_mass": "10.6mg",
+            "filler": null,
+            "project_id": null,
+            "pulse_program": "zgpr",
+            "solvent": "CDCl3",
+            "acquisition_date": "2024-08-01T12:20:28.032000+09:00",
+            "frequency": 700.1528235,
+            "nucleus_1": "1H"
+        },
+        "ai_reasoning": "'NXY' should be the most close person because '\\\\10.64.180.130\\emar-doc\\Work\\Zhu\\database\\01+SolutionNMR\\data\\nmr\\NXY\\455\\pdata' logic. Batch pattern confirms 'PBS M001' as sample base name. Solvent CDCl3 implies polymer PBS. Mass '10.6mg' extracted per rule."
+    }
+]

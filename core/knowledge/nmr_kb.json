@@ -1,0 +1,17 @@
+﻿{
+    "solid_state_nmr": {
+        "keywords": ["almina", "al2o3", "rotor", "mas", "cpmas"],
+        "fact": "Alumina (Al2O3) or Almina is a common filler/spacer used in solid-state NMR rotors to balance or fill the volume. It is NOT the sample itself. When detected, extract it into 'filler' field and keep 'sample_name' clean.",
+        "logic_priority": "high"
+    },
+    "pbs_ambiguity": {
+        "keywords": ["pbs"],
+        "fact": "PBS is highly ambiguous. IF solvent is organic (CDCl3, DMSO, MeOD), PBS = Polybutylene Succinate (a polymer). IF solvent is aqueous (D2O), PBS = Phosphate-Buffered Saline (a buffer). Check solvent before deciding.",
+        "logic_priority": "critical"
+    },
+    "sample_mass_pattern": {
+        "keywords": ["mg", "ug", "gram"],
+        "fact": "Numerical values followed by 'mg', 'ug', or 'g' (e.g., 58.4mg) represent the sample mass. This must be separated into the 'sample_mass' field and NOT included in the 'sample_name'.",
+        "logic_priority": "standard"
+    }
+}

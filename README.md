@@ -40,3 +40,10 @@ python main.py
 ---
 
 *Copyright (c) 2026 ZHU, W. phD. Licensed under RIKEN EmArt Lab.*
+
+## 3. NMR Enrichment (Night Shift)
+This project now supports automated NMR metadata enrichment using v3 Batch Inference.
+### Deployment:
+1. Copy config.example.ini to config.ini.
+2. Set db_path to your local catalog.db and pi_url to your LLM endpoint.
+3. Run python automation/night_shift_enricher.py for batch processing.
