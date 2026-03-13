@@ -33,9 +33,19 @@ async def main():
     # 4. Setup Pipeline
     pipeline = EnrichmentPipeline(persona, kb, extractor)
     
-    # 5. Run Studio
+    # 5. Handshake (Pre-heat Model for LMStudio)
+    logging.info("Waking up LLM (LMStudio Handshake)...")
+    try:
+        # 简单尝试获取模型列表作为握手
+        _ = await client.models.list()
+        logging.info("Handshake successful. Waiting 3s for resource allocation...")
+        await asyncio.sleep(3)
+    except Exception as e:
+        logging.warning(f"Handshake failed or timed out: {e}. Model might still be cold.")
+    
+    # 6. Run Studio
     studio = PromptStudio(pipeline)
-    await studio.Benchmark_Pipeline(r'tests\benchmarks\static\benchmark_dataset.json', limit=300)
+    await studio.Benchmark_Pipeline(r'tests\benchmarks\static\benchmark_dataset.json', limit=20)
 
 if __name__ == "__main__":
     asyncio.run(main())

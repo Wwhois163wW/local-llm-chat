@@ -39,20 +39,17 @@ class EnrichmentPipeline:
         # 1. Chunking
         chunks = self.Chunk_Records(raw_records)
         enriched_all = []
+        MAX_BATCH_SIZE = 5 # 适配 8k Context 与 Flash Attention，恢复工业级吞吐量
         
         for chunk in chunks:
-            # 2. Context Assembly (The Heart of the Soul)
-            # 这是一个简化的上下文组装器，未来可接入更复杂的知识匹配
-            # 假设我们通过某种方式拉取了文献 (暂时 Mock 或通过外部库注入)
+            # 2. Context Assembly
             mock_pubs = [Publication(title="NMR studies of Alumina", year="2024")]
-            
-            # 提取操作员和年份
             sample_rec = chunk.records[0]
             op = sample_rec.known_metadata.get('operator', 'ZHU')
-            year = "2024" # Default for now
+            year = "2024"
             
             persona = self.persona_agent.Synthesize_Persona(op, year, mock_pubs)
-            facts = self.kb_agent.Match_Facts([sample_rec.title, sample_rec.ai_pulse_program or ""])
+            facts = self.kb_agent.Match_Facts([r.title for r in chunk.records[:1]])
             
             chunk.context = ContextBundle(
                 persona=persona,
@@ -60,12 +57,21 @@ class EnrichmentPipeline:
                 references=mock_pubs
             )
             
-            # 3. LLM Extraction (Through Infra Adapter)
-            try:
-                processed_chunk_records = await self.extractor_agent.Extract_Batch(chunk)
-                enriched_all.extend(processed_chunk_records)
-            except Exception as e:
-                logging.error(f"Pipeline failed at chunk {chunk.directory_path}: {e}")
-                enriched_all.extend(chunk.records) # Fallback to original
+            # 3. LLM Extraction with Sub-batching
+            all_records_in_chunk = chunk.records
+            for i in range(0, len(all_records_in_chunk), MAX_BATCH_SIZE):
+                sub_records = all_records_in_chunk[i:i + MAX_BATCH_SIZE]
+                sub_chunk = DataChunk(
+                    directory_path=chunk.directory_path,
+                    records=sub_records,
+                    context=chunk.context
+                )
+                
+                try:
+                    processed_sub_records = await self.extractor_agent.Extract_Batch(sub_chunk)
+                    enriched_all.extend(processed_sub_records)
+                except Exception as e:
+                    logging.error(f"Sub-batch extraction failed in {chunk.directory_path}: {e}")
+                    enriched_all.extend(sub_records) # Fallback
                 
         return enriched_all

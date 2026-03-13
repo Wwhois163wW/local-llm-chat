@@ -9,7 +9,7 @@ class GeneralEvaluator:
     """通用评分器：计算预测结果与金标准之间的字段匹配率。"""
     
     @staticmethod
-    def Calculate_Field_Accuracy(truth: dict[str, Any], pred: dict[str, Any]) -> dict[str, float]:
+    def Calculate_Field_Accuracy(truth: dict[str, Any], pred: dict[str, Any]) -> dict[str, Any]:
         """计算严格匹配分。"""
         if not pred:
             return {"accuracy": 0.0, "hits": 0, "total": len(truth)}

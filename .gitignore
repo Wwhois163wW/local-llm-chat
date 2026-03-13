@@ -42,6 +42,50 @@ tests/output/
 output/
 logs/
 .pytest_cache/
+# Python 虚拟环境
+venv/
+
+# Python 缓存文件
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 日志、监控与持久化
+monitoring/
+persistence/
+staging/
+
+# 配置文件 (建议不提交, 除非确定没有敏感信息)
+config.ini
+
+# IDE/编辑器特定文件
+.vscode/
+.idea/
+
+# 开发计划与临时文档
+implementation_plan.md
+
+# 备份文件
+*.bak
+
+# 测试附件
+test_attachments/
+
+# @Antigravity, 20260206, [ADD]: 忽略 .agent 和 docs 目录
+.agent/
+docs/dialog/
+pyproject.toml
+
+# @Antigravity, 20260210, [ADD]: 忽略临时 git 日志文件
+git_log.txt
+git_status.txt
+
+# Test and Benchmark outputs
+tests/output/
+output/
+logs/
+.pytest_cache/
 *.jsonl
 *.log
 *.txt
@@ -50,3 +94,6 @@ logs/
 
 # Dynamic benchmark data (Environment-specific, not tracked)
 tests/benchmarks/dynamic/
+
+# Production-grade Technical Reports (Isolated from repository)
+# reports/

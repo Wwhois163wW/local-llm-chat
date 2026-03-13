@@ -6,7 +6,9 @@
 
 import json
 import logging
-from typing import List
+import time
+from typing import List, Dict, Any
+from typing_extensions import override
 from openai import AsyncOpenAI
 from core.interfaces.agent_interfaces import INMRExtractor
 from core.models.nmr_models import DataChunk, NMRRecord
@@ -45,17 +47,32 @@ class NMRExtractorAdapter(INMRExtractor):
 
         # 3. Request LLM
         logging.info(f"Extracting batch of {len(chunk.records)} via LLM...")
+        
+        start_time = time.time()
         try:
             resp = await self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
                 temperature=0.0
             )
-            content = resp.choices[0].message.content
+            latency = time.time() - start_time
+            content = resp.choices[0].message.content or ""
+            usage = resp.usage
+            
+            # 记录指标到日志
+            metrics = {
+                "latency": latency,
+                "input_tokens": usage.prompt_tokens if usage else 0,
+                "output_tokens": usage.completion_tokens if usage else 0,
+                "total_tokens": usage.total_tokens if usage else 0
+            }
+            logging.info(f"LLM Metrics: {metrics}")
             
             # 4. Parse JSON Array
-            if '```json' in content: content = content.split('```json')[1].split('```')[0].strip()
-            elif '```' in content: content = content.split('```')[1].split('```')[0].strip()
+            if '```json' in content: 
+                content = content.split('```json')[1].split('```')[0].strip()
+            elif '```' in content: 
+                content = content.split('```')[1].split('```')[0].strip()
             
             results = json.loads(content)
             
@@ -71,6 +88,8 @@ class NMRExtractorAdapter(INMRExtractor):
                     record.ai_pulse_program = res.get('pulse_program')
                     record.ai_filler = res.get('filler')
                     record.ai_reasoning = res.get('reasoning')
+                    # 临时存储性能指标在第一个记录中，或者扩展接口
+                    record.known_metadata['_metrics'] = metrics
                     
             return chunk.records
             

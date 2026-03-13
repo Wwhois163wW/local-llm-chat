@@ -137,4 +137,7 @@ def Get_Batch_NMR_Prompt(records: List[Dict],
         template = env.get_template("nmr_ner/" + nmr_ner.get_active_template_name())
         prompt_text = template.render(batch_data=cleaned_records, knowledge_fragments=knowledge_fragments, examples=STATIC_N_SHOT_EXAMPLES)
         return [{"role": "system", "content": "You are a senior NMR data scientist. Output JSON array."}, {"role": "user", "content": prompt_text}]
-    except Exception as e: return [{"role": "user", "content": f"Extract batch: {len(records)}"}]
+    except Exception as e:
+        import traceback
+        logging.error(f"Prompt Template Rendering Failed: {e}\n{traceback.format_exc()}")
+        return [{"role": "user", "content": f"Extract batch: {len(records)}"}]

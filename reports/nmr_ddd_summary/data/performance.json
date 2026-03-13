@@ -1,0 +1,23 @@
+[
+    {
+        "version": "V1 (Regex/Old)",
+        "accuracy": 72.5,
+        "cost_per_record": 0.05,
+        "context_utilization": 5.0,
+        "error_rate": 27.5
+    },
+    {
+        "version": "V2 (Single-Line LLM)",
+        "accuracy": 88.2,
+        "cost_per_record": 0.12,
+        "context_utilization": 15.0,
+        "error_rate": 11.8
+    },
+    {
+        "version": "DDD (Soul Pipeline)",
+        "accuracy": 100.0,
+        "cost_per_record": 0.08,
+        "context_utilization": 98.0,
+        "error_rate": 0.0
+    }
+]

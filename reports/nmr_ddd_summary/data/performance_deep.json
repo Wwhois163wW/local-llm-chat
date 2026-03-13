@@ -1,0 +1,50 @@
+{
+    "V1 (Legacy)": {
+        "accuracy": {
+            "Key": 72.3,
+            "Target": 58.0,
+            "Global": 45.4
+        },
+        "efficiency": {
+            "Latency": 8.5,
+            "Throughput": 0.117,
+            "Total_Tokens": 470
+        }
+    },
+    "V2 (Na\u00efve LLM)": {
+        "accuracy": {
+            "Key": 82.0,
+            "Target": 74.5,
+            "Global": 65.2
+        },
+        "efficiency": {
+            "Latency": 12.1,
+            "Throughput": 0.082,
+            "Total_Tokens": 740
+        }
+    },
+    "V3 (Standard: 4k/T0.7)": {
+        "accuracy": {
+            "Key": 98.5,
+            "Target": 94.2,
+            "Global": 91.4
+        },
+        "efficiency": {
+            "Latency": 15.3,
+            "Throughput": 0.065,
+            "Total_Tokens": 1014
+        }
+    },
+    "V3 (Optimized: 8k/T0.1/Flash)": {
+        "accuracy": {
+            "Key": 100.0,
+            "Target": 100.0,
+            "Global": 100.0
+        },
+        "efficiency": {
+            "Latency": 7.9,
+            "Throughput": 0.13,
+            "Total_Tokens": 3243
+        }
+    }
+}
