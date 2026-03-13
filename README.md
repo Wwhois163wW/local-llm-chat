@@ -41,9 +41,17 @@ python main.py
 
 *Copyright (c) 2026 ZHU, W. phD. Licensed under RIKEN EmArt Lab.*
 
-## 3. NMR Enrichment (Night Shift)
-This project now supports automated NMR metadata enrichment using v3 Batch Inference.
-### Deployment:
-1. Copy config.example.ini to config.ini.
-2. Set db_path to your local catalog.db and pi_url to your LLM endpoint.
-3. Run python automation/night_shift_enricher.py for batch processing.
+## 3. NMR 元数据增强 (Soul-First Pipeline)
+本项目现支持基于 **DDD (Domain-Driven Design)** 架构的自动化 NMR 元数据增强。通过“画像驱动”与“知识注入”技术，在批量处理中实现极致的提取精度。
+
+### 部署与配置 (Deployment):
+1. **统一配置**: 复制 `config.example.ini` 为 `config.ini`。
+    - `[LLM]`: 配置本地 LLM 的 `ip` 与 `port`。
+    - `[NMR]`: 配置模型名称 `model_name` 以及选填的 `db_path`。
+2. **灵魂库 (Knowledge)**: 确保 `core/knowledge/nmr_kb.json` 与 `publications_index.json` 存在于对应目录。
+3. **运行跑分/生产**:
+    - **Benchmark**: 运行 `python run_ddd_benchmark.py`。
+    - **生产逻辑**: 由 `application/pipeline.py` 的 `EnrichmentPipeline` 编排。
+
+### 接口集成:
+外部系统仅需对接 `EnrichmentPipeline`。通过注入 Infrastructure 层的适配器与领域层的服务逻辑，实现业务逻辑与技术实现的彻底解耦。

@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*- 
 # local-llm-chat/core/processor.py
 # Author: ZHU, W. phD
@@ -82,7 +82,7 @@ STATIC_N_SHOT_EXAMPLES = [
         "data_path": "\\\\10.64.180.130\\emar-doc\\Work\\Zhu\\database\\02+ssNMR\\data\\nmr\\NXY\\457\\pdata",
         "known_metadata": {"operator": None, "solvent": "Plasma"},
         "expected_output": {
-            "id": "\\\\10.64.180.130\\emar-doc\\Work\\Zhu\\database\\02+ssNMR\\data\\nmr\\NXY\\457\\pdata",
+            "id": "CASE_SAMPLE_001",
             "operator_name": "NXY",
             "sample_base_name": "cmj-177-192-2",
             "sample_mass": "58.4mg",
@@ -104,7 +104,9 @@ def Get_NMR_Extraction_Prompt(input_string: str, data_path: str = "", known_meta
         return [{"role": "system", "content": "You are a professional NMR data scientist. Output JSON only."}, {"role": "user", "content": prompt_text}]
     except: return [{"role": "user", "content": f"Extract: {input_string}"}]
 
-def Get_Batch_NMR_Prompt(records: List[Dict], knowledge_db_path: str = r"local-llm-chat\core\knowledge\nmr_kb.json") -> List[Dict[str, str]]:
+def Get_Batch_NMR_Prompt(records: List[Dict], 
+                       knowledge_db_path: str = r"core\knowledge\nmr_kb.json",
+                       external_context: str = "") -> List[Dict[str, str]]:
     template_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "prompts")
     env = Environment(loader=FileSystemLoader(template_dir))
     knowledge_fragments = []
@@ -113,7 +115,12 @@ def Get_Batch_NMR_Prompt(records: List[Dict], knowledge_db_path: str = r"local-l
             kb = json.load(f)
             batch_text = " ".join([r.get('title', '') for r in records]).lower()
             for key, entry in kb.items():
-                if any(k in batch_text for k in entry['keywords']): knowledge_fragments.append({"key": key, "fact": entry['fact']})
+                if any(k in batch_text for k in entry['keywords']): 
+                    knowledge_fragments.append({"key": key, "fact": entry['fact']})
+    
+    # 注入外部灵魂上下文 (Persona 等)
+    if external_context:
+        knowledge_fragments.append({"key": "Domain_Context", "fact": external_context})
     
     cleaned_records = []
     for r in records:
